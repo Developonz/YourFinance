@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/mobile_navigation"
+    app:startDestination="@+id/navigation_transactions">
+
+    <fragment
+        android:id="@+id/navigation_transactions"
+        android:name="com.example.yourfinance.view.TransactionsFragment"
+        android:label="@string/title_transactions"
+        tools:layout="@layout/fragment_transactions" />
+
+    <fragment
+        android:id="@+id/navigation_calendar"
+        android:name="com.example.yourfinance.view.CalendarFragment"
+        android:label="@string/title_calendar"
+        tools:layout="@layout/fragment_statistic" />
+
+
+    <fragment
+        android:id="@+id/navigation_statistic"
+        android:name="com.example.yourfinance.view.StatisticFragment"
+        android:label="@string/title_statistic"
+        tools:layout="@layout/fragment_wallet" />
+
+    <fragment
+        android:id="@+id/navigation_wallet"
+        android:name="com.example.yourfinance.view.WalletFragment"
+        android:label="@string/title_wallet"
+        tools:layout="@layout/fragment_transactions" />
+</navigation>
