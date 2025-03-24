@@ -26,22 +26,31 @@ import java.time.LocalTime
     ]
 )
 data class Transfer (
-    @PrimaryKey(autoGenerate = true)
-    override val id: Long = 0,
     override var type: TransactionType,
     override var balance: Double,
-
-    private var _note: String = "",
+    var moneyAccFromID: Long,
+    var moneyAccToID: Long,
     override var date: LocalDate = LocalDate.now(),
     override var time: LocalTime = LocalTime.now(),
-
-    var moneyAccFromID: Long,
-    var moneyAccToID: Long
-) : Transaction(id, type, balance, _note, date, time) {
+    @PrimaryKey(autoGenerate = true)
+    override val id: Long = 0
+) : Transaction(id, type, balance, date, time) {
 
     @ColumnInfo(name = "note")
-    override var note = getUpperFirstChar(_note)
+    override var note = ""
         set(value) {
             field = getUpperFirstChar(value)
         }
+
+    constructor(
+        note: String,
+        type: TransactionType,
+        balance: Double,
+        date: LocalDate = LocalDate.now(),
+        time: LocalTime = LocalTime.now(),
+        moneyAccFromID: Long,
+        moneyAccToID: Long
+    ) : this (type, balance, moneyAccFromID, moneyAccToID, date, time) {
+        this.note = getUpperFirstChar(note)
+    }
 }

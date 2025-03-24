@@ -7,9 +7,9 @@ abstract class Transaction(
     open val id: Long,
     open var type: TransactionType,
     open var balance: Double,
-    open var note: String = "",
     open var date: LocalDate = LocalDate.now(),
-    open var time: LocalTime = LocalTime.now()
+    open var time: LocalTime = LocalTime.now(),
+    open var note: String = ""
 ) {
 
     enum class TransactionType {

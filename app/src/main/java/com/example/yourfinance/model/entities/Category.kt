@@ -7,10 +7,9 @@ import com.example.yourfinance.utils.StringHelper.Companion.getUpperFirstChar
 
 @Entity
 data class Category(
+    val categoryType: CategoryType,
     @PrimaryKey(autoGenerate = true)
-    val id: Long = 0,
-    private var _title: String = "",
-    val categoryType: CategoryType
+    val id: Long = 0
 ) {
 
     enum class CategoryType {
@@ -19,8 +18,13 @@ data class Category(
     }
 
     @ColumnInfo(name = "title")
-    var title = getUpperFirstChar(_title)
+    var title = ""
         set(value) {
             field = getUpperFirstChar(value)
         }
+
+    constructor(title: String, type: CategoryType) : this(type) {
+        this.title = getUpperFirstChar(title)
+    }
 }
+
