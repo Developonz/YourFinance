@@ -46,10 +46,10 @@ data class Payment(
         note: String,
         type: TransactionType,
         balance: Double,
+        moneyAccID: Long,
+        categoryID: Long,
         date: LocalDate = LocalDate.now(),
         time: LocalTime = LocalTime.now(),
-        moneyAccID: Long,
-        categoryID: Long
     ) : this (type, balance, moneyAccID, categoryID, date, time) {
         this.note = getUpperFirstChar(note)
     }

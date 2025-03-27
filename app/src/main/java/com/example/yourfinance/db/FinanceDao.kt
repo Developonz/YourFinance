@@ -1,5 +1,6 @@
 package com.example.yourfinance.db
 
+import androidx.lifecycle.LiveData
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
@@ -13,22 +14,23 @@ import com.example.yourfinance.model.pojo.FullPayment
 
 @Dao
 abstract class FinanceDao {
-
+    @Transaction
     @Insert
     abstract fun insertPaymentTransaction(trans: Payment)
-
+    @Transaction
     @Insert
     abstract fun insertTransferTransaction(trans: Transfer)
-
+    @Transaction
     @Insert
     abstract fun insertAccount(acc: MoneyAccount)
-
+    @Transaction
     @Insert
     abstract fun insertCategory(category: Category)
 
     @Transaction
     @Query("SELECT * FROM Payment")
-    abstract fun getAllPayment() : List<FullPayment>
+    abstract fun getAllPayment(): LiveData<List<FullPayment>>
+
 
     @Transaction
     @Query("SELECT * FROM Transfer")

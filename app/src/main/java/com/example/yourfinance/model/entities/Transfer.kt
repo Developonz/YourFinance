@@ -46,10 +46,10 @@ data class Transfer (
         note: String,
         type: TransactionType,
         balance: Double,
+        moneyAccFromID: Long,
+        moneyAccToID: Long,
         date: LocalDate = LocalDate.now(),
         time: LocalTime = LocalTime.now(),
-        moneyAccFromID: Long,
-        moneyAccToID: Long
     ) : this (type, balance, moneyAccFromID, moneyAccToID, date, time) {
         this.note = getUpperFirstChar(note)
     }
