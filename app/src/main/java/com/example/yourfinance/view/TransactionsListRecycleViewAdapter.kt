@@ -11,10 +11,13 @@ import com.example.yourfinance.databinding.TransactionItemBinding
 import com.example.yourfinance.model.Transaction
 import com.example.yourfinance.model.Transactions
 import com.example.yourfinance.model.entities.Payment
+import com.example.yourfinance.model.entities.Transfer
 import com.example.yourfinance.model.pojo.FullPayment
 import com.example.yourfinance.model.pojo.FullTransfer
+import java.text.NumberFormat
+import java.util.Locale
 
-class TransactionsListRecycleViewAdapter(var transactions: List<Transactions>) : RecyclerView.Adapter<RecyclerView.ViewHolder>(){
+class TransactionsListRecycleViewAdapter(var transactions: List<Transaction>) : RecyclerView.Adapter<RecyclerView.ViewHolder>(){
     companion object {
         const val HEADER = 0
         const val TRANSACTION = 1
@@ -38,7 +41,7 @@ class TransactionsListRecycleViewAdapter(var transactions: List<Transactions>) :
 
 
 
-    fun updateData(newTransactions: List<Transactions>) {
+    fun updateData(newTransactions: List<Transaction>) {
         transactions = newTransactions
         notifyDataSetChanged()
     }
@@ -69,42 +72,38 @@ class TransactionsListRecycleViewAdapter(var transactions: List<Transactions>) :
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         if (holder is TransactionViewHolder) {
             val transaction = transactions[position]
+
             holder.title.text = when (transaction) {
-                is FullPayment -> {
-                    if (transaction.payment.note.isNotEmpty()) transaction.payment.note
+                is Payment -> {
+                    if (transaction.note.isNotEmpty()) transaction.note
                     else transaction.category.title
                 }
-                is FullTransfer -> {
-                    if (transaction.transfer.note.isNotEmpty()) transaction.transfer.note
+                is Transfer -> {
+                    if (transaction.note.isNotEmpty()) transaction.note
                     else "Перевод"
                 }
                 else -> ""
             }
             holder.account.text = when (transaction) {
-                is FullPayment -> {
+                is Payment -> {
                     if (transaction.moneyAcc.title.isNotEmpty()) transaction.moneyAcc.title
                     else "Неизвестно"
                 }
-                is FullTransfer -> {
+                is Transfer -> {
                     if (transaction.moneyAccFrom.title.isNotEmpty() && transaction.moneyAccTo.title.isNotEmpty()) transaction.moneyAccFrom.title + " -> " + transaction.moneyAccTo.title
                     else "Неизвестно"
                 }
                 else -> "Неизвестно"
             }
 
-            holder.price.text = when (transaction) {
-                is FullPayment -> {
-                    transaction.payment.balance.toString()
-                }
-                is FullTransfer -> {
-                    transaction.transfer.balance.toString()
-                }
-                else -> "X руб."
-            }
+            val formatter = NumberFormat.getCurrencyInstance(Locale.getDefault())
+            holder.price.text = formatter.format(transaction.balance)
+
+
 
             val color = when (transaction) {
-                is FullPayment -> {
-                    if (transaction.payment.type == Transaction.TransactionType.income) Color.GREEN
+                is Payment -> {
+                    if (transaction.type == Transaction.TransactionType.income) Color.GREEN
                     else Color.RED
                 }
                 else ->Color.BLACK
@@ -112,11 +111,11 @@ class TransactionsListRecycleViewAdapter(var transactions: List<Transactions>) :
             holder.price.setTextColor(color)
 
             holder.time.text = when (transaction) {
-                is FullPayment -> {
-                    transaction.payment.time.toString()
+                is Payment -> {
+                    transaction.time.toString()
                 }
-                is FullTransfer -> {
-                    transaction.transfer.time.toString()
+                is Transfer -> {
+                    transaction.time.toString()
                 }
                 else -> "hh:mm"
             }

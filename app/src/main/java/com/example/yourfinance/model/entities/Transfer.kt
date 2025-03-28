@@ -3,6 +3,7 @@ package com.example.yourfinance.model.entities
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
+import androidx.room.Ignore
 import androidx.room.PrimaryKey
 import com.example.yourfinance.model.Transaction
 import com.example.yourfinance.utils.StringHelper.Companion.getUpperFirstChar
@@ -41,6 +42,12 @@ data class Transfer (
         set(value) {
             field = getUpperFirstChar(value)
         }
+
+    @Ignore
+    lateinit var moneyAccFrom: MoneyAccount
+
+    @Ignore
+    lateinit var moneyAccTo: MoneyAccount
 
     constructor(
         note: String,

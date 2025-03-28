@@ -3,6 +3,7 @@ package com.example.yourfinance.model.entities
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
+import androidx.room.Ignore
 import androidx.room.PrimaryKey
 import com.example.yourfinance.model.Transaction
 import com.example.yourfinance.utils.StringHelper.Companion.getUpperFirstChar
@@ -41,6 +42,12 @@ data class Payment(
         set(value) {
             field = getUpperFirstChar(value)
         }
+
+    @Ignore
+    lateinit var category: Category
+
+    @Ignore
+    lateinit var moneyAcc: MoneyAccount
 
     constructor(
         note: String,

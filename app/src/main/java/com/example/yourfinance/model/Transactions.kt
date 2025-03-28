@@ -1,5 +1,5 @@
 package com.example.yourfinance.model
 
 abstract class Transactions {
-    abstract fun getTransactionId() : Long
+    abstract fun getTransaction() : Transaction
 }

@@ -2,6 +2,7 @@ package com.example.yourfinance.model.pojo
 
 import androidx.room.Embedded
 import androidx.room.Relation
+import com.example.yourfinance.model.Transaction
 import com.example.yourfinance.model.Transactions
 import com.example.yourfinance.model.entities.MoneyAccount
 import com.example.yourfinance.model.entities.Transfer
@@ -19,8 +20,4 @@ data class FullTransfer(
         entityColumn = "id"
     )
     val moneyAccTo: MoneyAccount
-) : Transactions() {
-    override fun getTransactionId(): Long {
-        return transfer.id
-    }
-}
+)
