@@ -6,7 +6,7 @@ plugins {
 
 android {
     namespace = "com.example.yourfinance"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.example.yourfinance"
@@ -43,6 +43,7 @@ dependencies {
     implementation(libs.room.runtime)
     ksp(libs.room.compiler)
     implementation(libs.circleimageview)
+    implementation(libs.recyclerview)
 
 
 

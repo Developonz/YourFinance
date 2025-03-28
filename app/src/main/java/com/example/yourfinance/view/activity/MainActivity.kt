@@ -1,22 +1,16 @@
-package com.example.yourfinance
+package com.example.yourfinance.view.activity
 
 import android.os.Bundle
-import android.util.Log
-import android.view.View
 import androidx.activity.viewModels
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import androidx.appcompat.app.AppCompatActivity
-import androidx.fragment.app.activityViewModels
-import androidx.lifecycle.ViewModelProvider
-import androidx.navigation.NavOptions
 import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.NavigationUI
 import androidx.navigation.ui.setupActionBarWithNavController
-import androidx.navigation.ui.setupWithNavController
-import androidx.room.Room
+import com.example.yourfinance.MainApplication
+import com.example.yourfinance.R
 import com.example.yourfinance.databinding.ActivityMainBinding
-import com.example.yourfinance.db.FinanceDataBase
 import com.example.yourfinance.model.Transaction
 import com.example.yourfinance.model.entities.Category
 import com.example.yourfinance.model.entities.MoneyAccount
@@ -45,7 +39,10 @@ class MainActivity : AppCompatActivity() {
         // Настраиваем ActionBar
         val appBarConfiguration = AppBarConfiguration(
             setOf(
-                R.id.navigation_transactions, R.id.navigation_calendar, R.id.navigation_statistic, R.id.navigation_wallet
+                R.id.navigation_transactions,
+                R.id.navigation_calendar,
+                R.id.navigation_statistic,
+                R.id.navigation_wallet
             )
         )
         setupActionBarWithNavController(navController, appBarConfiguration)

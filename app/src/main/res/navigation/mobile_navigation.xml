@@ -7,26 +7,31 @@
 
     <fragment
         android:id="@+id/navigation_transactions"
-        android:name="com.example.yourfinance.view.TransactionsFragment"
+        android:name="com.example.yourfinance.view.fragments.TransactionsFragment"
         android:label="@string/title_transactions"
-        tools:layout="@layout/fragment_transactions" />
+        tools:layout="@layout/fragment_transactions" >
+        <argument
+            android:name="restoreState"
+            app:argType="boolean"
+            android:defaultValue="true"/>
+    </fragment>
 
     <fragment
         android:id="@+id/navigation_calendar"
-        android:name="com.example.yourfinance.view.CalendarFragment"
+        android:name="com.example.yourfinance.view.fragments.CalendarFragment"
         android:label="@string/title_calendar"
         tools:layout="@layout/fragment_statistic" />
 
 
     <fragment
         android:id="@+id/navigation_statistic"
-        android:name="com.example.yourfinance.view.StatisticFragment"
+        android:name="com.example.yourfinance.view.fragments.StatisticFragment"
         android:label="@string/title_statistic"
         tools:layout="@layout/fragment_wallet" />
 
     <fragment
         android:id="@+id/navigation_wallet"
-        android:name="com.example.yourfinance.view.WalletFragment"
+        android:name="com.example.yourfinance.view.fragments.WalletFragment"
         android:label="@string/title_wallet"
         tools:layout="@layout/fragment_transactions" />
 </navigation>

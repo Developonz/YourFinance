@@ -15,7 +15,7 @@ navigationUiKtx = "2.6.0"
 room = "2.6.1"
 ksp = "1.9.24-1.0.20"
 circleimageview = "3.1.0"
-
+recyclerview = "1.4.0"
 
 
 [libraries]
@@ -33,6 +33,7 @@ androidx-navigation-ui-ktx = { group = "androidx.navigation", name = "navigation
 room-runtime = { module = "androidx.room:room-runtime", version.ref = "room" }
 room-compiler = { module = "androidx.room:room-compiler", version.ref = "room" }
 circleimageview = { module = "de.hdodenhof:circleimageview", version.ref = "circleimageview" }
+recyclerview = { module = "androidx.recyclerview:recyclerview" , version.ref = "recyclerview" }
 
 
 [plugins]

@@ -1,4 +1,4 @@
-package com.example.yourfinance.view
+package com.example.yourfinance.view.fragments
 
 import android.os.Bundle
 import android.view.LayoutInflater
