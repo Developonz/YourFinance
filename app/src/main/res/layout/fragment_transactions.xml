@@ -4,69 +4,101 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".view.fragments.TransactionsFragment"
-    android:orientation="vertical">
+    android:orientation="vertical"
+
+    tools:context=".view.fragments.TransactionsFragment">
 
     <LinearLayout
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:background="#010143"
+        android:gravity="center"
         android:orientation="horizontal"
-        android:layout_gravity="center"
-        android:layout_marginVertical="20dp" >
+        android:paddingVertical="25dp">
+
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginEnd="35dp">
+            android:layout_marginEnd="35dp"
+            android:background="@drawable/round_back"
+            android:gravity="center"
+            android:padding="15dp"
+            android:orientation="horizontal">
+
             <ImageView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:src="@drawable/ic_up_arrow"
-                android:minHeight="48dp"
-                android:minWidth="48dp"
-                android:layout_marginEnd="5dp"/>
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_marginEnd="5dp"
+                android:src="@drawable/ic_up_arrow" />
+
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:gravity="center"
                 android:orientation="vertical">
+
                 <TextView
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/income" />
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:minHeight="24dp"
+                    android:text="@string/income"
+                    android:textSize="16sp" />
+
                 <TextView
+                    android:id="@+id/income_balance"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/expense" />
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:minHeight="24dp"
+                    android:text="5000"
+                    android:textSize="12sp" />
             </LinearLayout>
         </LinearLayout>
+
         <LinearLayout
-            android:layout_height="wrap_content"
             android:layout_width="wrap_content"
-            android:orientation="horizontal" >
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:background="@drawable/round_back"
+            android:padding="15dp"
+            android:orientation="horizontal">
+
             <ImageView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:src="@drawable/ic_down_arrow"
-                android:minHeight="48dp"
-                android:minWidth="48dp"
-                android:layout_marginEnd="5dp"/>
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_marginEnd="5dp"
+                android:src="@drawable/ic_down_arrow" />
+
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:gravity="center"
                 android:orientation="vertical">
+
                 <TextView
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/expense" />
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:minHeight="24dp"
+                    android:text="@string/expense"
+                    android:textSize="16sp" />
+
                 <TextView
+                    android:id="@+id/expense_balance"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/income" />
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:minHeight="24dp"
+                    android:text="500"
+                    android:textSize="12sp" />
             </LinearLayout>
 
-            </LinearLayout>
-
-
+        </LinearLayout>
     </LinearLayout>
 
     <androidx.recyclerview.widget.RecyclerView

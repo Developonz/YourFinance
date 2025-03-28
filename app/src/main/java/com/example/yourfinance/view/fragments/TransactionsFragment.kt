@@ -12,6 +12,7 @@ import com.example.yourfinance.model.Transaction
 import com.example.yourfinance.model.TransactionListItem
 import com.example.yourfinance.model.adapters.TransactionsRecyclerViewListAdapter
 import com.example.yourfinance.model.entities.Payment
+import com.example.yourfinance.utils.StringHelper.Companion.getMoneyStr
 import com.example.yourfinance.viewmodel.TransactionsViewModel
 
 
@@ -49,10 +50,15 @@ class TransactionsFragment : Fragment() {
 
             val items = mutableListOf<TransactionListItem>()
 
+            var income = 0.0
+            var expense = 0.0
+
             groupedTransactions.forEach { (date, transactions) ->
                 // Вычисляем баланс для группы транзакций этого дня:
                 val balance = transactions.filterIsInstance<Payment>()
                     .sumOf { if (it.type == Transaction.TransactionType.income) it.balance else -it.balance }
+
+
 
                 // Добавляем заголовок с датой и балансом
                 items.add(TransactionListItem.Header(date, balance))
@@ -62,6 +68,17 @@ class TransactionsFragment : Fragment() {
                     items.add(TransactionListItem.TransactionItem(transaction))
                 }
             }
+
+            list.filterIsInstance<Payment>().forEach({
+                if (it.type == Transaction.TransactionType.income) {
+                    income += it.balance
+                } else {
+                    expense += it.balance
+                }
+            })
+
+            binding.incomeBalance.text = getMoneyStr(income)
+            binding.expenseBalance.text = getMoneyStr(expense)
 
             items.add(TransactionListItem.EmptyItem)
             adapter.submitList(items)

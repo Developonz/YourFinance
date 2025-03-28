@@ -3,13 +3,16 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:orientation="horizontal">
+    android:orientation="horizontal"
+    android:background="@color/blue"
+    android:paddingHorizontal="20dp"
+    android:paddingVertical="5dp">
 
 
     <de.hdodenhof.circleimageview.CircleImageView
         android:layout_width="48dp"
         android:layout_height="48dp"
-        android:src="@drawable/ic_calendar"
+        android:src="@drawable/ic_up_arrow"
         app:civ_border_width="2dp"
         app:civ_border_color="#FF000000"
         app:civ_border_overlay="true" />
@@ -18,6 +21,7 @@
         android:layout_width="match_parent"
         android:layout_height="48dp"
         android:orientation="vertical"
+        android:layout_marginStart="5dp"
         android:gravity="center_vertical">
 
         <LinearLayout

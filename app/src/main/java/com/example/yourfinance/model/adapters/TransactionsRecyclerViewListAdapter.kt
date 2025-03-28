@@ -13,6 +13,7 @@ import com.example.yourfinance.model.Transaction
 import com.example.yourfinance.model.entities.Payment
 import com.example.yourfinance.model.entities.Transfer
 import com.example.yourfinance.model.TransactionListItem
+import com.example.yourfinance.utils.StringHelper.Companion.getMoneyStr
 import java.text.NumberFormat
 import java.time.format.DateTimeFormatter
 import java.util.Locale
@@ -66,8 +67,7 @@ class TransactionsRecyclerViewListAdapter : ListAdapter<TransactionListItem, Rec
             binding.dayOfMounth.text = header.date.dayOfMonth.toString()
             binding.dayOfWeek.text = header.date.dayOfWeek.getDisplayName(java.time.format.TextStyle.FULL, Locale("ru"))
             binding.mounth.text = header.date.format(DateTimeFormatter.ofPattern("LLLL yyyy", Locale("ru")))
-            val formatter = NumberFormat.getCurrencyInstance(Locale.getDefault())
-            binding.balance.text = formatter.format(header.balance)
+            binding.balance.text = getMoneyStr(header.balance)
         }
     }
 
@@ -87,8 +87,7 @@ class TransactionsRecyclerViewListAdapter : ListAdapter<TransactionListItem, Rec
                     "${transaction.moneyAccFrom.title} -> ${transaction.moneyAccTo.title}" else "Неизвестно"
                 else -> "Неизвестно"
             }
-            val formatter = NumberFormat.getCurrencyInstance(Locale.getDefault())
-            binding.price.text = formatter.format(transaction.balance)
+            binding.price.text = getMoneyStr(transaction.balance)
             val color = when (transaction) {
                 is Payment -> if (transaction.type == Transaction.TransactionType.income) Color.GREEN else Color.RED
                 else -> Color.BLACK

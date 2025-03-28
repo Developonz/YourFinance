@@ -43,7 +43,7 @@ dependencies {
     implementation(libs.room.runtime)
     ksp(libs.room.compiler)
     implementation(libs.circleimageview)
-    implementation(libs.recyclerview)
+//    implementation(libs.recyclerview)
 
 
 
