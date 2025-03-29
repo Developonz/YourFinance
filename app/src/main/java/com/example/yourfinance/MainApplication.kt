@@ -2,8 +2,8 @@ package com.example.yourfinance
 
 import android.app.Application
 import androidx.room.Room
-import com.example.yourfinance.db.FinanceDataBase
-import com.example.yourfinance.model.FinanceRepository
+import com.example.yourfinance.store.db.FinanceDataBase
+import com.example.yourfinance.store.FinanceRepository
 
 
 class MainApplication : Application() {

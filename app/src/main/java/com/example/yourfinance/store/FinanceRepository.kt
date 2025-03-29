@@ -1,8 +1,8 @@
-package com.example.yourfinance.model
+package com.example.yourfinance.store
 
 import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import com.example.yourfinance.db.FinanceDao
+import com.example.yourfinance.model.Transaction
+import com.example.yourfinance.store.db.FinanceDao
 import com.example.yourfinance.model.entities.Category
 import com.example.yourfinance.model.entities.MoneyAccount
 import com.example.yourfinance.model.entities.Payment

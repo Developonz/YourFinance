@@ -15,7 +15,7 @@ import com.example.yourfinance.model.Transaction
 import com.example.yourfinance.model.entities.Category
 import com.example.yourfinance.model.entities.MoneyAccount
 import com.example.yourfinance.model.entities.Payment
-import com.example.yourfinance.viewmodel.TransactionsViewModel
+import com.example.yourfinance.store.viewmodel.TransactionsViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch

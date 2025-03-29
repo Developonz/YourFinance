@@ -13,7 +13,7 @@ import com.example.yourfinance.model.TransactionListItem
 import com.example.yourfinance.model.adapters.TransactionsRecyclerViewListAdapter
 import com.example.yourfinance.model.entities.Payment
 import com.example.yourfinance.utils.StringHelper.Companion.getMoneyStr
-import com.example.yourfinance.viewmodel.TransactionsViewModel
+import com.example.yourfinance.store.viewmodel.TransactionsViewModel
 
 
 class TransactionsFragment : Fragment() {
