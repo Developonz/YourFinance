@@ -45,7 +45,14 @@ class TransactionsFragment : Fragment() {
     private fun setupObservers() {
         viewModel.transactionsList.observe(viewLifecycleOwner) { list ->
             // Группируем транзакции по дате и сортируем группы по убыванию даты
-            val groupedTransactions = list.groupBy { it.date }
+            val groupedTransactions = list
+                // Группируем транзакции по дате
+                .groupBy { it.date }
+                // Для каждой группы сортируем транзакции по времени (в порядке убывания)
+                .mapValues { (_, transactions) ->
+                    transactions.sortedByDescending { it.time }
+                }
+                // Сортируем группы по дате в порядке убывания
                 .toSortedMap(compareByDescending { it })
 
             val items = mutableListOf<TransactionListItem>()

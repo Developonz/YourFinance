@@ -51,7 +51,7 @@
             android:layout_height="match_parent"
             android:gravity="center_vertical|end"
             android:text="28"
-            android:textSize="20sp" />
+            android:textSize="16sp" />
 
     </LinearLayout>
 

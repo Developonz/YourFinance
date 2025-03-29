@@ -13,19 +13,15 @@ import com.example.yourfinance.model.Transaction
 import com.example.yourfinance.model.entities.Payment
 import com.example.yourfinance.model.entities.Transfer
 import com.example.yourfinance.model.TransactionListItem
-import com.example.yourfinance.utils.StringHelper.Companion.getMoneyStr
-import java.text.NumberFormat
-import java.time.format.DateTimeFormatter
-import java.util.Locale
+import com.example.yourfinance.utils.StringHelper
 
-class TransactionsRecyclerViewListAdapter : ListAdapter<TransactionListItem, RecyclerView.ViewHolder>(
-    DIFF_CALLBACK
-) {
+
+class TransactionsRecyclerViewListAdapter : ListAdapter<TransactionListItem, RecyclerView.ViewHolder>(DIFF_CALLBACK) {
 
     companion object {
         private const val VIEW_TYPE_HEADER = 0
         private const val VIEW_TYPE_TRANSACTION = 1
-        private const val VIEW_TYPE_Empty = 2
+        private const val VIEW_TYPE_EMPTY = 2
 
         private val DIFF_CALLBACK = object : DiffUtil.ItemCallback<TransactionListItem>() {
             override fun areItemsTheSame(
@@ -52,53 +48,60 @@ class TransactionsRecyclerViewListAdapter : ListAdapter<TransactionListItem, Rec
     }
 
 
-    override fun getItemViewType(position: Int): Int {
-        return when (getItem(position)) {
-            is TransactionListItem.Header -> VIEW_TYPE_HEADER
-            is TransactionListItem.TransactionItem -> VIEW_TYPE_TRANSACTION
-            else -> VIEW_TYPE_Empty
-        }
-    }
-
     // ViewHolder для заголовка
-    inner class HeaderViewHolder(private val binding: HeaderTransactionsBinding) :
+    class HeaderViewHolder(private val binding: HeaderTransactionsBinding) :
         RecyclerView.ViewHolder(binding.root) {
         fun bind(header: TransactionListItem.Header) {
-            binding.dayOfMounth.text = header.date.dayOfMonth.toString()
-            binding.dayOfWeek.text = header.date.dayOfWeek.getDisplayName(java.time.format.TextStyle.FULL, Locale("ru"))
-            binding.mounth.text = header.date.format(DateTimeFormatter.ofPattern("LLLL yyyy", Locale("ru")))
-            binding.balance.text = getMoneyStr(header.balance)
+            binding.dayOfMounth.text = StringHelper.getDayOfMonthStr(header.date)
+            binding.dayOfWeek.text = StringHelper.getDayOfWeekStr(header.date)
+            binding.mounth.text = StringHelper.getMonthYearStr(header.date)
+            binding.balance.text = StringHelper.getMoneyStr(header.balance)
         }
     }
 
     // ViewHolder для транзакции
-    inner class TransactionViewHolder(private val binding: TransactionItemBinding) :
+    class TransactionViewHolder(private val binding: TransactionItemBinding) :
         RecyclerView.ViewHolder(binding.root) {
         fun bind(item: TransactionListItem.TransactionItem) {
             val transaction = item.transaction
             binding.title.text = when (transaction) {
-                is Payment -> if (transaction.note.isNotEmpty()) transaction.note else transaction.category.title
+                is Payment -> if (transaction.note.isNotEmpty()) transaction.note else transaction.category?.title
                 is Transfer -> if (transaction.note.isNotEmpty()) transaction.note else "Перевод"
                 else -> ""
             }
             binding.account.text = when (transaction) {
-                is Payment -> if (transaction.moneyAcc.title.isNotEmpty()) transaction.moneyAcc.title else "Неизвестно"
-                is Transfer -> if (transaction.moneyAccFrom.title.isNotEmpty() && transaction.moneyAccTo.title.isNotEmpty())
-                    "${transaction.moneyAccFrom.title} -> ${transaction.moneyAccTo.title}" else "Неизвестно"
+                is Payment -> {
+                    val acc = transaction.moneyAccount
+                    if (acc?.title?.isNotEmpty() == true) acc.title else "Неизвестно"
+                }
+                is Transfer -> {
+                    val accFrom = transaction.moneyAccFrom
+                    val accTo = transaction.moneyAccTo
+                    if (accFrom?.title?.isNotEmpty() == true && accTo?.title?.isNotEmpty() == true)
+                        "${accFrom.title} -> ${accTo.title}" else "Неизвестно"
+                }
                 else -> "Неизвестно"
             }
-            binding.price.text = getMoneyStr(transaction.balance)
-            val color = when (transaction) {
-                is Payment -> if (transaction.type == Transaction.TransactionType.income) Color.GREEN else Color.RED
-                else -> Color.BLACK
+            binding.price.text = StringHelper.getMoneyStr(transaction.balance)
+            if (transaction is Payment) {
+                binding.price.setTextColor(if (transaction.type == Transaction.TransactionType.income)
+                    Color.GREEN else Color.RED)
             }
-            binding.price.setTextColor(color)
-            binding.time.text = transaction.time.toString()
+
+            binding.time.text = StringHelper.getTime(transaction.time)
         }
     }
 
-    inner class EmptyViewHolder(binding: EmptyPlaceBinding) : RecyclerView.ViewHolder(binding.root) {
+    class EmptyViewHolder(binding: EmptyPlaceBinding) : RecyclerView.ViewHolder(binding.root) {
         fun bind() {}
+    }
+
+    override fun getItemViewType(position: Int): Int {
+        return when (getItem(position)) {
+            is TransactionListItem.Header -> VIEW_TYPE_HEADER
+            is TransactionListItem.TransactionItem -> VIEW_TYPE_TRANSACTION
+            else -> VIEW_TYPE_EMPTY
+        }
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {

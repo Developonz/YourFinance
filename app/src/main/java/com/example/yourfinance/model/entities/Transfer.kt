@@ -5,6 +5,7 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Ignore
 import androidx.room.PrimaryKey
+import com.example.yourfinance.MainApplication
 import com.example.yourfinance.model.Transaction
 import com.example.yourfinance.utils.StringHelper.Companion.getUpperFirstChar
 import java.time.LocalDate
@@ -43,11 +44,9 @@ data class Transfer (
             field = getUpperFirstChar(value)
         }
 
-    @Ignore
-    lateinit var moneyAccFrom: MoneyAccount
+    val moneyAccFrom get() = fetchMoneyAccFrom()
+    val moneyAccTo get() = fetchMoneyAccTo()
 
-    @Ignore
-    lateinit var moneyAccTo: MoneyAccount
 
     constructor(
         note: String,
@@ -59,5 +58,13 @@ data class Transfer (
         time: LocalTime = LocalTime.now(),
     ) : this (type, balance, moneyAccFromID, moneyAccToID, date, time) {
         this.note = getUpperFirstChar(note)
+    }
+
+    private fun fetchMoneyAccFrom() : MoneyAccount? {
+        return MainApplication.repository.getAccount(moneyAccFromID)
+    }
+
+    private fun fetchMoneyAccTo() : MoneyAccount? {
+        return MainApplication.repository.getAccount(moneyAccToID)
     }
 }

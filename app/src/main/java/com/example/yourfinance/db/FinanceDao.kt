@@ -11,8 +11,7 @@ import com.example.yourfinance.model.entities.Category
 import com.example.yourfinance.model.entities.MoneyAccount
 import com.example.yourfinance.model.entities.Payment
 import com.example.yourfinance.model.entities.Transfer
-import com.example.yourfinance.model.pojo.FullTransfer
-import com.example.yourfinance.model.pojo.FullPayment
+
 
 @Dao
 abstract class FinanceDao {
@@ -31,17 +30,18 @@ abstract class FinanceDao {
 
     @Transaction
     @Query("SELECT * FROM Payment")
-    abstract fun getAllPayment(): LiveData<List<FullPayment>>
+    abstract fun getAllPayment(): LiveData<List<Payment>>
 
     @Transaction
     @Query("SELECT * FROM Transfer")
-    abstract fun getAllTransfer() : LiveData<List<FullTransfer>>
+    abstract fun getAllTransfer() : LiveData<List<Transfer>>
 
     @Query("SELECT * FROM Category")
     abstract fun getAllCategory() : LiveData<List<Category>>
 
     @Query("SELECT * FROM MoneyAccount")
     abstract fun getAllAccounts() : LiveData<List<MoneyAccount>>
+
 
     fun getAllTransactions(): MutableLiveData<List<com.example.yourfinance.model.Transaction>> {
         val mediator = MediatorLiveData<List<com.example.yourfinance.model.Transaction>>()
@@ -54,17 +54,9 @@ abstract class FinanceDao {
             val fullPayments = paymentsLiveData.value ?: emptyList()
             val fullTransfers = transfersLiveData.value ?: emptyList()
 
-            fullPayments.forEach { pojo ->
-                pojo.payment.category = pojo.category
-                pojo.payment.moneyAcc = pojo.moneyAcc
-                combinedTransactions.add(pojo.payment)
-            }
+            combinedTransactions.addAll(fullPayments)
+            combinedTransactions.addAll(fullTransfers)
 
-            fullTransfers.forEach { pojo ->
-                pojo.transfer.moneyAccFrom = pojo.moneyAccFrom
-                pojo.transfer.moneyAccTo = pojo.moneyAccTo
-                combinedTransactions.add(pojo.transfer)
-            }
 
             if (mediator.value != combinedTransactions) {
                 mediator.value = combinedTransactions
