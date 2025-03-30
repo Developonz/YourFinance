@@ -1,4 +1,4 @@
-package com.example.yourfinance.model
+package com.example.yourfinance.domain.model
 
 import java.time.LocalDate
 import java.time.LocalTime

@@ -1,12 +1,11 @@
-package com.example.yourfinance.model.entities
+package com.example.yourfinance.data.entities
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
-import androidx.room.Ignore
 import androidx.room.PrimaryKey
 import com.example.yourfinance.MainApplication
-import com.example.yourfinance.model.Transaction
+import com.example.yourfinance.domain.model.Transaction
 import com.example.yourfinance.utils.StringHelper.Companion.getUpperFirstChar
 import java.time.LocalDate
 import java.time.LocalTime
@@ -14,20 +13,20 @@ import java.time.LocalTime
 @Entity(
     foreignKeys = [
         ForeignKey(
-            entity = MoneyAccount::class,
+            entity = MoneyAccountEntity::class,
             parentColumns = ["id"],
             childColumns = ["moneyAccFromID"],
             onDelete = ForeignKey.CASCADE
         ),
         ForeignKey(
-            entity = MoneyAccount::class,
+            entity = MoneyAccountEntity::class,
             parentColumns = ["id"],
             childColumns = ["moneyAccToID"],
             onDelete = ForeignKey.CASCADE
         )
     ]
 )
-data class Transfer (
+data class TransferEntity (
     override var type: TransactionType,
     override var balance: Double,
     var moneyAccFromID: Long,
@@ -60,11 +59,11 @@ data class Transfer (
         this.note = getUpperFirstChar(note)
     }
 
-    private fun fetchMoneyAccFrom() : MoneyAccount? {
+    private fun fetchMoneyAccFrom() : MoneyAccountEntity? {
         return MainApplication.repository.getAccount(moneyAccFromID)
     }
 
-    private fun fetchMoneyAccTo() : MoneyAccount? {
+    private fun fetchMoneyAccTo() : MoneyAccountEntity? {
         return MainApplication.repository.getAccount(moneyAccToID)
     }
 }

@@ -9,7 +9,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 //import androidx.lifecycle.ViewModelProvider
 import com.example.yourfinance.databinding.FragmentStatisticBinding
-import com.example.yourfinance.store.viewmodel.TransactionsViewModel
+import com.example.yourfinance.view.viewmodel.TransactionsViewModel
 
 
 class StatisticFragment : Fragment() {

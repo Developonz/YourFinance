@@ -1,15 +1,11 @@
-package com.example.yourfinance.model.entities
+package com.example.yourfinance.domain.model.entities
 
-import androidx.room.ColumnInfo
-import androidx.room.Entity
-import androidx.room.PrimaryKey
 import com.example.yourfinance.utils.StringHelper.Companion.getUpperFirstChar
 
-@Entity
+
 data class Category(
     val categoryType: CategoryType,
-    @PrimaryKey(autoGenerate = true)
-    val id: Long = 0
+    val id: Long
 ) {
 
     enum class CategoryType {
@@ -17,13 +13,12 @@ data class Category(
         expense;
     }
 
-    @ColumnInfo(name = "title")
     var title = ""
         set(value) {
             field = getUpperFirstChar(value)
         }
 
-    constructor(title: String, type: CategoryType) : this(type) {
+    constructor(title: String, type: CategoryType, id: Long) : this(type, id) {
         this.title = getUpperFirstChar(title)
     }
 }

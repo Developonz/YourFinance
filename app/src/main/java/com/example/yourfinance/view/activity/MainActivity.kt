@@ -11,11 +11,11 @@ import androidx.navigation.ui.setupActionBarWithNavController
 import com.example.yourfinance.MainApplication
 import com.example.yourfinance.R
 import com.example.yourfinance.databinding.ActivityMainBinding
-import com.example.yourfinance.model.Transaction
-import com.example.yourfinance.model.entities.Category
-import com.example.yourfinance.model.entities.MoneyAccount
-import com.example.yourfinance.model.entities.Payment
-import com.example.yourfinance.store.viewmodel.TransactionsViewModel
+import com.example.yourfinance.domain.model.Transaction
+import com.example.yourfinance.data.entities.CategoryEntity
+import com.example.yourfinance.data.entities.MoneyAccountEntity
+import com.example.yourfinance.data.entities.PaymentEntity
+import com.example.yourfinance.view.viewmodel.TransactionsViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -59,11 +59,11 @@ class MainActivity : AppCompatActivity() {
     private fun daoInsert() {
         val dao = MainApplication.database.getFinanceDao()
         CoroutineScope(Dispatchers.IO).launch {
-            dao.insertCategory(Category("Зарплата", Category.CategoryType.income))
-            dao.insertCategory(Category("Стипендия", Category.CategoryType.income))
-            dao.insertAccount(MoneyAccount("Сбер"))
-            dao.insertPaymentTransaction(Payment( Transaction.TransactionType.income,500.0, 1, 1))
-            dao.insertPaymentTransaction(Payment(Transaction.TransactionType.income,6600.0, 1, 2))
+            dao.insertCategory(CategoryEntity("Зарплата", CategoryEntity.CategoryType.income))
+            dao.insertCategory(CategoryEntity("Стипендия", CategoryEntity.CategoryType.income))
+            dao.insertAccount(MoneyAccountEntity("Сбер"))
+            dao.insertPaymentTransaction(PaymentEntity( Transaction.TransactionType.income,500.0, 1, 1))
+            dao.insertPaymentTransaction(PaymentEntity(Transaction.TransactionType.income,6600.0, 1, 2))
         }
     }
 

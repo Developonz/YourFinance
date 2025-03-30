@@ -1,4 +1,4 @@
-package com.example.yourfinance.model.adapters
+package com.example.yourfinance.view.adapters
 
 import android.graphics.Color
 import android.view.LayoutInflater
@@ -9,14 +9,16 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.yourfinance.databinding.EmptyPlaceBinding
 import com.example.yourfinance.databinding.HeaderTransactionsBinding
 import com.example.yourfinance.databinding.TransactionItemBinding
-import com.example.yourfinance.model.Transaction
-import com.example.yourfinance.model.entities.Payment
-import com.example.yourfinance.model.entities.Transfer
-import com.example.yourfinance.model.TransactionListItem
+import com.example.yourfinance.domain.model.Transaction
+import com.example.yourfinance.data.entities.PaymentEntity
+import com.example.yourfinance.data.entities.TransferEntity
+import com.example.yourfinance.domain.model.TransactionListItem
 import com.example.yourfinance.utils.StringHelper
 
 
-class TransactionsRecyclerViewListAdapter : ListAdapter<TransactionListItem, RecyclerView.ViewHolder>(DIFF_CALLBACK) {
+class TransactionsRecyclerViewListAdapter : ListAdapter<TransactionListItem, RecyclerView.ViewHolder>(
+    DIFF_CALLBACK
+) {
 
     companion object {
         private const val VIEW_TYPE_HEADER = 0
@@ -65,16 +67,16 @@ class TransactionsRecyclerViewListAdapter : ListAdapter<TransactionListItem, Rec
         fun bind(item: TransactionListItem.TransactionItem) {
             val transaction = item.transaction
             binding.title.text = when (transaction) {
-                is Payment -> if (transaction.note.isNotEmpty()) transaction.note else transaction.category?.title
-                is Transfer -> if (transaction.note.isNotEmpty()) transaction.note else "Перевод"
+                is PaymentEntity -> if (transaction.note.isNotEmpty()) transaction.note else transaction.categoryEntity?.title
+                is TransferEntity -> if (transaction.note.isNotEmpty()) transaction.note else "Перевод"
                 else -> ""
             }
             binding.account.text = when (transaction) {
-                is Payment -> {
+                is PaymentEntity -> {
                     val acc = transaction.moneyAccount
                     if (acc?.title?.isNotEmpty() == true) acc.title else "Неизвестно"
                 }
-                is Transfer -> {
+                is TransferEntity -> {
                     val accFrom = transaction.moneyAccFrom
                     val accTo = transaction.moneyAccTo
                     if (accFrom?.title?.isNotEmpty() == true && accTo?.title?.isNotEmpty() == true)
@@ -83,7 +85,7 @@ class TransactionsRecyclerViewListAdapter : ListAdapter<TransactionListItem, Rec
                 else -> "Неизвестно"
             }
             binding.price.text = StringHelper.getMoneyStr(transaction.balance)
-            if (transaction is Payment) {
+            if (transaction is PaymentEntity) {
                 binding.price.setTextColor(if (transaction.type == Transaction.TransactionType.income)
                     Color.GREEN else Color.RED)
             }

@@ -1,8 +1,8 @@
-package com.example.yourfinance.utils
+package com.example.yourfinance.data.db
 
 import androidx.room.TypeConverter
-import com.example.yourfinance.model.entities.Category.CategoryType
-import com.example.yourfinance.model.Transaction.TransactionType
+import com.example.yourfinance.data.entities.CategoryEntity.CategoryType
+import com.example.yourfinance.domain.model.Transaction.TransactionType
 import java.time.LocalDate
 import java.time.LocalTime
 

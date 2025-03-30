@@ -8,12 +8,12 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.yourfinance.databinding.FragmentTransactionsBinding
-import com.example.yourfinance.model.Transaction
-import com.example.yourfinance.model.TransactionListItem
-import com.example.yourfinance.model.adapters.TransactionsRecyclerViewListAdapter
-import com.example.yourfinance.model.entities.Payment
+import com.example.yourfinance.domain.model.Transaction
+import com.example.yourfinance.domain.model.TransactionListItem
+import com.example.yourfinance.view.adapters.TransactionsRecyclerViewListAdapter
+import com.example.yourfinance.data.entities.PaymentEntity
 import com.example.yourfinance.utils.StringHelper.Companion.getMoneyStr
-import com.example.yourfinance.store.viewmodel.TransactionsViewModel
+import com.example.yourfinance.view.viewmodel.TransactionsViewModel
 
 
 class TransactionsFragment : Fragment() {
@@ -62,7 +62,7 @@ class TransactionsFragment : Fragment() {
 
             groupedTransactions.forEach { (date, transactions) ->
                 // Вычисляем баланс для группы транзакций этого дня:
-                val balance = transactions.filterIsInstance<Payment>()
+                val balance = transactions.filterIsInstance<PaymentEntity>()
                     .sumOf { if (it.type == Transaction.TransactionType.income) it.balance else -it.balance }
 
 
@@ -76,7 +76,7 @@ class TransactionsFragment : Fragment() {
                 }
             }
 
-            list.filterIsInstance<Payment>().forEach({
+            list.filterIsInstance<PaymentEntity>().forEach({
                 if (it.type == Transaction.TransactionType.income) {
                     income += it.balance
                 } else {

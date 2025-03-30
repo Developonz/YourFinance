@@ -1,12 +1,11 @@
-package com.example.yourfinance.model.entities
+package com.example.yourfinance.data.entities
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
-import androidx.room.Ignore
 import androidx.room.PrimaryKey
 import com.example.yourfinance.MainApplication
-import com.example.yourfinance.model.Transaction
+import com.example.yourfinance.domain.model.Transaction
 import com.example.yourfinance.utils.StringHelper.Companion.getUpperFirstChar
 import java.time.LocalDate
 import java.time.LocalTime
@@ -14,20 +13,20 @@ import java.time.LocalTime
 @Entity(
     foreignKeys = [
         ForeignKey(
-            entity = MoneyAccount::class,
+            entity = MoneyAccountEntity::class,
             parentColumns = ["id"],
             childColumns = ["moneyAccID"],
             onDelete = ForeignKey.CASCADE
         ),
         ForeignKey(
-            entity = Category::class,
+            entity = CategoryEntity::class,
             parentColumns = ["id"],
             childColumns = ["categoryID"],
             onDelete = ForeignKey.CASCADE
         )
     ]
 )
-data class Payment(
+data class PaymentEntity(
     override var type: TransactionType,
     override var balance: Double,
     var moneyAccID: Long,
@@ -45,7 +44,7 @@ data class Payment(
         }
 
 
-    val category : Category? get() = fetchCategory()
+    val categoryEntity : CategoryEntity? get() = fetchCategory()
     val moneyAccount get() = fetchAccount()
 
     constructor(
@@ -60,11 +59,11 @@ data class Payment(
         this.note = getUpperFirstChar(note)
     }
 
-    private fun fetchCategory() : Category? {
+    private fun fetchCategory() : CategoryEntity? {
         return MainApplication.repository.getCategory(categoryID)
     }
 
-    private fun fetchAccount() : MoneyAccount? {
+    private fun fetchAccount() : MoneyAccountEntity? {
         return MainApplication.repository.getAccount(categoryID)
     }
 }

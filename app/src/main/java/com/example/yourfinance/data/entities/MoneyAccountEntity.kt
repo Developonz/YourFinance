@@ -1,4 +1,4 @@
-package com.example.yourfinance.model.entities
+package com.example.yourfinance.data.entities
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
@@ -6,7 +6,7 @@ import com.example.yourfinance.utils.StringHelper.Companion.getUpperFirstChar
 import java.time.LocalDate
 
 @Entity
-data class MoneyAccount(
+data class MoneyAccountEntity(
     var balance: Double = 0.0,
     var excluded: Boolean = false,
     var default: Boolean = false,

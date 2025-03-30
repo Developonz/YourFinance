@@ -1,9 +1,9 @@
-package com.example.yourfinance.store.viewmodel
+package com.example.yourfinance.view.viewmodel
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
 import com.example.yourfinance.MainApplication
-import com.example.yourfinance.model.Transaction
+import com.example.yourfinance.domain.model.Transaction
 
 class TransactionsViewModel : ViewModel() {
     val transactionsList: LiveData<List<Transaction>>
