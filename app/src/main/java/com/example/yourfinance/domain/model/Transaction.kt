@@ -11,10 +11,4 @@ abstract class Transaction(
     open var time: LocalTime = LocalTime.now(),
     open var note: String = ""
 ) {
-
-    enum class TransactionType {
-        income,
-        expense,
-        remittance;
-    }
 }

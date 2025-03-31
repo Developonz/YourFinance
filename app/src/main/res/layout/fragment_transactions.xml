@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
 
-    tools:context=".view.fragments.TransactionsFragment">
+    tools:context=".presentation.ui.fragment.TransactionsFragment">
 
     <LinearLayout
         android:layout_width="match_parent"
