@@ -1,10 +1,7 @@
 package com.example.yourfinance.data.mapper
 
-import com.example.yourfinance.data.model.PaymentEntity
 import com.example.yourfinance.data.model.TransferEntity
-import com.example.yourfinance.data.model.pojo.FullPayment
 import com.example.yourfinance.data.model.pojo.FullTransfer
-import com.example.yourfinance.domain.model.entity.Payment
 import com.example.yourfinance.domain.model.entity.Transfer
 
 fun FullTransfer.toDomain(): Transfer {

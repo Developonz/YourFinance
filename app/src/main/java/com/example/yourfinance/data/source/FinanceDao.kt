@@ -1,8 +1,6 @@
 package com.example.yourfinance.data.source
 
 import androidx.lifecycle.LiveData
-import androidx.lifecycle.MediatorLiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
@@ -43,5 +41,6 @@ abstract class FinanceDao {
 
     @Query("SELECT * FROM MoneyAccountEntity")
     abstract fun getAllAccounts() : LiveData<List<MoneyAccountEntity>>
+
 
 }

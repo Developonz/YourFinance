@@ -9,7 +9,6 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.yourfinance.databinding.EmptyPlaceBinding
 import com.example.yourfinance.databinding.HeaderTransactionsBinding
 import com.example.yourfinance.databinding.TransactionItemBinding
-import com.example.yourfinance.domain.model.Transaction
 import com.example.yourfinance.domain.model.entity.Payment
 import com.example.yourfinance.domain.model.entity.Transfer
 import com.example.yourfinance.domain.model.TransactionListItem

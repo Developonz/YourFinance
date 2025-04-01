@@ -1,11 +1,7 @@
 package com.example.yourfinance.data.mapper
 
 import com.example.yourfinance.data.model.MoneyAccountEntity
-import com.example.yourfinance.data.model.PaymentEntity
-import com.example.yourfinance.data.model.pojo.FullPayment
 import com.example.yourfinance.domain.model.entity.MoneyAccount
-import com.example.yourfinance.domain.model.entity.Payment
-import java.time.LocalDate
 
 fun MoneyAccountEntity.toDomain(): MoneyAccount {
     return MoneyAccount(
