@@ -6,10 +6,10 @@ import com.example.yourfinance.domain.model.CategoryType
 
 
 @Entity
-data class CategoryEntity(
-    var title: String,
-    val categoryType: CategoryType,
+open class CategoryEntity(
+    open var title: String,
+    open val categoryType: CategoryType,
     @PrimaryKey(autoGenerate = true)
-    val id: Long = 0
+    open val id: Long = 0
 )
 

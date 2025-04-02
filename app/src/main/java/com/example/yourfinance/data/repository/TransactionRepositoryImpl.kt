@@ -1,18 +1,20 @@
 package com.example.yourfinance.data.repository
 
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MediatorLiveData
+import com.example.yourfinance.data.mapper.toData
 import com.example.yourfinance.data.mapper.toDomain
 import com.example.yourfinance.domain.model.Transaction
 import com.example.yourfinance.data.source.FinanceDao
-import com.example.yourfinance.data.model.PaymentEntity
-import com.example.yourfinance.data.model.TransferEntity
-import com.example.yourfinance.domain.repository.FinanceRepository
+import com.example.yourfinance.domain.model.entity.Payment
+import com.example.yourfinance.domain.model.entity.Transfer
+import com.example.yourfinance.domain.repository.TransactionRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
-class FinanceRepositoryImpl @Inject constructor(private val financeDao: FinanceDao) : FinanceRepository {
+class TransactionRepositoryImpl @Inject constructor(private val financeDao: FinanceDao) : TransactionRepository {
 
     override fun getAllTransactions(): LiveData<List<Transaction>> {
         val mediator = MediatorLiveData<List<Transaction>>()
@@ -37,15 +39,16 @@ class FinanceRepositoryImpl @Inject constructor(private val financeDao: FinanceD
         return mediator
     }
 
-    override suspend fun insertPayment(paymentEntity: PaymentEntity) {
+    override suspend fun insertPayment(payment: Payment) {
         withContext(Dispatchers.IO) {
-            financeDao.insertPaymentTransaction(paymentEntity)
+            Log.i("TESTDB", payment.moneyAccount.title + " ")
+            financeDao.insertPaymentTransaction(payment.toData())
         }
     }
 
-    override suspend fun insertTransfer(transferEntity: TransferEntity) {
+    override suspend fun insertTransfer(transfer: Transfer) {
         withContext(Dispatchers.IO) {
-            financeDao.insertTransferTransaction(transferEntity)
+            financeDao.insertTransferTransaction(transfer.toData())
         }
     }
 }

@@ -1,10 +1,10 @@
-package com.example.yourfinance.domain.model.entity
+package com.example.yourfinance.domain.model.entity.category
 
 import com.example.yourfinance.domain.model.CategoryType
 import com.example.yourfinance.utils.StringHelper.Companion.getUpperFirstChar
 
 
-data class Category(
+open class Category(
     private var _title: String,
     val categoryType: CategoryType,
     val id: Long = 0,

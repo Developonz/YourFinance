@@ -2,6 +2,7 @@ package com.example.yourfinance.domain.model.entity
 
 import com.example.yourfinance.domain.model.Transaction
 import com.example.yourfinance.domain.model.TransactionType
+import com.example.yourfinance.domain.model.entity.category.Category
 import com.example.yourfinance.utils.StringHelper.Companion.getUpperFirstChar
 import java.time.LocalDate
 import java.time.LocalTime
