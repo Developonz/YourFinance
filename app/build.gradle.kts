@@ -46,8 +46,7 @@ dependencies {
     implementation(libs.circleimageview)
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
-//    implementation(libs.recyclerview)
-
+    implementation(libs.recyclerview)
 
 
     implementation(libs.androidx.core.ktx)

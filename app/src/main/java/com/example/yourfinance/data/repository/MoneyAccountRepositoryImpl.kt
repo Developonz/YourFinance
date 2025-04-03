@@ -15,7 +15,9 @@ class MoneyAccountRepositoryImpl @Inject constructor(private val dao: FinanceDao
     override fun getAllAccounts(): LiveData<List<MoneyAccount>> {
         val mediator = MediatorLiveData<List<MoneyAccount>>()
         val accounts = dao.getAllAccounts()
-        mediator.addSource(accounts) {(accounts.value?: emptyList()).map { it.toDomain() }}
+        mediator.addSource(accounts) {
+            mediator.value = (accounts.value?: emptyList()).map { it.toDomain() }
+        }
         return mediator
     }
 

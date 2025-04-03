@@ -1,0 +1,50 @@
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="#212323"
+    android:paddingBottom="5dp">
+
+    <LinearLayout
+        android:id="@+id/info_area"
+        android:layout_width="match_parent"
+        android:layout_height="115dp"
+        android:orientation="vertical"
+        android:layout_margin="4dp"
+        android:paddingHorizontal="8dp"
+        android:paddingVertical="16dp"
+        android:background="@drawable/background_rounded_blue">
+
+        <ImageView
+            android:id="@+id/icon_account"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_gravity="center_horizontal"
+            tools:src="@drawable/ic_up_arrow" />
+
+        <TextView
+            android:id="@+id/title_account"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="8dp"
+            android:textSize="18sp"
+            android:textColor="@android:color/white"
+            android:gravity="center"
+            tools:text="Наличные" />
+
+        <TextView
+            android:id="@+id/balance_account"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="4dp"
+            android:textSize="14sp"
+            android:textColor="@android:color/white"
+            android:textStyle="bold"
+            android:gravity="center"
+            tools:text="4 074 ₽" />
+    </LinearLayout>
+</LinearLayout>

@@ -6,7 +6,7 @@ import com.example.yourfinance.utils.StringHelper.Companion.getUpperFirstChar
 
 data class Budget(
     private var _title: String,
-    var balance: String,
+    var balance: Double,
     val categories: MutableList<Category>,
     var period: PeriodLite,
     val id: Long

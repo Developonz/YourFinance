@@ -16,7 +16,7 @@ room = "2.6.1"
 ksp = "2.1.10-1.0.31"
 circleimageview = "3.1.0"
 hilt = "2.56.1"
-#recyclerview = "1.4.0"
+recyclerview = "1.4.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -35,7 +35,7 @@ room-compiler = { module = "androidx.room:room-compiler", version.ref = "room" }
 circleimageview = { module = "de.hdodenhof:circleimageview", version.ref = "circleimageview" }
 hilt-android = { module = "com.google.dagger:hilt-android", version.ref = "hilt" }
 hilt-compiler = { module = "com.google.dagger:hilt-android-compiler", version.ref = "hilt" }
-#recyclerview = { module = "androidx.recyclerview:recyclerview" , version.ref = "recyclerview" }
+recyclerview = { module = "androidx.recyclerview:recyclerview" , version.ref = "recyclerview" }
 
 
 [plugins]

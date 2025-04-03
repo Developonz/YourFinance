@@ -15,7 +15,9 @@ class CategoryRepositoryImpl @Inject constructor(private val dao: FinanceDao) : 
     override fun getAllCategory(): LiveData<List<FullCategory>> {
         val mediator = MediatorLiveData<List<FullCategory>>()
         val categories = dao.getFullAllCategory()
-        mediator.addSource(categories) {(categories.value ?: emptyList()).map {it.toDomain()} }
+        mediator.addSource(categories) {
+            mediator.value = (categories.value ?: emptyList()).map {it.toDomain()}
+        }
         return mediator
     }
 

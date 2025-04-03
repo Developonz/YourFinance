@@ -4,7 +4,7 @@
     android:layout_height="wrap_content"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="horizontal"
-    android:background="@color/blue"
+    android:background="#232121"
     android:paddingHorizontal="20dp"
     android:paddingVertical="5dp">
 

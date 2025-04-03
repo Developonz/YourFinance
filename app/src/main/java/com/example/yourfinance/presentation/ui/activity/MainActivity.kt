@@ -89,7 +89,7 @@ class MainActivity : AppCompatActivity() {
             var id = categoryRepository.insertCategory(FullCategory(category))
             category = Category("Зарплата", CategoryType.income, id)
 
-            var acc = MoneyAccount("альфа")
+            var acc = MoneyAccount("альфа", 5000.0)
             id = moneyAccountRepository.insertAccount(acc)
             acc = MoneyAccount("альфа", id = id)
             transactionRepository.insertPayment(Payment( TransactionType.income,500.0, acc, category))

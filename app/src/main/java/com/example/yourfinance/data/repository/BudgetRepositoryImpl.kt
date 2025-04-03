@@ -15,7 +15,9 @@ class BudgetRepositoryImpl @Inject constructor(private val dao: FinanceDao) : Bu
     override fun getAllBudgets(): LiveData<List<Budget>> {
         val mediator = MediatorLiveData<List<Budget>>()
         val budgets = dao.getAllBudgets()
-        mediator.addSource(budgets) {(budgets.value ?: emptyList()).map { it.toDomain() }}
+        mediator.addSource(budgets) {
+            mediator.value = (budgets.value ?: emptyList()).map { it.toDomain() }
+        }
         return mediator
     }
 

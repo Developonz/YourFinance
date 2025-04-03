@@ -1,6 +1,7 @@
 package com.example.yourfinance.presentation.ui.fragment
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -39,11 +40,12 @@ class TransactionsFragment : Fragment() {
         binding.transactionsList.layoutManager = LinearLayoutManager(requireContext())
         binding.transactionsList.adapter = adapter
         binding.transactionsList.setHasFixedSize(true)
-//        binding.transactionsList.itemAnimator = null
+        binding.transactionsList.itemAnimator = null
     }
 
     private fun setupObservers() {
         viewModel.transactionsList.observe(viewLifecycleOwner) { list ->
+            Log.i("TESTDB", "transaction fragment observer")
             // Группируем транзакции по дате и сортируем группы по убыванию даты
             val groupedTransactions = list
                 // Группируем транзакции по дате
@@ -57,23 +59,18 @@ class TransactionsFragment : Fragment() {
 
             val items = mutableListOf<TransactionListItem>()
 
-            var income = 0.0
-            var expense = 0.0
-
             groupedTransactions.forEach { (date, transactions) ->
-                // Вычисляем баланс для группы транзакций этого дня:
                 val balance = transactions.filterIsInstance<Payment>()
                     .sumOf { if (it.type == TransactionType.income) it.balance else -it.balance }
 
-
-                // Добавляем заголовок с датой и балансом
                 items.add(TransactionListItem.Header(date, balance))
-
-                // Добавляем сами транзакции
                 transactions.forEach { transaction ->
                     items.add(TransactionListItem.TransactionItem(transaction))
                 }
             }
+
+            var income = 0.0
+            var expense = 0.0
 
             list.filterIsInstance<Payment>().forEach({
                 if (it.type == TransactionType.income) {
