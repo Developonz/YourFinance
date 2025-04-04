@@ -9,7 +9,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.yourfinance.databinding.FragmentTransactionsBinding
-import com.example.yourfinance.domain.model.TransactionListItem
+import com.example.yourfinance.presentation.ui.adapter.list_item.TransactionListItem
 import com.example.yourfinance.presentation.ui.adapter.TransactionsRecyclerViewListAdapter
 import com.example.yourfinance.domain.model.TransactionType
 import com.example.yourfinance.domain.model.entity.Payment
@@ -61,7 +61,7 @@ class TransactionsFragment : Fragment() {
 
             groupedTransactions.forEach { (date, transactions) ->
                 val balance = transactions.filterIsInstance<Payment>()
-                    .sumOf { if (it.type == TransactionType.income) it.balance else -it.balance }
+                    .sumOf { if (it.type == TransactionType.INCOME) it.balance else -it.balance }
 
                 items.add(TransactionListItem.Header(date, balance))
                 transactions.forEach { transaction ->
@@ -73,7 +73,7 @@ class TransactionsFragment : Fragment() {
             var expense = 0.0
 
             list.filterIsInstance<Payment>().forEach({
-                if (it.type == TransactionType.income) {
+                if (it.type == TransactionType.INCOME) {
                     income += it.balance
                 } else {
                     expense += it.balance

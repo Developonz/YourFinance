@@ -2,6 +2,7 @@ package com.example.yourfinance.data.source
 
 import androidx.room.TypeConverter
 import com.example.yourfinance.domain.model.CategoryType
+import com.example.yourfinance.domain.model.PeriodLite
 import com.example.yourfinance.domain.model.TransactionType
 import java.time.LocalDate
 import java.time.LocalTime
@@ -25,6 +26,12 @@ class Converters {
 
     @TypeConverter
     fun toCategoryType(value: Int): CategoryType = CategoryType.entries[value]
+
+    @TypeConverter
+    fun fromPeriodLiteType(type: PeriodLite): Int = type.ordinal
+
+    @TypeConverter
+    fun toPeriodLiteType(value: Int): PeriodLite = PeriodLite.entries[value]
 
     @TypeConverter
     fun fromTransactionType(type: TransactionType): Int = type.ordinal

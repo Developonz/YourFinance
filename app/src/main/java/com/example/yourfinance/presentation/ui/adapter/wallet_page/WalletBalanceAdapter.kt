@@ -1,4 +1,4 @@
-package com.example.yourfinance.presentation.ui.adapter
+package com.example.yourfinance.presentation.ui.adapter.wallet_page
 
 import android.view.LayoutInflater
 import android.view.ViewGroup

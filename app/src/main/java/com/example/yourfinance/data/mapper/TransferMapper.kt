@@ -19,6 +19,7 @@ fun FullTransfer.toDomain(): Transfer {
 
 fun Transfer.toData(): TransferEntity {
     return TransferEntity(
+        id = this.id,
         type = this.type,
         balance = this.balance,
         moneyAccFromID = this.moneyAccFrom.id,

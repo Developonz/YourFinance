@@ -1,5 +1,6 @@
-package com.example.yourfinance.domain.model
+package com.example.yourfinance.presentation.ui.adapter.list_item
 
+import com.example.yourfinance.domain.model.Transaction
 import java.time.LocalDate
 
 sealed class TransactionListItem {

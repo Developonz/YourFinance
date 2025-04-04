@@ -11,7 +11,7 @@ import com.example.yourfinance.databinding.HeaderTransactionsBinding
 import com.example.yourfinance.databinding.TransactionItemBinding
 import com.example.yourfinance.domain.model.entity.Payment
 import com.example.yourfinance.domain.model.entity.Transfer
-import com.example.yourfinance.domain.model.TransactionListItem
+import com.example.yourfinance.presentation.ui.adapter.list_item.TransactionListItem
 import com.example.yourfinance.domain.model.TransactionType
 import com.example.yourfinance.utils.StringHelper
 
@@ -86,7 +86,7 @@ class TransactionsRecyclerViewListAdapter : ListAdapter<TransactionListItem, Rec
             }
             binding.price.text = StringHelper.getMoneyStr(transaction.balance)
             if (transaction is Payment) {
-                binding.price.setTextColor(if (transaction.type == TransactionType.income)
+                binding.price.setTextColor(if (transaction.type == TransactionType.INCOME)
                     Color.GREEN else Color.RED)
             }
 

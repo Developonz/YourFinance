@@ -1,4 +1,4 @@
-package com.example.yourfinance.presentation.ui.adapter
+package com.example.yourfinance.presentation.ui.adapter.list_item
 
 import com.example.yourfinance.domain.model.entity.MoneyAccount
 

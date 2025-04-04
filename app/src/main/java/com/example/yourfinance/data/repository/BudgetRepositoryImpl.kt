@@ -21,7 +21,8 @@ class BudgetRepositoryImpl @Inject constructor(private val dao: FinanceDao) : Bu
         return mediator
     }
 
-    override suspend fun insertAccount(budget: Budget) {
+    override suspend fun insertBudget(budget: Budget) {
+
         withContext(Dispatchers.IO) {
             dao.insertBudget(budget.toData())
         }

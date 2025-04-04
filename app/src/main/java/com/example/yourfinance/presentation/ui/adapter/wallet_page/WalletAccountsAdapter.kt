@@ -1,24 +1,19 @@
-package com.example.yourfinance.presentation.ui.adapter
+package com.example.yourfinance.presentation.ui.adapter.wallet_page
 
 import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.ViewGroup
-import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.example.yourfinance.R
 import com.example.yourfinance.databinding.AccountCreateItemBinding
 import com.example.yourfinance.databinding.AccountItemBinding
-import com.example.yourfinance.databinding.SectionsHeaderBinding
-import com.example.yourfinance.domain.model.MoneyAccountsListItem
 import com.example.yourfinance.domain.model.entity.MoneyAccount
+import com.example.yourfinance.presentation.ui.adapter.list_item.AccountListItem
 import com.example.yourfinance.utils.StringHelper
 
 
-const val ACCOUNT = 0
-const val EMPTY = 1
-const val NEW = 2
+
 
 class WalletAccountsAdapter : ListAdapter<AccountListItem, RecyclerView.ViewHolder>(
     DIFF_CALLBACK
@@ -43,6 +38,10 @@ class WalletAccountsAdapter : ListAdapter<AccountListItem, RecyclerView.ViewHold
                 return oldItem is AccountListItem.Account &&  newItem is AccountListItem.Account && oldItem.account == newItem.account
             }
         }
+
+        const val ACCOUNT = 0
+        const val EMPTY = 1
+        const val NEW = 2
     }
 
     class MoneyAccountViewHolder(private val binding: AccountItemBinding) :

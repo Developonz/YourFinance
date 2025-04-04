@@ -17,6 +17,7 @@ fun MoneyAccountEntity.toDomain(): MoneyAccount {
 
 fun MoneyAccount.toData(): MoneyAccountEntity {
     return MoneyAccountEntity(
+        id = this.id,
         balance = this.balance,
         excluded = this.excluded,
         title = this.title,

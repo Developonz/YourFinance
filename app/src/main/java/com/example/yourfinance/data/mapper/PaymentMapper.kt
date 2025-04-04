@@ -20,6 +20,7 @@ fun FullPayment.toDomain(): Payment {
 
 fun Payment.toData(): PaymentEntity {
     return PaymentEntity(
+        id = this.id,
         type = this.type,
         balance = this.balance,
         moneyAccID = this.moneyAccount.id,

@@ -9,14 +9,14 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.ConcatAdapter
 import androidx.recyclerview.widget.GridLayoutManager
-import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.yourfinance.databinding.FragmentWalletBinding
-import com.example.yourfinance.presentation.ui.adapter.AccountListItem
-import com.example.yourfinance.presentation.ui.adapter.EmptyAdapter
-import com.example.yourfinance.presentation.ui.adapter.SectionHeaderAdapter
-import com.example.yourfinance.presentation.ui.adapter.WalletAccountsAdapter
-import com.example.yourfinance.presentation.ui.adapter.WalletBalanceAdapter
-import com.example.yourfinance.presentation.ui.adapter.WalletBudgetAdapter
+import com.example.yourfinance.presentation.ui.adapter.list_item.AccountListItem
+import com.example.yourfinance.presentation.ui.adapter.list_item.BudgetListItem
+import com.example.yourfinance.presentation.ui.adapter.wallet_page.EmptyAdapter
+import com.example.yourfinance.presentation.ui.adapter.wallet_page.SectionHeaderAdapter
+import com.example.yourfinance.presentation.ui.adapter.wallet_page.WalletAccountsAdapter
+import com.example.yourfinance.presentation.ui.adapter.wallet_page.WalletBalanceAdapter
+import com.example.yourfinance.presentation.ui.adapter.wallet_page.WalletBudgetAdapter
 import com.example.yourfinance.presentation.viewmodel.TransactionsViewModel
 
 
@@ -47,22 +47,26 @@ class WalletFragment : Fragment() {
             Log.i("TESTDB", "wallet fragment observer ${accounts.size}")
             balanceAdapter.update(accounts)
             val list: MutableList<AccountListItem> = mutableListOf()
-            accounts.forEach({
+            accounts.forEach {
                 list.add(AccountListItem.Account(it))
-            })
-            if (accounts.size % 2 == 0 ) {
-                list.add(AccountListItem.NewAccount)
-                list.add(AccountListItem.Empty)
-            } else {
-                list.add(AccountListItem.NewAccount)
             }
-
+            list.add(AccountListItem.NewAccount)
+            if (accounts.size % 2 == 0 ) list.add(AccountListItem.Empty)
             accountsAdapter.submitList(list)
         }
 
         viewModel.budgetsList.observe(viewLifecycleOwner) {budgets ->
             Log.i("TESTDB", "wallet fragment observer ${budgets.size}")
-            budgetsAdapter.submitList(budgets)
+            val list: MutableList<BudgetListItem> = mutableListOf()
+            if (budgets.isNotEmpty()) {
+                budgets.forEach {
+                    list.add(BudgetListItem.BudgetItem(it))
+                }
+                list.add(BudgetListItem.CreateBudget)
+            } else {
+                list.add(BudgetListItem.EmptyList)
+            }
+            budgetsAdapter.submitList(list)
         }
     }
 
@@ -74,9 +78,9 @@ class WalletFragment : Fragment() {
         concatAdapter = ConcatAdapter(
             config,
             balanceAdapter,
-            SectionHeaderAdapter("Счета"),
+            SectionHeaderAdapter("СЧЕТА"),
             accountsAdapter,
-            SectionHeaderAdapter("Бюджеты"),
+            SectionHeaderAdapter("БЮДЖЕТЫ"),
             budgetsAdapter,
             EmptyAdapter()
         )

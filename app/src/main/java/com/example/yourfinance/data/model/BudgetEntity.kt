@@ -10,5 +10,5 @@ data class BudgetEntity(
     var balance: Double,
     var period: PeriodLite,
     @PrimaryKey(autoGenerate = true)
-    val id: Long
+    val id: Long = 0
 )

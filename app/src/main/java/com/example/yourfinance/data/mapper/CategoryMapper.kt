@@ -33,6 +33,7 @@ fun CategoryWithSubcategories.toDomain() : FullCategory {
 
 fun Category.toData(): CategoryEntity {
     return CategoryEntity(
+        id = this.id,
         title = this.title,
         categoryType = this.categoryType
     )
@@ -40,6 +41,7 @@ fun Category.toData(): CategoryEntity {
 
 fun Subcategory.toData() : SubcategoryEntity {
     return SubcategoryEntity(
+        id = this.id,
         title = this.title,
         categoryType = this.categoryType,
         parentId = this.parentId
