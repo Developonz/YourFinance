@@ -9,12 +9,8 @@
         android:id="@+id/navigation_transactions"
         android:name="com.example.yourfinance.presentation.ui.fragment.TransactionsFragment"
         android:label="@string/title_transactions"
-        tools:layout="@layout/fragment_transactions" >
-        <argument
-            android:name="restoreState"
-            app:argType="boolean"
-            android:defaultValue="true"/>
-    </fragment>
+        tools:layout="@layout/fragment_transactions"/>
+
 
     <fragment
         android:id="@+id/navigation_calendar"
@@ -33,5 +29,44 @@
         android:id="@+id/navigation_wallet"
         android:name="com.example.yourfinance.presentation.ui.fragment.WalletFragment"
         android:label="@string/title_wallet"
-        tools:layout="@layout/fragment_transactions" />
+        tools:layout="@layout/fragment_transactions" >
+        <action
+            android:id="@+id/action_wallet_to_accountManager"
+            app:destination="@id/accountManagerFragment" />
+        <action
+            android:id="@+id/action_wallet_to_budgetManager"
+            app:destination="@id/budgetManagerFragment" />
+        <action
+            android:id="@+id/action_wallet_to_accountCreateManager"
+            app:destination="@id/accountCreateEditManager" />
+    </fragment>
+
+
+    <fragment
+        android:id="@+id/accountManagerFragment"
+        android:name="com.example.yourfinance.presentation.ui.fragment.manager.AccountManagerFragment"
+        android:label="Управление счетами"
+        tools:layout="@layout/fragment_account_manager" >
+        <action
+            android:id="@+id/action_accountManager_to_accountCreateManager"
+            app:destination="@id/accountCreateEditManager" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/budgetManagerFragment"
+        android:name="com.example.yourfinance.presentation.ui.fragment.manager.BudgetManagerFragment"
+        android:label="Управление бюджетами"
+        tools:layout="@layout/fragment_budget_manager" />
+
+    <fragment
+        android:id="@+id/accountCreateEditManager"
+        android:name="com.example.yourfinance.presentation.ui.fragment.manager.AccountCreateEditManagerFragment"
+        android:label="Добавить счёт"
+        tools:layout="@layout/fragment_account_create_edit_manager" >
+        <argument
+            android:name="accountId"
+            app:argType="long"
+            android:defaultValue="-1L" />
+    </fragment>
+
 </navigation>

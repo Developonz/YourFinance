@@ -13,9 +13,10 @@ import com.example.yourfinance.presentation.ui.adapter.list_item.AccountListItem
 import com.example.yourfinance.utils.StringHelper
 
 
-
-
-class WalletAccountsAdapter : ListAdapter<AccountListItem, RecyclerView.ViewHolder>(
+class WalletAccountsAdapter(
+    private val newAccountClick: () -> Unit,
+    private val editAccountClick: (acc: MoneyAccount) -> Unit
+) : ListAdapter<AccountListItem, RecyclerView.ViewHolder>(
     DIFF_CALLBACK
 ) {
     companion object {
@@ -27,6 +28,8 @@ class WalletAccountsAdapter : ListAdapter<AccountListItem, RecyclerView.ViewHold
                 return when {
                     oldItem is AccountListItem.Account &&  newItem is AccountListItem.Account ->
                             oldItem.account.id == newItem.account.id
+                    oldItem is AccountListItem.Empty && newItem is AccountListItem.Empty -> true
+                    oldItem is AccountListItem.NewAccount && newItem is AccountListItem.NewAccount -> true
                     else -> false
                 }
             }
@@ -35,7 +38,10 @@ class WalletAccountsAdapter : ListAdapter<AccountListItem, RecyclerView.ViewHold
                 oldItem: AccountListItem,
                 newItem: AccountListItem
             ): Boolean {
-                return oldItem is AccountListItem.Account &&  newItem is AccountListItem.Account && oldItem.account == newItem.account
+                return (oldItem is AccountListItem.Account &&  newItem is AccountListItem.Account && oldItem.account == newItem.account) ||
+                        (oldItem is AccountListItem.Empty && newItem is AccountListItem.Empty) ||
+                        (oldItem is AccountListItem.NewAccount && newItem is AccountListItem.NewAccount)
+
             }
         }
 
@@ -46,9 +52,13 @@ class WalletAccountsAdapter : ListAdapter<AccountListItem, RecyclerView.ViewHold
 
     class MoneyAccountViewHolder(private val binding: AccountItemBinding) :
         RecyclerView.ViewHolder(binding.root) {
-        fun bind(item: MoneyAccount) {
+        fun bind(item: MoneyAccount, editAccountClick: (acc: MoneyAccount) -> Unit) {
             binding.titleAccount.text = item.title
             binding.balanceAccount.text = StringHelper.getMoneyStr(item.balance)
+
+            binding.infoArea.setOnClickListener {
+                editAccountClick(item)
+            }
         }
     }
 
@@ -60,8 +70,10 @@ class WalletAccountsAdapter : ListAdapter<AccountListItem, RecyclerView.ViewHold
 
     class MoneyAccountCreateViewHolder(private val binding: AccountCreateItemBinding) :
         RecyclerView.ViewHolder(binding.root) {
-        fun bind() {
-
+        fun bind(newAccountClick: () -> Unit) {
+            binding.infoArea.setOnClickListener {
+                newAccountClick()
+            }
         }
     }
 
@@ -85,9 +97,9 @@ class WalletAccountsAdapter : ListAdapter<AccountListItem, RecyclerView.ViewHold
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         when(val item = getItem(position)) {
-            is AccountListItem.Account -> (holder as MoneyAccountViewHolder).bind(item.account)
+            is AccountListItem.Account -> (holder as MoneyAccountViewHolder).bind(item.account, editAccountClick)
             is AccountListItem.Empty -> (holder as EmptyViewHolder).bind()
-            is AccountListItem.NewAccount -> (holder as MoneyAccountCreateViewHolder).bind()
+            is AccountListItem.NewAccount -> (holder as MoneyAccountCreateViewHolder).bind(newAccountClick)
         }
     }
 }

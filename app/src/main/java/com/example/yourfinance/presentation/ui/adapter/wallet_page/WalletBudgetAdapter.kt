@@ -25,6 +25,8 @@ class WalletBudgetAdapter : ListAdapter<BudgetListItem, RecyclerView.ViewHolder>
             ): Boolean {
                 return when {
                     oldItem is BudgetListItem.BudgetItem && newItem is BudgetListItem.BudgetItem -> oldItem.budget.id == newItem.budget.id
+                    oldItem is BudgetListItem.CreateBudget && newItem is BudgetListItem.CreateBudget -> true
+                    oldItem is BudgetListItem.EmptyList && newItem is BudgetListItem.EmptyList -> true
                     else -> false
                 }
             }
@@ -33,7 +35,9 @@ class WalletBudgetAdapter : ListAdapter<BudgetListItem, RecyclerView.ViewHolder>
                 oldItem: BudgetListItem,
                 newItem: BudgetListItem
             ): Boolean {
-                return oldItem is BudgetListItem.BudgetItem && newItem is BudgetListItem.BudgetItem && oldItem == newItem
+                return (oldItem is BudgetListItem.BudgetItem && newItem is BudgetListItem.BudgetItem && oldItem.budget == newItem.budget) ||
+                        (oldItem is BudgetListItem.CreateBudget && newItem is BudgetListItem.CreateBudget) ||
+                        (oldItem is BudgetListItem.EmptyList && newItem is BudgetListItem.EmptyList)
             }
         }
 

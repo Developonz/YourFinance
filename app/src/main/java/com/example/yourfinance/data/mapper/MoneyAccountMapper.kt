@@ -5,6 +5,7 @@ import com.example.yourfinance.domain.model.entity.MoneyAccount
 
 fun MoneyAccountEntity.toDomain(): MoneyAccount {
     return MoneyAccount(
+        startBalance = this.startBalance,
         balance = this.balance,
         excluded = this.excluded,
         _title = this.title,
@@ -18,6 +19,7 @@ fun MoneyAccountEntity.toDomain(): MoneyAccount {
 fun MoneyAccount.toData(): MoneyAccountEntity {
     return MoneyAccountEntity(
         id = this.id,
+        startBalance = this.startBalance,
         balance = this.balance,
         excluded = this.excluded,
         title = this.title,

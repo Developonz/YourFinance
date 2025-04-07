@@ -28,4 +28,22 @@ class MoneyAccountRepositoryImpl @Inject constructor(private val dao: FinanceDao
         }
         return id
     }
+
+    override suspend fun deleteAccount(account: MoneyAccount) {
+        withContext(Dispatchers.IO) {
+            dao.deleteAccountById(account.id)
+        }
+    }
+
+    override suspend fun getAccountById(id: Long): MoneyAccount? {
+        return withContext(Dispatchers.IO) {
+            dao.getAccountById(id)?.toDomain()
+        }
+    }
+
+    override suspend fun updateAccount(account: MoneyAccount) {
+        withContext(Dispatchers.IO) {
+            dao.updateAccountById(account.toData())
+        }
+    }
 }

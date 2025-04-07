@@ -3,6 +3,8 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.ksp)
     alias(libs.plugins.hilt)
+    alias(libs.plugins.navigation.safeargs)
+//    alias(libs.plugins.androidx.room)
 }
 
 android {
@@ -42,6 +44,9 @@ android {
 
 dependencies {
     implementation(libs.room.runtime)
+    implementation(libs.room.ktx)
+    implementation(libs.androidx.legacy.support.v4)
+    implementation(libs.androidx.fragment.ktx)
     ksp(libs.room.compiler)
     implementation(libs.circleimageview)
     implementation(libs.hilt.android)

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ImageView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/iconImageView"
+    android:layout_width="50dp"
+    android:layout_height="50dp"
+    android:padding="8dp"
+    android:background="#3A3A3C"
+    android:src="@drawable/ic_up_arrow"
+    android:scaleType="centerInside"/>

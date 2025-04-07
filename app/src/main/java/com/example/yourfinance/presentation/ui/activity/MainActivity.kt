@@ -1,6 +1,7 @@
 package com.example.yourfinance.presentation.ui.activity
 
 import android.os.Bundle
+import android.view.View
 import androidx.activity.viewModels
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import androidx.appcompat.app.AppCompatActivity
@@ -75,10 +76,30 @@ class MainActivity : AppCompatActivity() {
 
         NavigationUI.setupWithNavController(navView, navController)
 
+
+        navController.addOnDestinationChangedListener { _, destination, _ ->
+            when (destination.id) {
+                R.id.accountManagerFragment,
+                R.id.budgetManagerFragment,
+                R.id.accountCreateEditManager -> {
+                    binding.bottomAppBar.visibility = View.GONE
+                    binding.fab.visibility = View.GONE
+                }
+
+                else -> {
+                    binding.bottomAppBar.visibility = View.VISIBLE
+                    binding.fab.visibility = View.VISIBLE
+                }
+            }
+        }
+
+
+
+
+
         binding.fab.setOnClickListener({
             daoInsert()
         })
-
     }
 
 
@@ -91,10 +112,10 @@ class MainActivity : AppCompatActivity() {
             var budget = Budget("Продукты", 5000.0, PeriodLite.WEEKLY, mutableListOf((category)))
             budgetRepository.insertBudget(budget)
 
-            var acc = MoneyAccount("альфа", 5000.0)
-            id = moneyAccountRepository.insertAccount(acc)
-            acc = MoneyAccount("альфа", id = id)
-            transactionRepository.insertPayment(Payment( TransactionType.INCOME,500.0, acc, category))
+//            var acc = MoneyAccount("альфа", 5000.0)
+//            id = moneyAccountRepository.insertAccount(acc)
+//            acc = MoneyAccount("альфа", id = id)
+//            transactionRepository.insertPayment(Payment( TransactionType.INCOME,500.0, acc, category))
         }
     }
 

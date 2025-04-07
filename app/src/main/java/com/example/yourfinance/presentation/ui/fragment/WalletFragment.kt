@@ -7,9 +7,12 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.ConcatAdapter
 import androidx.recyclerview.widget.GridLayoutManager
+import com.example.yourfinance.R
 import com.example.yourfinance.databinding.FragmentWalletBinding
+import com.example.yourfinance.domain.model.entity.MoneyAccount
 import com.example.yourfinance.presentation.ui.adapter.list_item.AccountListItem
 import com.example.yourfinance.presentation.ui.adapter.list_item.BudgetListItem
 import com.example.yourfinance.presentation.ui.adapter.wallet_page.EmptyAdapter
@@ -17,6 +20,7 @@ import com.example.yourfinance.presentation.ui.adapter.wallet_page.SectionHeader
 import com.example.yourfinance.presentation.ui.adapter.wallet_page.WalletAccountsAdapter
 import com.example.yourfinance.presentation.ui.adapter.wallet_page.WalletBalanceAdapter
 import com.example.yourfinance.presentation.ui.adapter.wallet_page.WalletBudgetAdapter
+import com.example.yourfinance.presentation.ui.fragment.manager.AccountManagerFragmentDirections
 import com.example.yourfinance.presentation.viewmodel.TransactionsViewModel
 
 
@@ -26,9 +30,17 @@ class WalletFragment : Fragment() {
     private val binding get() = _binding!!
     private val viewModel: TransactionsViewModel by activityViewModels()
     private val balanceAdapter = WalletBalanceAdapter()
-    private val accountsAdapter = WalletAccountsAdapter()
     private val budgetsAdapter = WalletBudgetAdapter()
     private lateinit var concatAdapter: ConcatAdapter
+    private val newAccountClick = {
+        val action = WalletFragmentDirections.actionWalletToAccountCreateManager()
+        findNavController().navigate(action)
+    }
+    private val editClick = { acc: MoneyAccount ->
+        val action = WalletFragmentDirections.actionWalletToAccountCreateManager(acc.id)
+        findNavController().navigate(action)
+    }
+    private val accountsAdapter = WalletAccountsAdapter(newAccountClick, editClick)
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -78,12 +90,19 @@ class WalletFragment : Fragment() {
         concatAdapter = ConcatAdapter(
             config,
             balanceAdapter,
-            SectionHeaderAdapter("СЧЕТА"),
+            SectionHeaderAdapter("СЧЕТА", onHeaderClick),
             accountsAdapter,
-            SectionHeaderAdapter("БЮДЖЕТЫ"),
+            SectionHeaderAdapter("БЮДЖЕТЫ", onHeaderClick),
             budgetsAdapter,
             EmptyAdapter()
         )
+    }
+
+    val onHeaderClick = { sectionId: String ->
+        when (sectionId) { // Используйте переданный идентификатор
+            "СЧЕТА" -> findNavController().navigate(R.id.action_wallet_to_accountManager)
+            "БЮДЖЕТЫ" -> findNavController().navigate(R.id.action_wallet_to_budgetManager)
+        }
     }
 
 

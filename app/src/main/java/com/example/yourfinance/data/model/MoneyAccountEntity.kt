@@ -1,5 +1,6 @@
 package com.example.yourfinance.data.model
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import java.time.LocalDate
@@ -7,7 +8,8 @@ import java.time.LocalDate
 @Entity
 data class MoneyAccountEntity(
     var title: String = "",
-    var balance: Double = 0.0,
+    var startBalance: Double = 0.0,
+    var balance: Double = startBalance,
     var excluded: Boolean = false,
     var default: Boolean = false,
     var used: Boolean = true,
