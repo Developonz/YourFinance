@@ -29,7 +29,7 @@
         android:id="@+id/navigation_wallet"
         android:name="com.example.yourfinance.presentation.ui.fragment.WalletFragment"
         android:label="@string/title_wallet"
-        tools:layout="@layout/fragment_transactions" >
+        tools:layout="@layout/fragment_wallet" >
         <action
             android:id="@+id/action_wallet_to_accountManager"
             app:destination="@id/accountManagerFragment" />
@@ -39,6 +39,10 @@
         <action
             android:id="@+id/action_wallet_to_accountCreateManager"
             app:destination="@id/accountCreateEditManager" />
+
+        <action
+            android:id="@+id/action_wallet_to_settingsFragment"
+            app:destination="@id/settingsFragment" />
     </fragment>
 
 
@@ -69,4 +73,84 @@
             android:defaultValue="-1L" />
     </fragment>
 
+
+    <fragment
+        android:id="@+id/settingsFragment"
+        android:name="com.example.yourfinance.presentation.ui.fragment.SettingsFragment"
+        android:label="Настройки" >
+        <action
+            android:id="@+id/action_settingsFragment_to_accountManagerFragment"
+            app:destination="@id/accountManagerFragment" />
+        <action
+            android:id="@+id/action_settingsFragment_to_budgetManagerFragment"
+            app:destination="@id/budgetManagerFragment" />
+        <action
+            android:id="@+id/action_settingsFragment_to_categoriesFragment"
+            app:destination="@id/categoriesFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/categoriesFragment"
+        android:name="com.example.yourfinance.presentation.ui.fragment.manager.CategoryManagerFragment"
+        android:label="Настройка категорий" >
+        <action
+            android:id="@+id/action_categoriesFragment_to_subcategoriesFragment"
+            app:destination="@id/subcategoriesFragment" />
+
+        <action
+            android:id="@+id/action_categoriesFragment_to_createEditCategoriesFragment"
+            app:destination="@id/categoryCreateEditFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/subcategoriesFragment"
+        android:name="com.example.yourfinance.presentation.ui.fragment.manager.SubcategoryManagerFragment"
+        android:label="Настройка подкатегорий" >
+        <action
+            android:id="@+id/action_subcategoriesFragment_to_subcategoriesCreateEditFragment"
+            app:destination="@id/subcategoryCreateEditFragment" />
+
+        <argument
+            android:name="categoryId"
+            app:argType="long"
+            android:defaultValue="-1L" />
+
+        <argument
+            android:name="categoryType"
+            app:argType="com.example.yourfinance.domain.model.CategoryType"
+            android:defaultValue="INCOME" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/categoryCreateEditFragment"
+        android:name="com.example.yourfinance.presentation.ui.fragment.manager.CategoryCreateEditFragment"
+        android:label="Создание категории" >
+        <argument
+            android:name="categoryId"
+            app:argType="long"
+            android:defaultValue="-1L" />
+        <argument
+            android:name="categoryType"
+            app:argType="com.example.yourfinance.domain.model.CategoryType"
+            android:defaultValue="INCOME" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/subcategoryCreateEditFragment"
+        android:name="com.example.yourfinance.presentation.ui.fragment.manager.SubcategoryCreateEditFragment"
+        android:label="Создать подкатегорию"
+        tools:layout="@layout/fragment_subcategory_create_edit" >
+        <argument
+            android:name="subcategoryId"
+            app:argType="long"
+            android:defaultValue="-1L" />
+        <argument
+            android:name="parentId"
+            app:argType="long"
+            android:defaultValue="-1L" />
+        <argument
+            android:name="categoryType"
+            app:argType="com.example.yourfinance.domain.model.CategoryType"
+            android:defaultValue="INCOME" />
+    </fragment>
 </navigation>

@@ -136,7 +136,7 @@ class AccountCreateEditManagerFragment : Fragment() {
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
 
             override fun afterTextChanged(s: Editable?) {
-                if (isUpdating) return // Prevent recursive call
+                if (isUpdating) return
 
                 val originalText = s?.toString() ?: ""
                 var processedText = originalText
@@ -169,7 +169,7 @@ class AccountCreateEditManagerFragment : Fragment() {
                     editText.setText(processedText)
                     val newCursorPos = selectionStart - lengthDiff
                     editText.setSelection(maxOf(0, minOf(newCursorPos, processedText.length)))
-                    isUpdating = false // Unset flag
+                    isUpdating = false
                 }
             }
         }
@@ -266,10 +266,12 @@ class AccountCreateEditManagerFragment : Fragment() {
      * Requests focus on the account name field and shows the soft keyboard.
      */
     private fun setupInitialFocusAndKeyboard() {
-        binding.editTextAccountName.post {
-            binding.editTextAccountName.requestFocus()
-            val imm = activity?.getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager
-            imm?.showSoftInput(binding.editTextAccountName, InputMethodManager.SHOW_IMPLICIT)
+        binding.editTextAccountName.run {
+            post {
+                requestFocus()
+                val imm = activity?.getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager
+                imm?.showSoftInput(this, InputMethodManager.SHOW_IMPLICIT)
+            }
         }
     }
 

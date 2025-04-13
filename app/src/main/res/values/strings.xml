@@ -12,4 +12,8 @@
     <string name="create_account">Создать</string>
     <string name="edit_account_title">Редактировать счёт</string>
     <string name="add_account_title">Добавить счёт</string>
+    <string name="edit_category_title">Редактировать категорию</string>
+    <string name="add_category_title">Добавить категорию</string>
+    <string name="add_subcategory_title">Добавить подкатегорию</string>
+    <string name="edit_subcategory_title">Редактировать подкатегорию</string>
 </resources>

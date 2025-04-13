@@ -47,7 +47,7 @@ class MoneyAccountAdapter(
             deleteClick: (acc: MoneyAccount) -> Unit,
             editClick: (acc: MoneyAccount) -> Unit)
         {
-            binding.textAccountTitle.text = item.title
+            binding.accountTitle.text = item.title
             binding.textAccountBalance.text = StringHelper.getMoneyStr(item.balance)
 
             binding.imageDelete.setOnClickListener {

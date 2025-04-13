@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="first_day_month_entries">
+        <item>1-е число</item>
+        <item>15-е число</item>
+        <!-- Добавь другие варианты при необходимости -->
+    </string-array>
+
+    <string-array name="first_day_month_values">
+        <item>1</item>
+        <item>15</item>
+        <!-- Соответствующие значения -->
+    </string-array>
+
+    <string-array name="theme_entries">
+        <item>Как в системе</item>
+        <item>Светлая</item>
+        <item>Темная</item>
+    </string-array>
+
+    <string-array name="theme_values">
+        <item>system</item>
+        <item>light</item>
+        <item>dark</item>
+    </string-array>
+</resources>

@@ -47,11 +47,13 @@ dependencies {
     implementation(libs.room.ktx)
     implementation(libs.androidx.legacy.support.v4)
     implementation(libs.androidx.fragment.ktx)
+    implementation(libs.preference)
     ksp(libs.room.compiler)
     implementation(libs.circleimageview)
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
     implementation(libs.recyclerview)
+    implementation(libs.androidx.preference)
 
 
     implementation(libs.androidx.core.ktx)

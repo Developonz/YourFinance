@@ -5,6 +5,6 @@ import com.example.yourfinance.domain.model.CategoryType
 class Subcategory(
     title: String,
     categoryType: CategoryType,
-    id: Long,
-    val parentId: Long
+    val parentId: Long,
+    id: Long = 0,
 ) : Category(title, categoryType, id)

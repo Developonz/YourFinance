@@ -43,7 +43,7 @@ class MoneyAccountRepositoryImpl @Inject constructor(private val dao: FinanceDao
 
     override suspend fun updateAccount(account: MoneyAccount) {
         withContext(Dispatchers.IO) {
-            dao.updateAccountById(account.toData())
+            dao.updateAccount(account.toData())
         }
     }
 }

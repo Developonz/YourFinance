@@ -81,6 +81,11 @@ class MainActivity : AppCompatActivity() {
             when (destination.id) {
                 R.id.accountManagerFragment,
                 R.id.budgetManagerFragment,
+                R.id.settingsFragment,
+                R.id.categoriesFragment,
+                R.id.subcategoriesFragment,
+                R.id.subcategoryCreateEditFragment,
+                R.id.categoryCreateEditFragment,
                 R.id.accountCreateEditManager -> {
                     binding.bottomAppBar.visibility = View.GONE
                     binding.fab.visibility = View.GONE
