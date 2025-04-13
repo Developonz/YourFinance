@@ -1,10 +1,12 @@
-<?xml version="1.0" encoding="utf-8"?>
 <resources>
+
     <style name="RoundedImageView">
         <item name="cornerSize">100dp</item>
     </style>
 
+    <!-- Базовую тему оставляем как есть в themes.xml (она сама переключится) -->
 
+    <!-- Стили кнопок клавиатуры БЕЗ АТРИБУТОВ ТЕМЫ (переопределения для ночи) -->
     <style name="Widget.App.KeypadButton.Base" parent="Widget.MaterialComponents.Button.TextButton">
         <item name="android:layout_width">0dp</item>
         <item name="android:layout_height">wrap_content</item>
@@ -15,32 +17,26 @@
         <item name="android:insetBottom">2dp</item>
         <item name="android:insetLeft">2dp</item>
         <item name="android:insetRight">2dp</item>
-        <!-- Заменяем ?attr/textAppearanceHeadline6 на конкретные значения -->
         <item name="android:textSize">20sp</item>
-        <item name="android:textStyle">normal</item> <!-- или bold, если нужно -->
-        <!-- Заменяем ?attr/colorControlHighlight на конкретный цвет -->
-        <item name="rippleColor">@color/ripple_material_light</item>
+        <item name="android:textStyle">normal</item>
+        <!-- Заменяем ?attr/colorControlHighlight на конкретный цвет для темной темы -->
+        <item name="rippleColor">@color/ripple_material_dark</item>
         <item name="android:paddingTop">12dp</item>
         <item name="android:paddingBottom">12dp</item>
-        <!-- Устанавливаем цвет текста явно (для TextButton) -->
-        <item name="android:textColor">?android:attr/textColorPrimary</item> <!-- Используем стандартный цвет текста для темы -->
+        <item name="android:textColor">?android:attr/textColorPrimary</item>
     </style>
 
-    <!-- Обычная кнопка (наследует от Base) -->
     <style name="Widget.App.KeypadButton" parent="Widget.App.KeypadButton.Base"/>
 
-    <!-- Кнопка с иконкой (наследует от Base) -->
     <style name="Widget.App.KeypadButton.IconOnly" parent="Widget.App.KeypadButton.Base">
         <item name="android:paddingLeft">12dp</item>
         <item name="android:paddingRight">12dp</item>
         <item name="iconPadding">0dp</item>
         <item name="android:minWidth">0dp</item>
         <item name="iconGravity">textStart</item>
-        <!-- Иконка будет использовать android:textColor по умолчанию, если tint не задан -->
         <item name="iconTint">?android:attr/textColorPrimary</item>
     </style>
 
-    <!-- Кнопка подтверждения (наследует от MaterialButton, но переопределяем многое) -->
     <style name="Widget.App.KeypadButton.Confirm" parent="Widget.MaterialComponents.Button">
         <item name="android:layout_width">0dp</item>
         <item name="android:layout_height">wrap_content</item>
@@ -54,14 +50,13 @@
         <item name="android:insetRight">2dp</item>
         <item name="android:paddingTop">12dp</item>
         <item name="android:paddingBottom">12dp</item>
-        <!-- Заменяем ?attr/colorControlHighlight на конкретный цвет -->
-        <item name="rippleColor">@color/ripple_material_light</item>
-        <!-- Устанавливаем фон и цвет текста явно -->
-        <item name="backgroundTint">@color/purple_500</item> <!-- Primary color для светлой темы -->
-        <item name="android:textColor">@color/white</item> <!-- OnPrimary color для светлой темы -->
-        <item name="iconTint">@color/white</item> <!-- OnPrimary color для светлой темы -->
-        <!-- Можно задать форму, если стандартная не устраивает -->
-        <!-- <item name="shapeAppearanceOverlay">@style/ShapeAppearance.App.Button</item> -->
-        <item name="android:elevation">2dp</item> <!-- Добавляем стандартную тень -->
+        <!-- Заменяем ?attr/colorControlHighlight на конкретный цвет для темной темы -->
+        <item name="rippleColor">@color/ripple_material_dark</item>
+        <!-- Устанавливаем фон и цвет текста явно для темной темы -->
+        <item name="backgroundTint">@color/purple_200</item> <!-- Primary color для темной темы -->
+        <item name="android:textColor">@color/black</item> <!-- OnPrimary color для темной темы -->
+        <item name="iconTint">@color/black</item> <!-- OnPrimary color для темной темы -->
+        <item name="android:elevation">2dp</item>
     </style>
+
 </resources>

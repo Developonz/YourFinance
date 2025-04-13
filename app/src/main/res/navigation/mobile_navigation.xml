@@ -153,4 +153,10 @@
             app:argType="com.example.yourfinance.domain.model.CategoryType"
             android:defaultValue="INCOME" />
     </fragment>
+
+    <fragment
+        android:id="@+id/transactionAddFragment"
+        android:name="com.example.yourfinance.presentation.ui.fragment.manager.TransactionAddFragment"
+        android:label="Добавить транзакцию"
+        tools:layout="@layout/fragment_transaction_add" />
 </navigation>

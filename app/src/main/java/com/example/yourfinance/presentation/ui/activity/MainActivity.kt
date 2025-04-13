@@ -86,6 +86,7 @@ class MainActivity : AppCompatActivity() {
                 R.id.subcategoriesFragment,
                 R.id.subcategoryCreateEditFragment,
                 R.id.categoryCreateEditFragment,
+                R.id.transactionAddFragment,
                 R.id.accountCreateEditManager -> {
                     binding.bottomAppBar.visibility = View.GONE
                     binding.fab.visibility = View.GONE
@@ -103,25 +104,11 @@ class MainActivity : AppCompatActivity() {
 
 
         binding.fab.setOnClickListener({
-            daoInsert()
+            findNavController(R.id.nav_host_fragment_activity_main)
+                .navigate(R.id.transactionAddFragment)
         })
     }
 
 
-    private fun daoInsert() {
-        CoroutineScope(Dispatchers.IO).launch {
-            var category = Category("Зарплата", CategoryType.INCOME)
-            var id = categoryRepository.insertCategory(FullCategory(category))
-            category = Category("Зарплата", CategoryType.INCOME, id)
-
-            var budget = Budget("Продукты", 5000.0, PeriodLite.WEEKLY, mutableListOf((category)))
-            budgetRepository.insertBudget(budget)
-
-//            var acc = MoneyAccount("альфа", 5000.0)
-//            id = moneyAccountRepository.insertAccount(acc)
-//            acc = MoneyAccount("альфа", id = id)
-//            transactionRepository.insertPayment(Payment( TransactionType.INCOME,500.0, acc, category))
-        }
-    }
 
 }
