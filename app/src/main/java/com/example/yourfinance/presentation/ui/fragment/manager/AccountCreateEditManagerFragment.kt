@@ -70,7 +70,7 @@ class AccountCreateEditManagerFragment : Fragment() {
         (requireActivity() as? AppCompatActivity)?.supportActionBar?.title = getString(R.string.edit_account_title)
 
         viewLifecycleOwner.lifecycleScope.launch {
-            val account = viewModel.getAccountById(currentAccountId)
+            val account = viewModel.loadAccountById(currentAccountId)
             if (view != null) {
                 if (account != null) {
                     accountToEdit = account

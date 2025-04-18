@@ -16,10 +16,25 @@ import com.example.yourfinance.domain.model.entity.Transfer
 import com.example.yourfinance.domain.model.entity.category.Category
 import com.example.yourfinance.domain.model.entity.category.FullCategory
 import com.example.yourfinance.domain.model.entity.category.Subcategory
-import com.example.yourfinance.domain.repository.BudgetRepository
-import com.example.yourfinance.domain.repository.CategoryRepository
-import com.example.yourfinance.domain.repository.MoneyAccountRepository
-import com.example.yourfinance.domain.repository.TransactionRepository
+import com.example.yourfinance.domain.usecase.budget.FetchBudgetsUseCase
+import com.example.yourfinance.domain.usecase.category.CreateCategoryUseCase
+import com.example.yourfinance.domain.usecase.category.DeleteCategoryUseCase
+import com.example.yourfinance.domain.usecase.category.FetchFullCategoriesUseCase
+import com.example.yourfinance.domain.usecase.category.LoadCategoryByIdUseCase
+import com.example.yourfinance.domain.usecase.category.LoadFullCategoryByIdUseCase
+import com.example.yourfinance.domain.usecase.subcategory.LoadSubcategoryByIdUseCase
+import com.example.yourfinance.domain.usecase.category.UpdateCategoryUseCase
+import com.example.yourfinance.domain.usecase.moneyaccount.CreateMoneyAccountUseCase
+import com.example.yourfinance.domain.usecase.moneyaccount.DeleteMoneyAccountUseCase
+import com.example.yourfinance.domain.usecase.moneyaccount.FetchMoneyAccountsUseCase
+import com.example.yourfinance.domain.usecase.moneyaccount.LoadMoneyAccountByIdUseCase
+import com.example.yourfinance.domain.usecase.moneyaccount.UpdateMoneyAccountUseCase
+import com.example.yourfinance.domain.usecase.subcategory.CreateSubcategoryUseCase
+import com.example.yourfinance.domain.usecase.subcategory.DeleteSubcategoryUseCase
+import com.example.yourfinance.domain.usecase.subcategory.UpdateSubcategoryUseCase
+import com.example.yourfinance.domain.usecase.transaction.CreatePaymentUseCase
+import com.example.yourfinance.domain.usecase.transaction.CreateTransferUseCase
+import com.example.yourfinance.domain.usecase.transaction.FetchTransactionsUseCase
 // import com.example.yourfinance.util.SingleLiveEvent // Используй SingleLiveEvent или аналог для событий
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -30,17 +45,32 @@ import javax.inject.Inject
 
 @HiltViewModel
 class TransactionsViewModel @Inject constructor(
-    private val transactionRepository: TransactionRepository,
-    private val accountRepository: MoneyAccountRepository,
-    private val budgetRepository: BudgetRepository,
-    private val categoryRepository: CategoryRepository
+    private val fetchTransactionsUseCase: FetchTransactionsUseCase,
+    private val fetchMoneyAccountsUseCase: FetchMoneyAccountsUseCase,
+    private val fetchFullCategoriesUseCase: FetchFullCategoriesUseCase,
+    private val fetchBudgetsUseCase: FetchBudgetsUseCase,
+    private val createPaymentUseCase: CreatePaymentUseCase,
+    private val createTransferUseCase: CreateTransferUseCase,
+    private val deleteMoneyAccountUseCase: DeleteMoneyAccountUseCase,
+    private val createMoneyAccountUseCase: CreateMoneyAccountUseCase,
+    private val updateMoneyAccountUseCase: UpdateMoneyAccountUseCase,
+    private val loadMoneyAccountByIdUseCase: LoadMoneyAccountByIdUseCase,
+    private val deleteCategoryUseCase: DeleteCategoryUseCase,
+    private val loadCategoryByIdUseCase: LoadCategoryByIdUseCase,
+    private val loadFullCategoryByIdUseCase: LoadFullCategoryByIdUseCase,
+    private val updateCategoryUseCase: UpdateCategoryUseCase,
+    private val createCategoryUseCase: CreateCategoryUseCase,
+    private val loadSubcategoryByIdUseCase: LoadSubcategoryByIdUseCase,
+    private val updateSubcategoryUseCase: UpdateSubcategoryUseCase,
+    private val createSubcategoryUseCase: CreateSubcategoryUseCase,
+    private val deleteSubcategoryUseCase: DeleteSubcategoryUseCase
 ) : ViewModel() {
     // --- Основные LiveData ---
-    val transactionsList: LiveData<List<Transaction>> = transactionRepository.getAllTransactions()
-    val accountsList: LiveData<List<MoneyAccount>> = accountRepository.getAllAccounts()
-    val budgetsList: LiveData<List<Budget>> = budgetRepository.getAllBudgets()
-    // Предоставляем ВСЕ категории, фрагменты сами отфильтруют
-    val allCategories: LiveData<List<FullCategory>> = categoryRepository.getAllCategoriesWithSubcategories()
+    val transactionsList: LiveData<List<Transaction>> = fetchTransactionsUseCase()
+    val accountsList: LiveData<List<MoneyAccount>> = fetchMoneyAccountsUseCase()
+    val allCategories: LiveData<List<FullCategory>> = fetchFullCategoriesUseCase()
+    val budgetsList: LiveData<List<Budget>> = fetchBudgetsUseCase()
+
 
     // --- Состояние для экрана добавления транзакции ---
     private val _currentTransactionType = MutableLiveData(TransactionType.EXPENSE) // Активный тип (управляется ViewPager)
@@ -298,7 +328,7 @@ class TransactionsViewModel @Inject constructor(
                             time = transactionTime
                         )
                         Log.d("ViewModel", "Inserting Payment: $payment")
-                        transactionRepository.insertPayment(payment)
+                        createPaymentUseCase(payment)
                         _transactionSavedEvent.postValue(true)
                         clearInputState() // Очищаем после успешного сохранения
                     }
@@ -313,7 +343,7 @@ class TransactionsViewModel @Inject constructor(
                             time = transactionTime
                         )
                         Log.d("ViewModel", "Inserting Transfer: $transfer")
-                        transactionRepository.insertTransfer(transfer)
+                        createTransferUseCase(transfer)
                         _transactionSavedEvent.postValue(true)
                         clearInputState() // Очищаем после успешного сохранения
                     }
@@ -331,19 +361,25 @@ class TransactionsViewModel @Inject constructor(
         addSource(transactionsList) { transactions -> value = transactions to (accountsList.value ?: emptyList()) }
         addSource(accountsList) { accounts -> value = (transactionsList.value ?: emptyList()) to accounts }
     }
-    fun deleteAccount(acc: MoneyAccount) { viewModelScope.launch { accountRepository.deleteAccount(acc) } }
-    fun createAccount(acc: MoneyAccount) { viewModelScope.launch { accountRepository.insertAccount(acc) } }
-    fun updateAccount(account: MoneyAccount) { viewModelScope.launch { accountRepository.updateAccount(account) } }
-    suspend fun getAccountById(id: Long): MoneyAccount? = accountRepository.getAccountById(id)
-    fun deleteCategory(categoryToDelete: FullCategory) { viewModelScope.launch(Dispatchers.IO) { categoryRepository.deleteCategory(categoryToDelete.category) } }
-    suspend fun loadCategoryById(categoryId: Long): Category? = categoryRepository.loadCategoryById(categoryId)
-    suspend fun loadFullCategoryById(categoryId: Long): FullCategory? = categoryRepository.loadFullCategoryById(categoryId)
-    fun updateCategory(category: Category) { viewModelScope.launch { categoryRepository.updateCategory(category) } }
-    fun createCategory(category: Category) { viewModelScope.launch { categoryRepository.insertCategory(FullCategory(category)) } }
-    suspend fun loadSubcategoryById(subcategoryId: Long): Subcategory? = categoryRepository.loadSubcategory(subcategoryId)
-    fun updateSubcategory(subcategory: Subcategory) { viewModelScope.launch { categoryRepository.updateSubcategory(subcategory) } }
-    fun createSubcategory(subcategory: Subcategory) { viewModelScope.launch { categoryRepository.insertSubcategory(subcategory) } }
-    fun deleteSabcategory(subcategory: Subcategory) { viewModelScope.launch(Dispatchers.IO) { categoryRepository.deleteSubcategory(subcategory) } }
+    fun deleteAccount(account: MoneyAccount) { viewModelScope.launch { deleteMoneyAccountUseCase(account) } }
+    fun createAccount(account: MoneyAccount) { viewModelScope.launch { createMoneyAccountUseCase(account) } }
+    fun updateAccount(account: MoneyAccount) { viewModelScope.launch { updateMoneyAccountUseCase(account) } }
+    suspend fun loadAccountById(id: Long): MoneyAccount? = loadMoneyAccountByIdUseCase(id)
+
+
+
+    fun deleteCategory(categoryToDelete: FullCategory) { viewModelScope.launch(Dispatchers.IO) { deleteCategoryUseCase(categoryToDelete.category) } }
+    suspend fun loadCategoryById(categoryId: Long): Category? = loadCategoryByIdUseCase(categoryId)
+
+    suspend fun loadFullCategoryById(categoryId: Long): FullCategory? = loadFullCategoryByIdUseCase(categoryId)
+
+    fun updateCategory(category: Category) { viewModelScope.launch { updateCategoryUseCase(category) } }
+    fun createCategory(category: Category) { viewModelScope.launch { createCategoryUseCase(FullCategory(category)) } }
+
+    suspend fun loadSubcategoryById(subcategoryId: Long): Subcategory? = loadSubcategoryByIdUseCase(subcategoryId)
+    fun updateSubcategory(subcategory: Subcategory) { viewModelScope.launch { updateSubcategoryUseCase(subcategory) } }
+    fun createSubcategory(subcategory: Subcategory) { viewModelScope.launch { createSubcategoryUseCase(subcategory) } }
+    fun deleteSubcategory(subcategory: Subcategory) { viewModelScope.launch(Dispatchers.IO) { deleteSubcategoryUseCase(subcategory) } }
 
     // Управление CategoryType (если используется в других фрагментах)
     private val _selectedCategoryType = MutableLiveData<CategoryType>(CategoryType.EXPENSE)

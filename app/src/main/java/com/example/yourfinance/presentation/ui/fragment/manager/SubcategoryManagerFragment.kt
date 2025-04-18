@@ -7,20 +7,13 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.yourfinance.databinding.FragmentSubcategoryManagerBinding
-import com.example.yourfinance.domain.model.CategoryType
-import com.example.yourfinance.domain.model.entity.category.Category
-import com.example.yourfinance.domain.model.entity.category.FullCategory
-import com.example.yourfinance.presentation.ui.adapter.CategoryAdapter
 import com.example.yourfinance.presentation.ui.adapter.SubcategoryAdapter
 import com.example.yourfinance.presentation.viewmodel.TransactionsViewModel
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class SubcategoryManagerFragment : Fragment() {
@@ -31,7 +24,7 @@ class SubcategoryManagerFragment : Fragment() {
     private val args: SubcategoryManagerFragmentArgs by navArgs()
     private var adapter = SubcategoryAdapter(
         deleteClick = {subcategory ->
-            viewModel.deleteSabcategory(subcategory)
+            viewModel.deleteSubcategory(subcategory)
         },
         editClick = {subcategory ->
             Log.i("TESTS", "navigate " + subcategory.id)
