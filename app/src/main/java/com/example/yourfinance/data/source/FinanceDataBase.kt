@@ -17,5 +17,12 @@ abstract class FinanceDataBase : RoomDatabase() {
     companion object {
         const val name = "Finance_DB"
     }
-    abstract fun getFinanceDao() : FinanceDao
+
+    abstract fun getTransactionDao() : TransactionDao
+
+    abstract fun getCategoryDao() : CategoryDao
+
+    abstract fun getMoneyAccountDao() : MoneyAccountDao
+
+    abstract fun getBudgetDao() : BudgetDao
 }

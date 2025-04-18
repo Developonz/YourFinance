@@ -13,7 +13,6 @@ import androidx.navigation.ui.NavigationUI
 import androidx.navigation.ui.setupActionBarWithNavController
 import com.example.yourfinance.R
 import com.example.yourfinance.databinding.ActivityMainBinding
-import com.example.yourfinance.data.source.FinanceDao
 // ... другие импорты
 import com.example.yourfinance.presentation.viewmodel.TransactionsViewModel
 import dagger.hilt.android.AndroidEntryPoint

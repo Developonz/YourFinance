@@ -6,7 +6,7 @@ import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.map
 import com.example.yourfinance.data.mapper.toData
 import com.example.yourfinance.data.mapper.toDomain
-import com.example.yourfinance.data.source.FinanceDao
+import com.example.yourfinance.data.source.CategoryDao
 import com.example.yourfinance.domain.model.entity.category.Category
 import com.example.yourfinance.domain.model.entity.category.FullCategory
 import com.example.yourfinance.domain.model.entity.category.Subcategory
@@ -15,7 +15,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
-class CategoryRepositoryImpl @Inject constructor(private val dao: FinanceDao) : CategoryRepository{
+class CategoryRepositoryImpl @Inject constructor(private val dao: CategoryDao) : CategoryRepository{
     override fun getAllCategory(): LiveData<List<FullCategory>> {
         val mediator = MediatorLiveData<List<FullCategory>>()
         val categories = dao.getFullAllCategory()

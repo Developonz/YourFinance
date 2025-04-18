@@ -6,7 +6,7 @@ import androidx.lifecycle.MediatorLiveData
 import com.example.yourfinance.data.mapper.toData
 import com.example.yourfinance.data.mapper.toDomain
 import com.example.yourfinance.domain.model.Transaction
-import com.example.yourfinance.data.source.FinanceDao
+import com.example.yourfinance.data.source.TransactionDao
 import com.example.yourfinance.domain.model.entity.Payment
 import com.example.yourfinance.domain.model.entity.Transfer
 import com.example.yourfinance.domain.repository.TransactionRepository
@@ -14,7 +14,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
-class TransactionRepositoryImpl @Inject constructor(private val financeDao: FinanceDao) : TransactionRepository {
+class TransactionRepositoryImpl @Inject constructor(private val financeDao: TransactionDao) : TransactionRepository {
 
     override fun getAllTransactions(): LiveData<List<Transaction>> {
         val mediator = MediatorLiveData<List<Transaction>>()

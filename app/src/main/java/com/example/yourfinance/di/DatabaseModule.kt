@@ -2,8 +2,11 @@ package com.example.yourfinance.di
 
 import android.content.Context
 import androidx.room.Room
-import com.example.yourfinance.data.source.FinanceDao
+import com.example.yourfinance.data.source.BudgetDao
+import com.example.yourfinance.data.source.CategoryDao
 import com.example.yourfinance.data.source.FinanceDataBase
+import com.example.yourfinance.data.source.MoneyAccountDao
+import com.example.yourfinance.data.source.TransactionDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -17,10 +20,34 @@ object DatabaseModule {
 
     @Provides
     @Singleton
-    fun provideFinanceDao(
+    fun provideTransactionDao(
         database: FinanceDataBase
-    ): FinanceDao {
-        return database.getFinanceDao()
+    ): TransactionDao {
+        return database.getTransactionDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideCategoryDao(
+        database: FinanceDataBase
+    ): CategoryDao {
+        return database.getCategoryDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideMoneyAccountDao(
+        database: FinanceDataBase
+    ): MoneyAccountDao {
+        return database.getMoneyAccountDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideBudgetDao(
+        database: FinanceDataBase
+    ): BudgetDao {
+        return database.getBudgetDao()
     }
 
     @Provides
