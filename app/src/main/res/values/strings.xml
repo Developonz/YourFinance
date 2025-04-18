@@ -16,4 +16,6 @@
     <string name="add_category_title">Добавить категорию</string>
     <string name="add_subcategory_title">Добавить подкатегорию</string>
     <string name="edit_subcategory_title">Редактировать подкатегорию</string>
+    <string name="cancel">Отмена</string>
+    <string name="no_accounts_available">Нет доступных счетов</string>
 </resources>

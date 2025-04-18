@@ -12,7 +12,7 @@
         <!-- Status bar color. -->
         <item name="android:statusBarColor">?attr/colorSurface</item>
         <!-- Customize your theme here. -->
-        <item name="colorSurfaceVariant">@color/grey_100</item>
+        <item name="colorSurfaceVariant">#212121</item>
 
         <!-- Эти атрибуты тоже важны -->
         <item name="colorSurface">@color/grey_900</item> <!-- ССЫЛКА на цвет в colors.xml (или ваш) -->

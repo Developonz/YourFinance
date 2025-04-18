@@ -13,6 +13,7 @@ import com.example.yourfinance.domain.model.entity.category.FullCategory
 
 
 class CategoryTransactionAdapter(
+    private val listener: OnItemClickListener
 ) : ListAdapter<Category, CategoryTransactionAdapter.CategoryViewHolder>(
     DIFF_CALLBACK
 ) {
@@ -37,11 +38,18 @@ class CategoryTransactionAdapter(
         }
     }
 
+    interface OnItemClickListener {
+        fun onItemClick(category: Category)
+    }
+
     class CategoryViewHolder(private val binding: ItemCategoryTransactionBinding) :
         RecyclerView.ViewHolder(binding.root) {
-        fun bind(item: Category)
+        fun bind(item: Category, listener: OnItemClickListener)
         {
             binding.titleCategory.text = item.title
+            binding.root.setOnClickListener {
+                listener.onItemClick(item)
+            }
 
         }
     }
@@ -53,6 +61,6 @@ class CategoryTransactionAdapter(
     }
 
     override fun onBindViewHolder(holder: CategoryViewHolder, position: Int) {
-        holder.bind(getItem(position))
+        holder.bind(getItem(position), listener)
     }
 }

@@ -5,19 +5,18 @@
     android:id="@+id/mobile_navigation"
     app:startDestination="@+id/navigation_transactions">
 
+    <!-- Остальные фрагменты без изменений -->
     <fragment
         android:id="@+id/navigation_transactions"
         android:name="com.example.yourfinance.presentation.ui.fragment.TransactionsFragment"
         android:label="@string/title_transactions"
         tools:layout="@layout/fragment_transactions"/>
 
-
     <fragment
         android:id="@+id/navigation_calendar"
         android:name="com.example.yourfinance.presentation.ui.fragment.CalendarFragment"
         android:label="@string/title_calendar"
         tools:layout="@layout/fragment_statistic" />
-
 
     <fragment
         android:id="@+id/navigation_statistic"
@@ -39,12 +38,10 @@
         <action
             android:id="@+id/action_wallet_to_accountCreateManager"
             app:destination="@id/accountCreateEditManager" />
-
         <action
             android:id="@+id/action_wallet_to_settingsFragment"
             app:destination="@id/settingsFragment" />
     </fragment>
-
 
     <fragment
         android:id="@+id/accountManagerFragment"
@@ -73,7 +70,6 @@
             android:defaultValue="-1L" />
     </fragment>
 
-
     <fragment
         android:id="@+id/settingsFragment"
         android:name="com.example.yourfinance.presentation.ui.fragment.SettingsFragment"
@@ -96,7 +92,6 @@
         <action
             android:id="@+id/action_categoriesFragment_to_subcategoriesFragment"
             app:destination="@id/subcategoriesFragment" />
-
         <action
             android:id="@+id/action_categoriesFragment_to_createEditCategoriesFragment"
             app:destination="@id/categoryCreateEditFragment" />
@@ -109,12 +104,10 @@
         <action
             android:id="@+id/action_subcategoriesFragment_to_subcategoriesCreateEditFragment"
             app:destination="@id/subcategoryCreateEditFragment" />
-
         <argument
             android:name="categoryId"
             app:argType="long"
             android:defaultValue="-1L" />
-
         <argument
             android:name="categoryType"
             app:argType="com.example.yourfinance.domain.model.CategoryType"
@@ -154,9 +147,19 @@
             android:defaultValue="INCOME" />
     </fragment>
 
+    <!-- УДАЛЕНО:
     <fragment
         android:id="@+id/transactionAddFragment"
         android:name="com.example.yourfinance.presentation.ui.fragment.manager.TransactionAddFragment"
         android:label="Добавить транзакцию"
         tools:layout="@layout/fragment_transaction_add" />
+    -->
+
+    <!-- ДОБАВЛЕНО: -->
+    <fragment
+        android:id="@+id/transactionContainerFragment"
+        android:name="com.example.yourfinance.presentation.ui.fragment.TransactionContainerFragment"
+        android:label="Добавить транзакцию"
+        tools:layout="@layout/fragment_transaction_container" />
+
 </navigation>
