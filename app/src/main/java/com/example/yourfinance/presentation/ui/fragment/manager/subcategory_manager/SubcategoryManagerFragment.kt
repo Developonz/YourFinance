@@ -1,4 +1,4 @@
-package com.example.yourfinance.presentation.ui.fragment.manager
+package com.example.yourfinance.presentation.ui.fragment.manager.subcategory_manager
 
 import android.os.Bundle
 import android.util.Log
@@ -6,20 +6,19 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.yourfinance.databinding.FragmentSubcategoryManagerBinding
 import com.example.yourfinance.presentation.ui.adapter.SubcategoryAdapter
-import com.example.yourfinance.presentation.viewmodel.TransactionsViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class SubcategoryManagerFragment : Fragment() {
 
     private var _binding: FragmentSubcategoryManagerBinding? = null
-    private val viewModel: TransactionsViewModel by activityViewModels()
+    private val viewModel: SubcategoryManagerViewModel by viewModels()
     private val binding get() = _binding!!
     private val args: SubcategoryManagerFragmentArgs by navArgs()
     private var adapter = SubcategoryAdapter(

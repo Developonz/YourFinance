@@ -1,4 +1,4 @@
-package com.example.yourfinance.presentation.ui.fragment.manager
+package com.example.yourfinance.presentation.ui.fragment.manager.category_manager
 
 
 
@@ -11,7 +11,6 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.MenuHost
 import androidx.core.view.MenuProvider
-import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
@@ -22,7 +21,6 @@ import com.example.yourfinance.R
 import com.example.yourfinance.databinding.FragmentCategoryCreateEditBinding
 import com.example.yourfinance.domain.model.CategoryType
 import com.example.yourfinance.domain.model.entity.category.Category
-import com.example.yourfinance.presentation.viewmodel.TransactionsViewModel
 
 import com.google.android.material.tabs.TabLayout
 import dagger.hilt.android.AndroidEntryPoint
@@ -35,7 +33,7 @@ class CategoryCreateEditFragment : Fragment() {
     private val binding get() = _binding!!
 
     private val args: CategoryCreateEditFragmentArgs by navArgs()
-    private val viewModel: TransactionsViewModel by viewModels()
+    private val viewModel: CategoryManagerViewModel by viewModels()
     private var categoryToEdit: Category? = null
 
     private var isEditMode = false

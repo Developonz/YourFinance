@@ -5,12 +5,16 @@
     android:id="@+id/mobile_navigation"
     app:startDestination="@+id/navigation_transactions">
 
-    <!-- Остальные фрагменты без изменений -->
     <fragment
         android:id="@+id/navigation_transactions"
         android:name="com.example.yourfinance.presentation.ui.fragment.TransactionsFragment"
         android:label="@string/title_transactions"
-        tools:layout="@layout/fragment_transactions"/>
+        tools:layout="@layout/fragment_transactions">
+        <!-- Действие для навигации на экран создания/редактирования -->
+        <action
+            android:id="@+id/action_transactions_to_transactionContainerFragment"
+            app:destination="@id/transactionContainerFragment" />
+    </fragment>
 
     <fragment
         android:id="@+id/navigation_calendar"
@@ -45,7 +49,7 @@
 
     <fragment
         android:id="@+id/accountManagerFragment"
-        android:name="com.example.yourfinance.presentation.ui.fragment.manager.AccountManagerFragment"
+        android:name="com.example.yourfinance.presentation.ui.fragment.manager.money_account_manager.AccountManagerFragment"
         android:label="Управление счетами"
         tools:layout="@layout/fragment_account_manager" >
         <action
@@ -55,13 +59,13 @@
 
     <fragment
         android:id="@+id/budgetManagerFragment"
-        android:name="com.example.yourfinance.presentation.ui.fragment.manager.BudgetManagerFragment"
+        android:name="com.example.yourfinance.presentation.ui.fragment.manager.budget_manager.BudgetManagerFragment"
         android:label="Управление бюджетами"
         tools:layout="@layout/fragment_budget_manager" />
 
     <fragment
         android:id="@+id/accountCreateEditManager"
-        android:name="com.example.yourfinance.presentation.ui.fragment.manager.AccountCreateEditManagerFragment"
+        android:name="com.example.yourfinance.presentation.ui.fragment.manager.money_account_manager.AccountCreateEditManagerFragment"
         android:label="Добавить счёт"
         tools:layout="@layout/fragment_account_create_edit_manager" >
         <argument
@@ -87,7 +91,7 @@
 
     <fragment
         android:id="@+id/categoriesFragment"
-        android:name="com.example.yourfinance.presentation.ui.fragment.manager.CategoryManagerFragment"
+        android:name="com.example.yourfinance.presentation.ui.fragment.manager.category_manager.CategoryManagerFragment"
         android:label="Настройка категорий" >
         <action
             android:id="@+id/action_categoriesFragment_to_subcategoriesFragment"
@@ -99,7 +103,7 @@
 
     <fragment
         android:id="@+id/subcategoriesFragment"
-        android:name="com.example.yourfinance.presentation.ui.fragment.manager.SubcategoryManagerFragment"
+        android:name="com.example.yourfinance.presentation.ui.fragment.manager.subcategory_manager.SubcategoryManagerFragment"
         android:label="Настройка подкатегорий" >
         <action
             android:id="@+id/action_subcategoriesFragment_to_subcategoriesCreateEditFragment"
@@ -116,7 +120,7 @@
 
     <fragment
         android:id="@+id/categoryCreateEditFragment"
-        android:name="com.example.yourfinance.presentation.ui.fragment.manager.CategoryCreateEditFragment"
+        android:name="com.example.yourfinance.presentation.ui.fragment.manager.category_manager.CategoryCreateEditFragment"
         android:label="Создание категории" >
         <argument
             android:name="categoryId"
@@ -130,7 +134,7 @@
 
     <fragment
         android:id="@+id/subcategoryCreateEditFragment"
-        android:name="com.example.yourfinance.presentation.ui.fragment.manager.SubcategoryCreateEditFragment"
+        android:name="com.example.yourfinance.presentation.ui.fragment.manager.subcategory_manager.SubcategoryCreateEditFragment"
         android:label="Создать подкатегорию"
         tools:layout="@layout/fragment_subcategory_create_edit" >
         <argument
@@ -147,19 +151,19 @@
             android:defaultValue="INCOME" />
     </fragment>
 
-    <!-- УДАЛЕНО:
-    <fragment
-        android:id="@+id/transactionAddFragment"
-        android:name="com.example.yourfinance.presentation.ui.fragment.manager.TransactionAddFragment"
-        android:label="Добавить транзакцию"
-        tools:layout="@layout/fragment_transaction_add" />
-    -->
-
-    <!-- ДОБАВЛЕНО: -->
     <fragment
         android:id="@+id/transactionContainerFragment"
-        android:name="com.example.yourfinance.presentation.ui.fragment.TransactionContainerFragment"
-        android:label="Добавить транзакцию"
-        tools:layout="@layout/fragment_transaction_container" />
+        android:name="com.example.yourfinance.presentation.ui.fragment.manager.transaction_manager.TransactionContainerFragment"
+        android:label="Транзакция"
+        tools:layout="@layout/fragment_transaction_container" >
+        <argument
+            android:name="transactionId"
+            app:argType="long"
+            android:defaultValue="-1L" />
+        <argument
+            android:name="transactionTypeInt"
+            app:argType="integer"
+            android:defaultValue="-1" />
+    </fragment>
 
 </navigation>

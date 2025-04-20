@@ -4,8 +4,8 @@ import com.example.yourfinance.domain.model.entity.Payment
 import com.example.yourfinance.domain.repository.TransactionRepository
 import javax.inject.Inject
 
-class CreatePaymentUseCase @Inject constructor(private val transactionRepository: TransactionRepository) {
-    suspend operator fun invoke(payment: Payment) {
-        transactionRepository.createPayment(payment)
+class LoadPaymentByIdUseCase @Inject constructor(val transactionRepository: TransactionRepository) {
+    suspend operator fun invoke(id: Long) : Payment? {
+        return transactionRepository.loadPaymentById(id)
     }
 }

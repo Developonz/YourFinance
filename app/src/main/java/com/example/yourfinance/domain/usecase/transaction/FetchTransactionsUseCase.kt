@@ -7,6 +7,6 @@ import javax.inject.Inject
 
 class FetchTransactionsUseCase @Inject constructor(private val transactionRepository: TransactionRepository) {
     operator fun invoke() : LiveData<List<Transaction>> {
-        return transactionRepository.getAllTransactions()
+        return transactionRepository.fetchTransactions()
     }
 }

@@ -1,4 +1,4 @@
-package com.example.yourfinance.presentation.ui.fragment.manager
+package com.example.yourfinance.presentation.ui.fragment.manager.money_account_manager
 
 import android.content.Context
 import android.os.Bundle
@@ -12,24 +12,25 @@ import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.example.yourfinance.R
 import com.example.yourfinance.databinding.FragmentAccountCreateEditManagerBinding
 import com.example.yourfinance.domain.model.entity.MoneyAccount
-import com.example.yourfinance.presentation.viewmodel.TransactionsViewModel
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import java.text.DecimalFormat
 import java.text.DecimalFormatSymbols
 import java.util.Locale
 
+@AndroidEntryPoint
 class AccountCreateEditManagerFragment : Fragment() {
 
     private var _binding: FragmentAccountCreateEditManagerBinding? = null
     private val binding get() = _binding!!
-    private val viewModel: TransactionsViewModel by activityViewModels()
+    private val viewModel: MoneyAccountManagerViewModel by viewModels()
     private val args: AccountCreateEditManagerFragmentArgs by navArgs()
 
     private var currentAccountId: Long = -1L

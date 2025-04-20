@@ -7,22 +7,24 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.yourfinance.databinding.FragmentTransactionsBinding
 import com.example.yourfinance.presentation.ui.adapter.list_item.TransactionListItem
 import com.example.yourfinance.presentation.ui.adapter.TransactionsRecyclerViewListAdapter
 import com.example.yourfinance.domain.model.TransactionType
 import com.example.yourfinance.domain.model.entity.Payment
-import com.example.yourfinance.utils.StringHelper.Companion.getMoneyStr
-import com.example.yourfinance.presentation.viewmodel.TransactionsViewModel
-
+import com.example.yourfinance.util.StringHelper.Companion.getMoneyStr
 
 class TransactionsFragment : Fragment() {
 
     private var _binding: FragmentTransactionsBinding? = null
     private val binding get() = _binding!!
-    private val viewModel: TransactionsViewModel by activityViewModels()
-    private val adapter = TransactionsRecyclerViewListAdapter()
+    private val viewModel: GeneralViewModel by activityViewModels()
+    private val adapter = TransactionsRecyclerViewListAdapter(editClick = {transaction ->
+        val action = TransactionsFragmentDirections.actionTransactionsToTransactionContainerFragment(transaction.id, transaction.type.ordinal)
+        findNavController().navigate(action)
+    })
 
 
     override fun onCreateView(

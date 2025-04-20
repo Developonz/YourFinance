@@ -1,18 +1,16 @@
-package com.example.yourfinance.presentation.ui.fragment.manager
+package com.example.yourfinance.presentation.ui.fragment.manager.category_manager
 
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.yourfinance.databinding.FragmentCategoryManagerBinding
 import com.example.yourfinance.domain.model.CategoryType
 import com.example.yourfinance.presentation.ui.adapter.CategoryAdapter
-import com.example.yourfinance.presentation.viewmodel.TransactionsViewModel
 import com.google.android.material.tabs.TabLayout
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -23,7 +21,7 @@ class CategoryManagerFragment : Fragment() {
     private var _binding: FragmentCategoryManagerBinding? = null
     private val binding get() = _binding!!
 
-    private val viewModel: TransactionsViewModel by activityViewModels()
+    private val viewModel: CategoryManagerViewModel by viewModels()
 
     private lateinit var categoryAdapter: CategoryAdapter
 

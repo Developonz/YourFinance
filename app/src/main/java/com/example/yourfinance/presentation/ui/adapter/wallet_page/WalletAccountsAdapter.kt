@@ -10,7 +10,7 @@ import com.example.yourfinance.databinding.AccountCreateItemBinding
 import com.example.yourfinance.databinding.AccountItemBinding
 import com.example.yourfinance.domain.model.entity.MoneyAccount
 import com.example.yourfinance.presentation.ui.adapter.list_item.AccountListItem
-import com.example.yourfinance.utils.StringHelper
+import com.example.yourfinance.util.StringHelper
 
 
 class WalletAccountsAdapter(

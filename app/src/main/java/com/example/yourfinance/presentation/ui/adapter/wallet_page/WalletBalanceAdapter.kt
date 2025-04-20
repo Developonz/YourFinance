@@ -5,7 +5,7 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.example.yourfinance.databinding.BalanceItemBinding
 import com.example.yourfinance.domain.model.entity.MoneyAccount
-import com.example.yourfinance.utils.StringHelper
+import com.example.yourfinance.util.StringHelper
 
 class WalletBalanceAdapter(
     var moneyAccounts: List<MoneyAccount> = emptyList()

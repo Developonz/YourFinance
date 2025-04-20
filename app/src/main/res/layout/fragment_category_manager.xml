@@ -6,7 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#212121"
-    tools:context=".presentation.ui.fragment.manager.CategoryManagerFragment">
+    tools:context=".presentation.ui.fragment.manager.category_manager.CategoryManagerFragment">
 
     <com.google.android.material.appbar.AppBarLayout
         android:id="@+id/appBarLayout"

@@ -1,7 +1,7 @@
 package com.example.yourfinance.domain.model.entity.category
 
 import com.example.yourfinance.domain.model.CategoryType
-import com.example.yourfinance.utils.StringHelper.Companion.getUpperFirstChar
+import com.example.yourfinance.util.StringHelper.Companion.getUpperFirstChar
 
 
 open class Category(

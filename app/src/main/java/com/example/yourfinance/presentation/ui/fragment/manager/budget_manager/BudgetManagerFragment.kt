@@ -1,4 +1,4 @@
-package com.example.yourfinance.presentation.ui.fragment.manager
+package com.example.yourfinance.presentation.ui.fragment.manager.budget_manager
 
 import android.os.Bundle
 import androidx.fragment.app.Fragment
@@ -7,14 +7,14 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.activityViewModels
 import com.example.yourfinance.databinding.FragmentWalletBinding
-import com.example.yourfinance.presentation.viewmodel.TransactionsViewModel
+import com.example.yourfinance.presentation.ui.fragment.GeneralViewModel
 
 
 class BudgetManagerFragment : Fragment() {
 
     private var _binding: FragmentWalletBinding? = null
     private val binding get() = _binding!!
-    private val viewModel: TransactionsViewModel by activityViewModels()
+    private val viewModel: GeneralViewModel by activityViewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater,

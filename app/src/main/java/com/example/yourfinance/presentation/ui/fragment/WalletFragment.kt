@@ -26,15 +26,13 @@ import com.example.yourfinance.presentation.ui.adapter.wallet_page.SectionHeader
 import com.example.yourfinance.presentation.ui.adapter.wallet_page.WalletAccountsAdapter
 import com.example.yourfinance.presentation.ui.adapter.wallet_page.WalletBalanceAdapter
 import com.example.yourfinance.presentation.ui.adapter.wallet_page.WalletBudgetAdapter
-import com.example.yourfinance.presentation.ui.fragment.manager.AccountManagerFragmentDirections
-import com.example.yourfinance.presentation.viewmodel.TransactionsViewModel
 
 
 class WalletFragment : Fragment() {
 
     private var _binding: FragmentWalletBinding? = null
     private val binding get() = _binding!!
-    private val viewModel: TransactionsViewModel by activityViewModels()
+    private val viewModel: GeneralViewModel by activityViewModels()
     private val balanceAdapter = WalletBalanceAdapter()
     private val budgetsAdapter = WalletBudgetAdapter()
     private lateinit var concatAdapter: ConcatAdapter

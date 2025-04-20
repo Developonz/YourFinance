@@ -6,7 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#1F1F1F"
-    tools:context=".presentation.ui.fragment.manager.CategoryCreateEditFragment">
+    tools:context=".presentation.ui.fragment.manager.category_manager.CategoryCreateEditFragment">
 
     <!-- Вкладки Расход/Доход (будут скрыты в режиме редактирования) -->
     <com.google.android.material.tabs.TabLayout

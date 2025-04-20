@@ -9,14 +9,15 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.yourfinance.databinding.EmptyPlaceBinding
 import com.example.yourfinance.databinding.HeaderTransactionsBinding
 import com.example.yourfinance.databinding.TransactionItemBinding
+import com.example.yourfinance.domain.model.Transaction
 import com.example.yourfinance.domain.model.entity.Payment
 import com.example.yourfinance.domain.model.entity.Transfer
 import com.example.yourfinance.presentation.ui.adapter.list_item.TransactionListItem
 import com.example.yourfinance.domain.model.TransactionType
-import com.example.yourfinance.utils.StringHelper
+import com.example.yourfinance.util.StringHelper
 
 
-class TransactionsRecyclerViewListAdapter : ListAdapter<TransactionListItem, RecyclerView.ViewHolder>(
+class TransactionsRecyclerViewListAdapter(val editClick: (transaction: Transaction) -> Unit) : ListAdapter<TransactionListItem, RecyclerView.ViewHolder>(
     DIFF_CALLBACK
 ) {
 
@@ -64,7 +65,7 @@ class TransactionsRecyclerViewListAdapter : ListAdapter<TransactionListItem, Rec
     // ViewHolder для транзакции
     class TransactionViewHolder(private val binding: TransactionItemBinding) :
         RecyclerView.ViewHolder(binding.root) {
-        fun bind(item: TransactionListItem.TransactionItem) {
+        fun bind(item: TransactionListItem.TransactionItem, editClick: (transaction: Transaction) -> Unit) {
             val transaction = item.transaction
             binding.title.text = when (transaction) {
                 is Payment -> transaction.note.ifEmpty { transaction.category.title }
@@ -91,6 +92,10 @@ class TransactionsRecyclerViewListAdapter : ListAdapter<TransactionListItem, Rec
             }
 
             binding.time.text = StringHelper.getTime(transaction.time)
+
+            binding.root.setOnClickListener {
+                editClick(item.transaction)
+            }
         }
     }
 
@@ -127,7 +132,7 @@ class TransactionsRecyclerViewListAdapter : ListAdapter<TransactionListItem, Rec
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         when (val item = getItem(position)) {
             is TransactionListItem.Header -> (holder as HeaderViewHolder).bind(item)
-            is TransactionListItem.TransactionItem -> (holder as TransactionViewHolder).bind(item)
+            is TransactionListItem.TransactionItem -> (holder as TransactionViewHolder).bind(item, editClick)
             is TransactionListItem.EmptyItem -> (holder as EmptyViewHolder).bind()
         }
     }

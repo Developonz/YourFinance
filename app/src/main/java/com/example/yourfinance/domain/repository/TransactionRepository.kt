@@ -7,9 +7,17 @@ import com.example.yourfinance.domain.model.entity.Transfer
 
 
 interface TransactionRepository {
-    fun getAllTransactions(): LiveData<List<Transaction>>
+    fun fetchTransactions(): LiveData<List<Transaction>>
 
-    suspend fun insertPayment(payment: Payment)
+    suspend fun createPayment(payment: Payment)
 
-    suspend fun insertTransfer(transfer: Transfer)
+    suspend fun createTransfer(transfer: Transfer)
+
+    suspend fun loadPaymentById(id: Long): Payment?
+
+    suspend fun loadTransferById(id: Long): Transfer?
+
+    suspend fun updatePayment(payment: Payment)
+
+    suspend fun updateTransfer(transfer: Transfer)
 }

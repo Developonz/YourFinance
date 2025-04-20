@@ -7,6 +7,7 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
+import androidx.room.Update
 import com.example.yourfinance.data.model.PaymentEntity
 import com.example.yourfinance.data.model.TransferEntity
 import com.example.yourfinance.data.model.pojo.FullPayment
@@ -41,4 +42,15 @@ abstract class TransactionDao {
     @Query("DELETE FROM TransferEntity WHERE id = :transferId")
     abstract fun deleteTransferById(transferId: Long)
 
+    @Query("SELECT * FROM PaymentEntity where id = :id")
+    abstract suspend fun loadPaymentById(id: Long): FullPayment?
+
+    @Query("SELECT * FROM TransferEntity where id = :id")
+    abstract suspend fun loadTransferById(id: Long): FullTransfer?
+
+    @Update
+    abstract fun updatePayment(payment: PaymentEntity)
+
+    @Update
+    abstract fun updateTransfer(transfer: TransferEntity)
 }

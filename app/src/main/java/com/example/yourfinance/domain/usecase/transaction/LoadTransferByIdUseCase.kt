@@ -4,8 +4,8 @@ import com.example.yourfinance.domain.model.entity.Transfer
 import com.example.yourfinance.domain.repository.TransactionRepository
 import javax.inject.Inject
 
-class CreateTransferUseCase @Inject constructor(private val transactionRepository: TransactionRepository) {
-    suspend operator fun invoke(transfer: Transfer) {
-        transactionRepository.createTransfer(transfer)
+class LoadTransferByIdUseCase @Inject constructor(val transactionRepository: TransactionRepository) {
+    suspend operator fun invoke(id: Long) : Transfer? {
+        return transactionRepository.loadTransferById(id)
     }
 }

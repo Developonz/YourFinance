@@ -2,7 +2,7 @@ package com.example.yourfinance.domain.model.entity
 
 import com.example.yourfinance.domain.model.PeriodLite
 import com.example.yourfinance.domain.model.entity.category.Category
-import com.example.yourfinance.utils.StringHelper.Companion.getUpperFirstChar
+import com.example.yourfinance.util.StringHelper.Companion.getUpperFirstChar
 
 data class Budget(
     private var _title: String,

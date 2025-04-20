@@ -10,7 +10,7 @@ import com.example.yourfinance.databinding.BudgetItemCreateBinding
 import com.example.yourfinance.databinding.BudgetItemEmptyListBinding
 import com.example.yourfinance.domain.model.entity.Budget
 import com.example.yourfinance.presentation.ui.adapter.list_item.BudgetListItem
-import com.example.yourfinance.utils.StringHelper
+import com.example.yourfinance.util.StringHelper
 
 
 

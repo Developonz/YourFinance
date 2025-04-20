@@ -1,4 +1,4 @@
-package com.example.yourfinance.utils
+package com.example.yourfinance.util
 
 import java.text.NumberFormat
 import java.time.LocalDate

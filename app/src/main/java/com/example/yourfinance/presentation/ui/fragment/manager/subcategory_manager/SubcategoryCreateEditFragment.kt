@@ -1,4 +1,4 @@
-package com.example.yourfinance.presentation.ui.fragment.manager
+package com.example.yourfinance.presentation.ui.fragment.manager.subcategory_manager
 
 import android.content.Context
 import android.os.Bundle
@@ -11,25 +11,18 @@ import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.InputMethodManager
-import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.MenuHost
 import androidx.core.view.MenuProvider
-import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.example.yourfinance.R
-import com.example.yourfinance.databinding.FragmentCategoryCreateEditBinding
 import com.example.yourfinance.databinding.FragmentSubcategoryCreateEditBinding
-import com.example.yourfinance.domain.model.CategoryType
-import com.example.yourfinance.domain.model.entity.category.Category
 import com.example.yourfinance.domain.model.entity.category.Subcategory
-import com.example.yourfinance.presentation.viewmodel.TransactionsViewModel
-import com.google.android.material.tabs.TabLayout
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
@@ -39,7 +32,7 @@ class SubcategoryCreateEditFragment : Fragment() {
     private val binding get() = _binding!!
 
     private val args: SubcategoryCreateEditFragmentArgs by navArgs()
-    private val viewModel: TransactionsViewModel by activityViewModels()
+    private val viewModel: SubcategoryManagerViewModel by viewModels()
     private var subcategoryToEdit: Subcategory? = null
 
     private var isEditMode = false
