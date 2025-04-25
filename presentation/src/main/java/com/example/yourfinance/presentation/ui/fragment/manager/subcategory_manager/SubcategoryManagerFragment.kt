@@ -10,7 +10,7 @@ import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.example.yourfinance.databinding.FragmentSubcategoryManagerBinding
+import com.example.yourfinance.presentation.databinding.FragmentSubcategoryManagerBinding
 import com.example.yourfinance.presentation.ui.adapter.SubcategoryAdapter
 import dagger.hilt.android.AndroidEntryPoint
 

@@ -8,7 +8,7 @@ import android.view.ViewGroup
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.example.yourfinance.databinding.FragmentAccountManagerBinding
+import com.example.yourfinance.presentation.databinding.FragmentAccountManagerBinding
 import com.example.yourfinance.domain.model.entity.MoneyAccount
 import com.example.yourfinance.presentation.ui.adapter.MoneyAccountAdapter
 import dagger.hilt.android.AndroidEntryPoint

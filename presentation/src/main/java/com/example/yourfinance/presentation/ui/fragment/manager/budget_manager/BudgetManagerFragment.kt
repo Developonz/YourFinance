@@ -6,7 +6,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.activityViewModels
-import com.example.yourfinance.databinding.FragmentWalletBinding
+import com.example.yourfinance.presentation.databinding.FragmentWalletBinding
 import com.example.yourfinance.presentation.ui.fragment.GeneralViewModel
 
 

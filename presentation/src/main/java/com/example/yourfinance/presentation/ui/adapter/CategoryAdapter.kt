@@ -6,8 +6,8 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.example.yourfinance.databinding.CategoryItemBinding
 import com.example.yourfinance.domain.model.entity.category.FullCategory
+import com.example.yourfinance.presentation.databinding.CategoryItemBinding
 
 
 class CategoryAdapter(

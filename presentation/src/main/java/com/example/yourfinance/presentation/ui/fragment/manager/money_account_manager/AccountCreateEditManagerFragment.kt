@@ -16,8 +16,8 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
-import com.example.yourfinance.R
-import com.example.yourfinance.databinding.FragmentAccountCreateEditManagerBinding
+import com.example.yourfinance.presentation.R
+import com.example.yourfinance.presentation.databinding.FragmentAccountCreateEditManagerBinding
 import com.example.yourfinance.domain.model.entity.MoneyAccount
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch

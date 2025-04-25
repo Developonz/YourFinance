@@ -17,7 +17,7 @@ import com.google.android.material.textfield.TextInputEditText
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
-import com.example.yourfinance.R
+import com.example.yourfinance.presentation.R
 import com.example.yourfinance.domain.model.TransactionType
 
 abstract class BaseTransactionInputFragment : Fragment() {

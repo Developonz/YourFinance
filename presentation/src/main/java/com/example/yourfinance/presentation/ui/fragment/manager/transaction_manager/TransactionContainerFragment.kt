@@ -11,8 +11,8 @@ import androidx.navigation.fragment.navArgs
 import androidx.lifecycle.Observer
 import androidx.appcompat.app.AppCompatActivity
 import androidx.viewpager2.widget.ViewPager2
-import com.example.yourfinance.R
-import com.example.yourfinance.databinding.FragmentTransactionContainerBinding
+import com.example.yourfinance.presentation.R
+import com.example.yourfinance.presentation.databinding.FragmentTransactionContainerBinding
 import com.example.yourfinance.domain.model.TransactionType
 import com.example.yourfinance.presentation.ui.adapter.TransactionPagerAdapter
 import com.google.android.material.tabs.TabLayoutMediator

@@ -5,9 +5,9 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.example.yourfinance.databinding.ListItemAccountManagerBinding
+import com.example.yourfinance.presentation.databinding.ListItemAccountManagerBinding
 import com.example.yourfinance.domain.model.entity.MoneyAccount
-import com.example.yourfinance.util.StringHelper
+import com.example.yourfinance.domain.StringHelper
 
 
 

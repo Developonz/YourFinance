@@ -3,7 +3,7 @@ package com.example.yourfinance.presentation.ui.adapter.wallet_page
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
-import com.example.yourfinance.databinding.SectionsHeaderBinding
+import com.example.yourfinance.presentation.databinding.SectionsHeaderBinding
 
 
 class SectionHeaderAdapter(

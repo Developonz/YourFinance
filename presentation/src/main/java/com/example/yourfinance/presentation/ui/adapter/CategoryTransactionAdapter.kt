@@ -6,10 +6,9 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.example.yourfinance.databinding.CategoryItemBinding
-import com.example.yourfinance.databinding.ItemCategoryTransactionBinding
+import com.example.yourfinance.presentation.databinding.CategoryItemBinding
+import com.example.yourfinance.presentation.databinding.ItemCategoryTransactionBinding
 import com.example.yourfinance.domain.model.entity.category.Category
-import com.example.yourfinance.domain.model.entity.category.FullCategory
 
 
 class CategoryTransactionAdapter(

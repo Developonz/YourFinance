@@ -9,7 +9,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.example.yourfinance.databinding.FragmentTransactionsBinding
+import com.example.yourfinance.presentation.databinding.FragmentTransactionsBinding
 import com.example.yourfinance.presentation.ui.adapter.list_item.TransactionListItem
 import com.example.yourfinance.presentation.ui.adapter.TransactionsRecyclerViewListAdapter
 import com.example.yourfinance.domain.model.TransactionType

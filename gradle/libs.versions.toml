@@ -1,7 +1,7 @@
 # gradle/libs.versions.toml
 [versions]
 # Plugins
-agp = "8.4.1" # Android Gradle Plugin
+agp = "8.8.2" # Android Gradle Plugin
 kotlin = "2.0.0" # Kotlin version
 ksp = "2.0.0-1.0.21" # KSP version (должна соответствовать Kotlin)
 hilt = "2.51.1" # Hilt version

@@ -8,8 +8,8 @@ import android.view.ViewGroup
 import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
-import com.example.yourfinance.R
-import com.example.yourfinance.databinding.FragmentRemittanceTransactionBinding
+import com.example.yourfinance.presentation.R
+import com.example.yourfinance.presentation.databinding.FragmentRemittanceTransactionBinding
 import com.example.yourfinance.domain.model.TransactionType
 import dagger.hilt.android.AndroidEntryPoint
 

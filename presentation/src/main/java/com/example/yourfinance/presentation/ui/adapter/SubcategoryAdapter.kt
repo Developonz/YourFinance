@@ -5,21 +5,21 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.example.yourfinance.databinding.SubcategoryItemBinding
+import com.example.yourfinance.presentation.databinding.SubcategoryItemBinding
 import com.example.yourfinance.domain.model.entity.category.Subcategory
 
 
 class SubcategoryAdapter(
-    val deleteClick: (subcategory: com.example.yourfinance.domain.model.entity.category.Subcategory) -> Unit,
-    val editClick: (subcategory: com.example.yourfinance.domain.model.entity.category.Subcategory) -> Unit
-) : ListAdapter<com.example.yourfinance.domain.model.entity.category.Subcategory, SubcategoryAdapter.SubcategoryViewHolder>(
+    val deleteClick: (subcategory: Subcategory) -> Unit,
+    val editClick: (subcategory: Subcategory) -> Unit
+) : ListAdapter<Subcategory, SubcategoryAdapter.SubcategoryViewHolder>(
     DIFF_CALLBACK
 ) {
     companion object {
-        private val DIFF_CALLBACK = object : DiffUtil.ItemCallback<com.example.yourfinance.domain.model.entity.category.Subcategory>() {
+        private val DIFF_CALLBACK = object : DiffUtil.ItemCallback<Subcategory>() {
             override fun areItemsTheSame(
-                oldItem: com.example.yourfinance.domain.model.entity.category.Subcategory,
-                newItem: com.example.yourfinance.domain.model.entity.category.Subcategory
+                oldItem: Subcategory,
+                newItem: Subcategory
             ): Boolean {
                 return when {
                     oldItem.id == newItem.id -> true
@@ -28,8 +28,8 @@ class SubcategoryAdapter(
             }
 
             override fun areContentsTheSame(
-                oldItem: com.example.yourfinance.domain.model.entity.category.Subcategory,
-                newItem: com.example.yourfinance.domain.model.entity.category.Subcategory
+                oldItem: Subcategory,
+                newItem: Subcategory
             ): Boolean {
                 return oldItem.title == newItem.title
             }
@@ -39,9 +39,9 @@ class SubcategoryAdapter(
     class SubcategoryViewHolder(private val binding: SubcategoryItemBinding) :
         RecyclerView.ViewHolder(binding.root) {
         fun bind(
-            item: com.example.yourfinance.domain.model.entity.category.Subcategory,
-            deleteClick: (subcategory: com.example.yourfinance.domain.model.entity.category.Subcategory) -> Unit,
-            editClick: (subcategory: com.example.yourfinance.domain.model.entity.category.Subcategory) -> Unit)
+            item: Subcategory,
+            deleteClick: (subcategory: Subcategory) -> Unit,
+            editClick: (subcategory: Subcategory) -> Unit)
         {
             binding.subcategoryTitle.text = item.title
 

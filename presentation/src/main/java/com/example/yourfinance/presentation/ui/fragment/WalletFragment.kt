@@ -16,8 +16,8 @@ import androidx.lifecycle.Lifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.ConcatAdapter
 import androidx.recyclerview.widget.GridLayoutManager
-import com.example.yourfinance.R
-import com.example.yourfinance.databinding.FragmentWalletBinding
+import com.example.yourfinance.presentation.R
+import com.example.yourfinance.presentation.databinding.FragmentWalletBinding
 import com.example.yourfinance.domain.model.entity.MoneyAccount
 import com.example.yourfinance.presentation.ui.adapter.list_item.AccountListItem
 import com.example.yourfinance.presentation.ui.adapter.list_item.BudgetListItem

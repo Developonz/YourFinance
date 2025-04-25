@@ -3,9 +3,9 @@ package com.example.yourfinance.presentation.ui.adapter.wallet_page
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
-import com.example.yourfinance.databinding.BalanceItemBinding
+import com.example.yourfinance.presentation.databinding.BalanceItemBinding
 import com.example.yourfinance.domain.model.entity.MoneyAccount
-import com.example.yourfinance.util.StringHelper
+import com.example.yourfinance.domain.StringHelper
 
 class WalletBalanceAdapter(
     var moneyAccounts: List<MoneyAccount> = emptyList()

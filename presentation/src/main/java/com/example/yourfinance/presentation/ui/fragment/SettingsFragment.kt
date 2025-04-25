@@ -9,7 +9,7 @@ import androidx.navigation.fragment.findNavController
 import androidx.preference.ListPreference
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
-import com.example.yourfinance.R
+import com.example.yourfinance.presentation.R
 
 //TODO: сделать прослойку PreferenceDataStore
 

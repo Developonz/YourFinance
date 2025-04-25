@@ -20,9 +20,8 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
-import com.example.yourfinance.R
-import com.example.yourfinance.databinding.FragmentSubcategoryCreateEditBinding
-import com.example.yourfinance.domain.model.entity.category.Subcategory
+import com.example.yourfinance.presentation.R
+import com.example.yourfinance.presentation.databinding.FragmentSubcategoryCreateEditBinding
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 

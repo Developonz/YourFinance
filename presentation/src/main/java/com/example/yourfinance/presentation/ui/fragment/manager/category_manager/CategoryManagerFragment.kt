@@ -8,7 +8,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.example.yourfinance.databinding.FragmentCategoryManagerBinding
+import com.example.yourfinance.presentation.databinding.FragmentCategoryManagerBinding
 import com.example.yourfinance.domain.model.CategoryType
 import com.example.yourfinance.presentation.ui.adapter.CategoryAdapter
 import com.google.android.material.tabs.TabLayout

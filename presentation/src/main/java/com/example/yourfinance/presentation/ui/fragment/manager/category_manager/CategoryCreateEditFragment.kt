@@ -17,8 +17,8 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
-import com.example.yourfinance.R
-import com.example.yourfinance.databinding.FragmentCategoryCreateEditBinding
+import com.example.yourfinance.presentation.R
+import com.example.yourfinance.presentation.databinding.FragmentCategoryCreateEditBinding
 import com.example.yourfinance.domain.model.CategoryType
 import com.example.yourfinance.domain.model.entity.category.Category
 

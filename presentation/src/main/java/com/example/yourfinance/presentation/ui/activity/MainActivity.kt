@@ -11,6 +11,7 @@ import androidx.navigation.ui.setupActionBarWithNavController
 import dagger.hilt.android.AndroidEntryPoint
 import androidx.navigation.fragment.NavHostFragment
 import com.example.yourfinance.presentation.R
+import com.example.yourfinance.presentation.databinding.ActivityMainBinding
 
 
 @AndroidEntryPoint

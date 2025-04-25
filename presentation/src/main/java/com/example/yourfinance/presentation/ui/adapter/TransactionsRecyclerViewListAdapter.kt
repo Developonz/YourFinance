@@ -6,15 +6,15 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.example.yourfinance.databinding.EmptyPlaceBinding
-import com.example.yourfinance.databinding.HeaderTransactionsBinding
-import com.example.yourfinance.databinding.TransactionItemBinding
+import com.example.yourfinance.presentation.databinding.EmptyPlaceBinding
+import com.example.yourfinance.presentation.databinding.HeaderTransactionsBinding
+import com.example.yourfinance.presentation.databinding.TransactionItemBinding
 import com.example.yourfinance.domain.model.Transaction
 import com.example.yourfinance.domain.model.entity.Payment
 import com.example.yourfinance.domain.model.entity.Transfer
 import com.example.yourfinance.presentation.ui.adapter.list_item.TransactionListItem
 import com.example.yourfinance.domain.model.TransactionType
-import com.example.yourfinance.util.StringHelper
+import com.example.yourfinance.domain.StringHelper
 
 
 class TransactionsRecyclerViewListAdapter(val editClick: (transaction: Transaction) -> Unit) : ListAdapter<TransactionListItem, RecyclerView.ViewHolder>(
