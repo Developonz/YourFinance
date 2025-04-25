@@ -1,57 +1,99 @@
+# gradle/libs.versions.toml
 [versions]
-agp = "8.8.2"
-kotlin = "2.1.10"
-coreKtx = "1.15.0"
-junit = "4.13.2"
-junitVersion = "1.2.1"
-espressoCore = "3.6.1"
+# Plugins
+agp = "8.4.1" # Android Gradle Plugin
+kotlin = "2.0.0" # Kotlin version
+ksp = "2.0.0-1.0.21" # KSP version (должна соответствовать Kotlin)
+hilt = "2.51.1" # Hilt version
+navigationSafeargs = "2.7.7" # Navigation Safe Args (обычно совпадает с navigation)
+room = "2.6.1" # Room version
+
+# Libraries
+coreKtx = "1.13.1"
 appcompat = "1.7.0"
 material = "1.12.0"
-constraintlayout = "2.2.1"
-lifecycleLivedataKtx = "2.8.7"
-lifecycleViewmodelKtx = "2.8.7"
-navigationFragmentKtx = "2.8.9"
-navigationUiKtx = "2.8.9"
-room = "2.6.1"
-ksp = "2.1.10-1.0.31"
+constraintlayout = "2.1.4" # Немного откатил, 2.2.x были alpha/beta
+lifecycle = "2.8.3" # Общая версия для lifecycle
+navigation = "2.7.7" # Общая версия для navigation
+coroutines = "1.8.1" # Coroutines version
 circleimageview = "3.1.0"
-hilt = "2.56.1"
-recyclerview = "1.4.0"
-legacySupportV4 = "1.0.0"
-fragmentKtx = "1.8.6"
-navigationSafeargs = "2.8.9"
-preference_version = "1.2.1"
-preference = "1.2.1"
+recyclerview = "1.3.2"
+fragmentKtx = "1.8.1"
+preferenceKtx = "1.2.1"
+inject = "1" # Для javax.inject
 
+# Testing
+junit = "4.13.2"
+junitExt = "1.2.1" # Переименовал junitVersion для ясности
+espressoCore = "3.6.1"
+
+# Удалены неиспользуемые или объединенные версии:
+# legacySupportV4 - удалена
+# preference - объединена в preferenceKtx
+# preference_version - объединена в preferenceKtx
+# jetbrainsKotlinJvm - используется kotlin
 
 [libraries]
+# AndroidX Core
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
-junit = { group = "junit", name = "junit", version.ref = "junit" }
-androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
-androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
+
+# AndroidX UI & Components
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 androidx-constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "constraintlayout" }
-androidx-lifecycle-livedata-ktx = { group = "androidx.lifecycle", name = "lifecycle-livedata-ktx", version.ref = "lifecycleLivedataKtx" }
-androidx-lifecycle-viewmodel-ktx = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-ktx", version.ref = "lifecycleViewmodelKtx" }
-androidx-navigation-fragment-ktx = { group = "androidx.navigation", name = "navigation-fragment-ktx", version.ref = "navigationFragmentKtx" }
-androidx-navigation-ui-ktx = { group = "androidx.navigation", name = "navigation-ui-ktx", version.ref = "navigationUiKtx" }
+androidx-recyclerview = { group = "androidx.recyclerview", name = "recyclerview", version.ref = "recyclerview" }
+androidx-fragment-ktx = { group = "androidx.fragment", name = "fragment-ktx", version.ref = "fragmentKtx" }
+androidx-preference-ktx = { group = "androidx.preference", name = "preference-ktx", version.ref = "preferenceKtx" } # Объединено
+
+# Lifecycle (ViewModel, LiveData)
+androidx-lifecycle-viewmodel-ktx = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-ktx", version.ref = "lifecycle" }
+androidx-lifecycle-livedata-ktx = { group = "androidx.lifecycle", name = "lifecycle-livedata-ktx", version.ref = "lifecycle" }
+androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycle" } # Полезно для lifecycleScope
+
+# Navigation
+androidx-navigation-fragment-ktx = { group = "androidx.navigation", name = "navigation-fragment-ktx", version.ref = "navigation" }
+androidx-navigation-ui-ktx = { group = "androidx.navigation", name = "navigation-ui-ktx", version.ref = "navigation" }
+
+# Room (Database)
 room-runtime = { module = "androidx.room:room-runtime", version.ref = "room" }
 room-ktx = { module = "androidx.room:room-ktx", version.ref = "room" }
-room-compiler = { module = "androidx.room:room-compiler", version.ref = "room" }
-circleimageview = { module = "de.hdodenhof:circleimageview", version.ref = "circleimageview" }
+room-compiler = { module = "androidx.room:room-compiler", version.ref = "room" } # Для KSP
+
+# Hilt (Dependency Injection)
 hilt-android = { module = "com.google.dagger:hilt-android", version.ref = "hilt" }
-hilt-compiler = { module = "com.google.dagger:hilt-android-compiler", version.ref = "hilt" }
-recyclerview = { module = "androidx.recyclerview:recyclerview" , version.ref = "recyclerview" }
-androidx-legacy-support-v4 = { group = "androidx.legacy", name = "legacy-support-v4", version.ref = "legacySupportV4" }
-androidx-fragment-ktx = { group = "androidx.fragment", name = "fragment-ktx", version.ref = "fragmentKtx" }
-androidx-preference = {group = "androidx.preference", name = "preference-ktx", version.ref = "preference_version"}
-preference = { group = "androidx.preference", name = "preference", version.ref = "preference" }
+hilt-compiler = { module = "com.google.dagger:hilt-compiler", version.ref = "hilt" } # Переименовано для ясности, используется для KSP
+
+# Kotlin Coroutines
+kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines"}
+kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "coroutines"}
+
+# Misc UI
+circleimageview = { module = "de.hdodenhof:circleimageview", version.ref = "circleimageview" }
+
+# JSR-330 Annotations (для @Inject в domain)
+javax-inject = { group = "javax.inject", name = "javax.inject", version.ref = "inject" }
+
+# Testing
+junit = { group = "junit", name = "junit", version.ref = "junit" }
+androidx-test-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitExt" } # Переименовано
+androidx-test-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" } # Переименовано
+
+# Удалены неиспользуемые:
+# androidx-legacy-support-v4
+# preference (объединено)
 
 [plugins]
+# Core
 android-application = { id = "com.android.application", version.ref = "agp" }
+android-library = { id = "com.android.library", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" } # Добавлено для domain
+
+# Tools & Frameworks
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
-hilt = {id = "com.google.dagger.hilt.android", version.ref = "hilt" }
-navigation-safeargs = { id = "androidx.navigation.safeargs.kotlin", version.ref = "navigationSafeargs"}
-androidx-room = { id = "androidx.room", version.ref = "room" }
+hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
+navigation-safeargs = { id = "androidx.navigation.safeargs.kotlin", version.ref = "navigationSafeargs" }
+#androidx-room = { id = "androidx.room", version.ref = "room" } # Плагин Room больше не нужен с KSP
+
+# Удалены неиспользуемые:
+# jetbrains-kotlin-jvm (используется kotlin-jvm)

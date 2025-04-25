@@ -12,6 +12,7 @@ pluginManagement {
 
     }
 }
+
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
@@ -22,3 +23,6 @@ dependencyResolutionManagement {
 
 rootProject.name = "YourFinance"
 include(":app")
+include(":data")
+include(":domain")
+include(":presentation")

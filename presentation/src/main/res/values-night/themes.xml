@@ -1,0 +1,30 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme. -->
+    <style name="Theme.YourFinance" parent="Theme.MaterialComponents.DayNight.DarkActionBar">
+        <!-- Primary brand color. -->
+        <item name="colorPrimary">@color/purple_200</item> <!-- ССЫЛКА на цвет в colors.xml -->
+        <item name="colorPrimaryVariant">@color/purple_700</item> <!-- ССЫЛКА на цвет в colors.xml -->
+        <item name="colorOnPrimary">@color/black</item> <!-- ССЫЛКА на цвет в colors.xml -->
+        <!-- Secondary brand color. -->
+        <item name="colorSecondary">@color/teal_200</item> <!-- ССЫЛКА на цвет в colors.xml -->
+        <item name="colorSecondaryVariant">@color/teal_200</item> <!-- ССЫЛКА на цвет в colors.xml -->
+        <item name="colorOnSecondary">@color/black</item> <!-- ССЫЛКА на цвет в colors.xml -->
+        <!-- Status bar color. -->
+        <item name="android:statusBarColor">?attr/colorSurface</item>
+        <!-- Customize your theme here. -->
+        <item name="colorSurfaceVariant">#212121</item>
+
+        <!-- Эти атрибуты тоже важны -->
+        <item name="colorSurface">@color/grey_900</item> <!-- ССЫЛКА на цвет в colors.xml (или ваш) -->
+        <item name="colorOnSurface">@color/white</item> <!-- ССЫЛКА на цвет в colors.xml (или ваш) -->
+        <item name="android:colorBackground">@color/grey_900</item> <!-- ССЫЛКА на цвет в colors.xml (или ваш) -->
+        <item name="colorError">@color/design_default_color_error</item>
+        <item name="colorOnError">@color/black</item> <!-- ССЫЛКА на цвет в colors.xml -->
+
+
+        <item name="colorControlNormal">@color/white</item> <!-- ССЫЛКА на цвет в colors.xml -->
+        <item name="colorControlHighlight">@color/ripple_material_dark</item> <!-- ССЫЛКА на цвет в colors.xml (или ваш) -->
+    </style>
+
+
+</resources>
