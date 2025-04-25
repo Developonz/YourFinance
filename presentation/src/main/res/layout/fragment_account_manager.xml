@@ -17,7 +17,7 @@
         app:layout_constraintBottom_toTopOf="@+id/button_container"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        tools:listitem="@layout/list_item_account_manager" />
+        tools:listitem="@layout/item_account_manager_list" />
 
     <!-- Контейнер для кнопки -->
     <FrameLayout

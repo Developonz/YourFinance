@@ -6,8 +6,7 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.example.yourfinance.presentation.databinding.CategoryItemBinding
-import com.example.yourfinance.presentation.databinding.ItemCategoryTransactionBinding
+import com.example.yourfinance.presentation.databinding.ItemTransactionCategoryBinding
 import com.example.yourfinance.domain.model.entity.category.Category
 
 
@@ -41,7 +40,7 @@ class CategoryTransactionAdapter(
         fun onItemClick(category: Category)
     }
 
-    class CategoryViewHolder(private val binding: ItemCategoryTransactionBinding) :
+    class CategoryViewHolder(private val binding: ItemTransactionCategoryBinding) :
         RecyclerView.ViewHolder(binding.root) {
         fun bind(item: Category, listener: OnItemClickListener)
         {
@@ -56,7 +55,7 @@ class CategoryTransactionAdapter(
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CategoryViewHolder {
         val inflater = LayoutInflater.from(parent.context)
-        return CategoryViewHolder(ItemCategoryTransactionBinding.inflate(inflater, parent, false))
+        return CategoryViewHolder(ItemTransactionCategoryBinding.inflate(inflater, parent, false))
     }
 
     override fun onBindViewHolder(holder: CategoryViewHolder, position: Int) {

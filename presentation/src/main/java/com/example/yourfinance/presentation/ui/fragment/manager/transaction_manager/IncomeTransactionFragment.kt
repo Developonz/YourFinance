@@ -10,7 +10,7 @@ import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.lifecycle.Observer
 import com.example.yourfinance.presentation.R
-import com.example.yourfinance.presentation.databinding.FragmentIncomeTransactionBinding
+import com.example.yourfinance.presentation.databinding.FragmentTransactionIncomeBinding
 import com.example.yourfinance.domain.model.CategoryType
 import com.example.yourfinance.domain.model.TransactionType
 import com.example.yourfinance.domain.model.entity.category.Category
@@ -20,7 +20,7 @@ import dagger.hilt.android.AndroidEntryPoint
 @AndroidEntryPoint
 class IncomeTransactionFragment : BaseTransactionInputFragment(), CategoryTransactionAdapter.OnItemClickListener {
 
-    private var _binding: FragmentIncomeTransactionBinding? = null
+    private var _binding: FragmentTransactionIncomeBinding? = null
     private val binding get() = _binding!!
 
     override val viewModel: TransactionManagerViewModel by viewModels(ownerProducer = { requireParentFragment() })
@@ -40,7 +40,7 @@ class IncomeTransactionFragment : BaseTransactionInputFragment(), CategoryTransa
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        _binding = FragmentIncomeTransactionBinding.inflate(inflater, container, false)
+        _binding = FragmentTransactionIncomeBinding.inflate(inflater, container, false)
         return binding.root
     }
 
@@ -97,8 +97,8 @@ class IncomeTransactionFragment : BaseTransactionInputFragment(), CategoryTransa
         viewModel.allCategories.observe(viewLifecycleOwner, Observer { allFullCategories ->
             val expectedCategoryType = CategoryType.INCOME
             val relevantCategories = allFullCategories
-                ?.filter { it.category.categoryType == expectedCategoryType }
-                ?.map { it.category }
+                ?.filter { it.categoryType == expectedCategoryType }
+                ?.map { it }
                 ?: emptyList()
 
             if (::categoryAdapter.isInitialized) {

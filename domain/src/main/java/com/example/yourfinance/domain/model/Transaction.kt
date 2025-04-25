@@ -10,5 +10,4 @@ abstract class Transaction(
     open var date: LocalDate = LocalDate.now(),
     open var time: LocalTime = LocalTime.now(),
     open var note: String = ""
-) {
-}
+)

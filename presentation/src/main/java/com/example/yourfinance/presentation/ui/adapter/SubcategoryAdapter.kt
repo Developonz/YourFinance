@@ -5,7 +5,7 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.example.yourfinance.presentation.databinding.SubcategoryItemBinding
+import com.example.yourfinance.presentation.databinding.ItemSubcategoryBinding
 import com.example.yourfinance.domain.model.entity.category.Subcategory
 
 
@@ -36,7 +36,7 @@ class SubcategoryAdapter(
         }
     }
 
-    class SubcategoryViewHolder(private val binding: SubcategoryItemBinding) :
+    class SubcategoryViewHolder(private val binding: ItemSubcategoryBinding) :
         RecyclerView.ViewHolder(binding.root) {
         fun bind(
             item: Subcategory,
@@ -58,7 +58,7 @@ class SubcategoryAdapter(
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SubcategoryViewHolder {
         val inflater = LayoutInflater.from(parent.context)
-        return SubcategoryViewHolder(SubcategoryItemBinding.inflate(inflater, parent, false))
+        return SubcategoryViewHolder(ItemSubcategoryBinding.inflate(inflater, parent, false))
     }
 
     override fun onBindViewHolder(holder: SubcategoryViewHolder, position: Int) {

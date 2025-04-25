@@ -8,7 +8,6 @@ import com.example.yourfinance.data.mapper.toData
 import com.example.yourfinance.data.mapper.toDomain
 import com.example.yourfinance.data.source.CategoryDao
 import com.example.yourfinance.domain.model.entity.category.Category
-import com.example.yourfinance.domain.model.entity.category.FullCategory
 import com.example.yourfinance.domain.model.entity.category.Subcategory
 import com.example.yourfinance.domain.repository.CategoryRepository
 import kotlinx.coroutines.Dispatchers
@@ -16,8 +15,8 @@ import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 class CategoryRepositoryImpl @Inject constructor(private val dao: CategoryDao) : CategoryRepository{
-    override fun getAllCategory(): LiveData<List<FullCategory>> {
-        val mediator = MediatorLiveData<List<FullCategory>>()
+    override fun getAllCategory(): LiveData<List<Category>> {
+        val mediator = MediatorLiveData<List<Category>>()
         val categories = dao.getFullAllCategory()
         mediator.addSource(categories) {
             mediator.value = (categories.value ?: emptyList()).map {it.toDomain()}
@@ -25,15 +24,15 @@ class CategoryRepositoryImpl @Inject constructor(private val dao: CategoryDao) :
         return mediator
     }
 
-    override suspend fun insertCategory(category: FullCategory) : Long {
+    override suspend fun insertCategory(category: Category) : Long {
         var id: Long = 0
         withContext(Dispatchers.IO) {
-            id = dao.insertCategory(category.category.toData())
+            id = dao.insertCategory(category.toData())
         }
         return id
     }
 
-    override fun getAllCategoriesWithSubcategories(): LiveData<List<FullCategory>> {
+    override fun getAllCategoriesWithSubcategories(): LiveData<List<Category>> {
         return dao.getFullAllCategory().map {
             it.map {
                 it.toDomain()
@@ -55,7 +54,7 @@ class CategoryRepositoryImpl @Inject constructor(private val dao: CategoryDao) :
         }
     }
 
-    override suspend fun loadFullCategoryById(categoryId: Long): FullCategory? {
+    override suspend fun loadFullCategoryById(categoryId: Long): Category? {
         return dao.getFullCategoryById(categoryId)?.toDomain()
     }
 

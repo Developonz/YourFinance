@@ -10,7 +10,7 @@ import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.lifecycle.Observer
 import com.example.yourfinance.presentation.R
-import com.example.yourfinance.presentation.databinding.FragmentExpenseTransactionBinding
+import com.example.yourfinance.presentation.databinding.FragmentTransactionExpenseBinding
 import com.example.yourfinance.domain.model.CategoryType
 import com.example.yourfinance.domain.model.TransactionType
 import com.example.yourfinance.domain.model.entity.category.Category
@@ -20,7 +20,7 @@ import dagger.hilt.android.AndroidEntryPoint
 @AndroidEntryPoint
 class ExpenseTransactionFragment : BaseTransactionInputFragment(), CategoryTransactionAdapter.OnItemClickListener {
 
-    private var _binding: FragmentExpenseTransactionBinding? = null
+    private var _binding: FragmentTransactionExpenseBinding? = null
     private val binding get() = _binding!!
 
     override val viewModel: TransactionManagerViewModel by viewModels(ownerProducer = { requireParentFragment() })
@@ -40,7 +40,7 @@ class ExpenseTransactionFragment : BaseTransactionInputFragment(), CategoryTrans
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        _binding = FragmentExpenseTransactionBinding.inflate(inflater, container, false)
+        _binding = FragmentTransactionExpenseBinding.inflate(inflater, container, false)
         return binding.root
     }
 
@@ -94,11 +94,11 @@ class ExpenseTransactionFragment : BaseTransactionInputFragment(), CategoryTrans
             }
         })
 
-        viewModel.allCategories.observe(viewLifecycleOwner, Observer { allFullCategories ->
+        viewModel.allCategories.observe(viewLifecycleOwner, Observer { allCategories ->
             val expectedCategoryType = CategoryType.EXPENSE
-            val relevantCategories = allFullCategories
-                ?.filter { it.category.categoryType == expectedCategoryType }
-                ?.map { it.category }
+            val relevantCategories = allCategories
+                ?.filter { it.categoryType == expectedCategoryType }
+                ?.map { it }
                 ?: emptyList()
 
             if (::categoryAdapter.isInitialized) {

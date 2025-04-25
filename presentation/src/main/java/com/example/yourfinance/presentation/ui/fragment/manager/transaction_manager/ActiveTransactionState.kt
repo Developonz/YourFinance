@@ -2,6 +2,7 @@ package com.example.yourfinance.presentation.ui.fragment.manager.transaction_man
 
 import com.example.yourfinance.domain.model.entity.MoneyAccount
 import com.example.yourfinance.domain.model.entity.category.Category
+import com.example.yourfinance.domain.model.entity.category.ICategoryData
 
 /**
  * Представляет текущее состояние ввода для АКТИВНОГО типа транзакции.
@@ -10,7 +11,7 @@ import com.example.yourfinance.domain.model.entity.category.Category
 sealed interface ActiveTransactionState {
 
     data class ExpenseIncomeState(
-        val selectedCategory: Category? = null,
+        val selectedCategory: ICategoryData? = null,
         val selectedPaymentAccount: MoneyAccount? = null
     ) : ActiveTransactionState
 

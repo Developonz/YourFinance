@@ -5,9 +5,9 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.example.yourfinance.presentation.databinding.BudgetItemBinding
-import com.example.yourfinance.presentation.databinding.BudgetItemCreateBinding
-import com.example.yourfinance.presentation.databinding.BudgetItemEmptyListBinding
+import com.example.yourfinance.presentation.databinding.ItemBudgetBinding
+import com.example.yourfinance.presentation.databinding.ItemBudgetCreateBinding
+import com.example.yourfinance.presentation.databinding.ItemBudgetEmptyListBinding
 import com.example.yourfinance.domain.model.entity.Budget
 import com.example.yourfinance.presentation.ui.adapter.list_item.BudgetListItem
 import com.example.yourfinance.domain.StringHelper
@@ -46,7 +46,7 @@ class WalletBudgetAdapter : ListAdapter<BudgetListItem, RecyclerView.ViewHolder>
         const val NEW = 2
     }
 
-    class BudgetItemViewHolder(private val binding: BudgetItemBinding) :
+    class BudgetItemViewHolder(private val binding: ItemBudgetBinding) :
         RecyclerView.ViewHolder(binding.root) {
         fun bind(item: Budget) {
             binding.textTitle.text = item.title
@@ -55,12 +55,12 @@ class WalletBudgetAdapter : ListAdapter<BudgetListItem, RecyclerView.ViewHolder>
         }
     }
 
-    class EmptyListViewHolder(private val binding: BudgetItemEmptyListBinding) :
+    class EmptyListViewHolder(private val binding: ItemBudgetEmptyListBinding) :
         RecyclerView.ViewHolder(binding.root) {
         fun bind() {}
     }
 
-    class CreateBudgetViewHolder(private val binding: BudgetItemCreateBinding) :
+    class CreateBudgetViewHolder(private val binding: ItemBudgetCreateBinding) :
         RecyclerView.ViewHolder(binding.root) {
         fun bind() {}
     }
@@ -77,10 +77,10 @@ class WalletBudgetAdapter : ListAdapter<BudgetListItem, RecyclerView.ViewHolder>
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         val inflater = LayoutInflater.from(parent.context)
         return when(viewType) {
-            BUDGET -> BudgetItemViewHolder(BudgetItemBinding.inflate(inflater, parent, false))
-            EMPTY -> EmptyListViewHolder(BudgetItemEmptyListBinding.inflate(inflater, parent, false))
-            NEW -> CreateBudgetViewHolder(BudgetItemCreateBinding.inflate(inflater, parent, false))
-            else -> EmptyListViewHolder(BudgetItemEmptyListBinding.inflate(inflater, parent, false))
+            BUDGET -> BudgetItemViewHolder(ItemBudgetBinding.inflate(inflater, parent, false))
+            EMPTY -> EmptyListViewHolder(ItemBudgetEmptyListBinding.inflate(inflater, parent, false))
+            NEW -> CreateBudgetViewHolder(ItemBudgetCreateBinding.inflate(inflater, parent, false))
+            else -> EmptyListViewHolder(ItemBudgetEmptyListBinding.inflate(inflater, parent, false))
         }
     }
 

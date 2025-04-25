@@ -9,7 +9,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.example.yourfinance.presentation.databinding.FragmentTransactionsBinding
+import com.example.yourfinance.presentation.databinding.FragmentTransactionsListBinding
 import com.example.yourfinance.presentation.ui.adapter.list_item.TransactionListItem
 import com.example.yourfinance.presentation.ui.adapter.TransactionsRecyclerViewListAdapter
 import com.example.yourfinance.domain.model.TransactionType
@@ -18,7 +18,7 @@ import com.example.yourfinance.util.StringHelper.Companion.getMoneyStr
 
 class TransactionsFragment : Fragment() {
 
-    private var _binding: FragmentTransactionsBinding? = null
+    private var _binding: FragmentTransactionsListBinding? = null
     private val binding get() = _binding!!
     private val viewModel: GeneralViewModel by activityViewModels()
     private val adapter = TransactionsRecyclerViewListAdapter(editClick = {transaction ->
@@ -32,7 +32,7 @@ class TransactionsFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        _binding = FragmentTransactionsBinding.inflate(inflater, container, false)
+        _binding = FragmentTransactionsListBinding.inflate(inflater, container, false)
         setupRecyclerView()
         setupObservers()
         return binding.root

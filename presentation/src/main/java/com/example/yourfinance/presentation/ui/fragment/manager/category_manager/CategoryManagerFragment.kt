@@ -56,11 +56,11 @@ class CategoryManagerFragment : Fragment() {
                 viewModel.deleteCategory(categoryToDelete)
             },
             editClick = { categoryToEdit ->
-                val action = CategoryManagerFragmentDirections.actionCategoriesFragmentToCreateEditCategoriesFragment(categoryId = categoryToEdit.category.id)
+                val action = CategoryManagerFragmentDirections.actionCategoriesFragmentToCreateEditCategoriesFragment(categoryId = categoryToEdit.id)
                 findNavController().navigate(action)
             },
             editSubcategories = {parentCategory ->
-                val action = CategoryManagerFragmentDirections.actionCategoriesFragmentToSubcategoriesFragment(categoryId = parentCategory.category.id, categoryType = parentCategory.category.categoryType)
+                val action = CategoryManagerFragmentDirections.actionCategoriesFragmentToSubcategoriesFragment(categoryId = parentCategory.id, categoryType = parentCategory.categoryType)
                 findNavController().navigate(action)
             }
         )

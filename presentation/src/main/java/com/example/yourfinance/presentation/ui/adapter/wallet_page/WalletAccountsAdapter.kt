@@ -6,8 +6,8 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.example.yourfinance.presentation.databinding.AccountCreateItemBinding
-import com.example.yourfinance.presentation.databinding.AccountItemBinding
+import com.example.yourfinance.presentation.databinding.ItemAccountCreateBinding
+import com.example.yourfinance.presentation.databinding.ItemAccountBinding
 import com.example.yourfinance.domain.model.entity.MoneyAccount
 import com.example.yourfinance.presentation.ui.adapter.list_item.AccountListItem
 import com.example.yourfinance.domain.StringHelper
@@ -50,7 +50,7 @@ class WalletAccountsAdapter(
         const val NEW = 2
     }
 
-    class MoneyAccountViewHolder(private val binding: AccountItemBinding) :
+    class MoneyAccountViewHolder(private val binding: ItemAccountBinding) :
         RecyclerView.ViewHolder(binding.root) {
         fun bind(item: MoneyAccount, editAccountClick: (acc: MoneyAccount) -> Unit) {
             binding.titleAccount.text = item.title
@@ -62,13 +62,13 @@ class WalletAccountsAdapter(
         }
     }
 
-    class EmptyViewHolder(private val binding: AccountItemBinding) : RecyclerView.ViewHolder(binding.root) {
+    class EmptyViewHolder(private val binding: ItemAccountBinding) : RecyclerView.ViewHolder(binding.root) {
         fun bind() {
             binding.infoArea.setBackgroundColor(Color.TRANSPARENT)
         }
     }
 
-    class MoneyAccountCreateViewHolder(private val binding: AccountCreateItemBinding) :
+    class MoneyAccountCreateViewHolder(private val binding: ItemAccountCreateBinding) :
         RecyclerView.ViewHolder(binding.root) {
         fun bind(newAccountClick: () -> Unit) {
             binding.infoArea.setOnClickListener {
@@ -88,10 +88,10 @@ class WalletAccountsAdapter(
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         val inflater = LayoutInflater.from(parent.context)
         return when(viewType) {
-            ACCOUNT -> MoneyAccountViewHolder(AccountItemBinding.inflate(inflater, parent, false))
-            EMPTY -> EmptyViewHolder(AccountItemBinding.inflate(inflater, parent, false))
-            NEW -> MoneyAccountCreateViewHolder(AccountCreateItemBinding.inflate(inflater, parent, false))
-            else -> EmptyViewHolder(AccountItemBinding.inflate(inflater, parent, false))
+            ACCOUNT -> MoneyAccountViewHolder(ItemAccountBinding.inflate(inflater, parent, false))
+            EMPTY -> EmptyViewHolder(ItemAccountBinding.inflate(inflater, parent, false))
+            NEW -> MoneyAccountCreateViewHolder(ItemAccountCreateBinding.inflate(inflater, parent, false))
+            else -> EmptyViewHolder(ItemAccountBinding.inflate(inflater, parent, false))
         }
     }
 

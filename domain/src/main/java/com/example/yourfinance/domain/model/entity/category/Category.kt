@@ -1,24 +1,35 @@
 package com.example.yourfinance.domain.model.entity.category
 
-import com.example.yourfinance.domain.StringHelper.Companion.getUpperFirstChar
 import com.example.yourfinance.domain.model.CategoryType
+import com.example.yourfinance.domain.model.Title
 
 
-open class Category(
-    private var _title: String,
-    val categoryType: CategoryType,
-    val id: Long = 0,
-) {
+//data class Category(
+//    private var _title: Title,
+//    val categoryType: CategoryType,
+//    val id: Long = 0,
+//) {
+//    var title: String
+//        get() = _title.value
+//        set(value) { _title = Title(value) }
+//}
 
-    var title
-        get() = _title
-        set(value) {
-            _title = getUpperFirstChar(value)
-        }
-    init {
-        title = title
-    }
+data class Category private constructor(
+    private val baseProperties: BaseCategoryProperties,
+    val children: MutableList<Subcategory> = mutableListOf()
+) : ICategoryData by baseProperties {
+
+
+    constructor(
+        title: Title,
+        categoryType: CategoryType,
+        id: Long = 0,
+        children: MutableList<Subcategory> = mutableListOf()
+    ) : this(BaseCategoryProperties(title, categoryType, id), children)
+
 }
+
+
 
 /*
 

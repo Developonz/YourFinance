@@ -3,6 +3,7 @@ package com.example.yourfinance.data.mapper
 
 import com.example.yourfinance.data.model.PaymentEntity
 import com.example.yourfinance.data.model.pojo.FullPayment
+import com.example.yourfinance.domain.model.Title
 import com.example.yourfinance.domain.model.entity.Payment
 
 fun FullPayment.toDomain(): Payment {
@@ -12,7 +13,7 @@ fun FullPayment.toDomain(): Payment {
         balance = this.payment.balance,
         moneyAccount = this.moneyAcc.toDomain(),
         category = this.category.toDomain(),
-        _note = this.payment.note,
+        _note = Title(this.payment.note),
         date = this.payment.date,
         time = this.payment.time
     )

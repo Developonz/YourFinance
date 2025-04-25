@@ -20,6 +20,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
+import com.example.yourfinance.domain.model.Title
 import com.example.yourfinance.presentation.R
 import com.example.yourfinance.presentation.databinding.FragmentSubcategoryCreateEditBinding
 import dagger.hilt.android.AndroidEntryPoint
@@ -125,7 +126,7 @@ class SubcategoryCreateEditFragment : Fragment() {
                             Log.i("TESTD", " create subcategory2 " + args.parentId)
                             viewModel.createSubcategory(
                                 com.example.yourfinance.domain.model.entity.category.Subcategory(
-                                    title = name,
+                                    title = Title(name),
                                     categoryType = args.categoryType,
                                     parentId = args.parentId
                                 )

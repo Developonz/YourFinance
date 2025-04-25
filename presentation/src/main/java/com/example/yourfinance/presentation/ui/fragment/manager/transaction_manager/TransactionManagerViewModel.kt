@@ -3,12 +3,12 @@ package com.example.yourfinance.presentation.ui.fragment.manager.transaction_man
 import android.util.Log
 import androidx.lifecycle.*
 import com.example.yourfinance.domain.model.CategoryType
+import com.example.yourfinance.domain.model.Title
 import com.example.yourfinance.domain.model.TransactionType
 import com.example.yourfinance.domain.model.entity.MoneyAccount
 import com.example.yourfinance.domain.model.entity.Payment
 import com.example.yourfinance.domain.model.entity.Transfer
 import com.example.yourfinance.domain.model.entity.category.Category
-import com.example.yourfinance.domain.model.entity.category.FullCategory
 import com.example.yourfinance.domain.usecase.category.FetchFullCategoriesUseCase
 import com.example.yourfinance.domain.usecase.moneyaccount.FetchMoneyAccountsUseCase
 import com.example.yourfinance.domain.usecase.transaction.CreatePaymentUseCase
@@ -69,7 +69,7 @@ class TransactionManagerViewModel @Inject constructor(
 
 
     val accountsList: LiveData<List<MoneyAccount>> = fetchMoneyAccountsUseCase()
-    val allCategories: LiveData<List<FullCategory>> = fetchFullCategoriesUseCase()
+    val allCategories: LiveData<List<Category>> = fetchFullCategoriesUseCase()
 
 
     // --- Состояние для экрана добавления/редактирования транзакции ---
@@ -488,7 +488,7 @@ class TransactionManagerViewModel @Inject constructor(
                                         balance = validAmount,
                                         moneyAccount = currentActiveState.selectedPaymentAccount!!,
                                         category = currentActiveState.selectedCategory!!,
-                                        _note = transactionNote,
+                                        _note = Title(transactionNote),
                                         date = transactionDate,
                                         time = transactionTime
                                     )
@@ -509,7 +509,7 @@ class TransactionManagerViewModel @Inject constructor(
                                         balance = validAmount,
                                         moneyAccFrom = currentActiveState.selectedAccountFrom!!,
                                         moneyAccTo = currentActiveState.selectedAccountTo!!,
-                                        _note = transactionNote,
+                                        _note = Title(transactionNote),
                                         date = transactionDate,
                                         time = transactionTime
                                     )
@@ -538,7 +538,7 @@ class TransactionManagerViewModel @Inject constructor(
                                         balance = validAmount,
                                         moneyAccount = currentActiveState.selectedPaymentAccount!!,
                                         category = currentActiveState.selectedCategory!!,
-                                        _note = transactionNote,
+                                        _note = Title(transactionNote),
                                         date = transactionDate,
                                         time = transactionTime
                                     )
@@ -558,7 +558,7 @@ class TransactionManagerViewModel @Inject constructor(
                                         balance = validAmount,
                                         moneyAccFrom = currentActiveState.selectedAccountFrom!!,
                                         moneyAccTo = currentActiveState.selectedAccountTo!!,
-                                        _note = transactionNote,
+                                        _note = Title(transactionNote),
                                         date = transactionDate,
                                         time = transactionTime
                                     )
@@ -584,7 +584,7 @@ class TransactionManagerViewModel @Inject constructor(
                                 balance = validAmount,
                                 moneyAccount = currentActiveState.selectedPaymentAccount!!,
                                 category = currentActiveState.selectedCategory!!,
-                                _note = transactionNote,
+                                _note = Title(transactionNote),
                                 date = transactionDate,
                                 time = LocalTime.now()
                             )
@@ -597,7 +597,7 @@ class TransactionManagerViewModel @Inject constructor(
                                 balance = validAmount,
                                 moneyAccFrom = currentActiveState.selectedAccountFrom!!,
                                 moneyAccTo = currentActiveState.selectedAccountTo!!,
-                                _note = transactionNote,
+                                _note = Title(transactionNote),
                                 date = transactionDate,
                                 time = LocalTime.now()
                             )

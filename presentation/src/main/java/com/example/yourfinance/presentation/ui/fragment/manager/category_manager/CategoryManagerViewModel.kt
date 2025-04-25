@@ -8,7 +8,6 @@ import androidx.lifecycle.viewModelScope
 import com.example.yourfinance.domain.model.CategoryType
 import com.example.yourfinance.domain.model.TransactionType
 import com.example.yourfinance.domain.model.entity.category.Category
-import com.example.yourfinance.domain.model.entity.category.FullCategory
 import com.example.yourfinance.domain.usecase.category.CreateCategoryUseCase
 import com.example.yourfinance.domain.usecase.category.DeleteCategoryUseCase
 import com.example.yourfinance.domain.usecase.category.FetchFullCategoriesUseCase
@@ -29,13 +28,13 @@ class CategoryManagerViewModel @Inject constructor(
     private val createCategoryUseCase: CreateCategoryUseCase,
 ) : ViewModel() {
 
-    val allCategories: LiveData<List<FullCategory>> = fetchFullCategoriesUseCase()
+    val allCategories: LiveData<List<Category>> = fetchFullCategoriesUseCase()
 
     private val _currentTransactionType = MutableLiveData(TransactionType.EXPENSE)
     private val _selectedCategoryType = MutableLiveData(CategoryType.EXPENSE)
     val selectedCategoryType: LiveData<CategoryType> get() = _selectedCategoryType
 
-    val filteredCategories: LiveData<List<FullCategory>> = MediatorLiveData<List<FullCategory>>().apply {
+    val filteredCategories: LiveData<List<Category>> = MediatorLiveData<List<Category>>().apply {
         fun update() {
             val currentType = when (_currentTransactionType.value) {
                 TransactionType.EXPENSE -> CategoryType.EXPENSE
@@ -43,7 +42,7 @@ class CategoryManagerViewModel @Inject constructor(
                 else -> null
             }
             value = if (currentType != null) {
-                allCategories.value?.filter { it.category.categoryType == currentType } ?: emptyList()
+                allCategories.value?.filter { it.categoryType == currentType } ?: emptyList()
             } else {
                 emptyList()
             }
@@ -60,9 +59,9 @@ class CategoryManagerViewModel @Inject constructor(
         }
     }
 
-    fun deleteCategory(categoryToDelete: FullCategory) {
+    fun deleteCategory(categoryToDelete: Category) {
         viewModelScope.launch(Dispatchers.IO) {
-            deleteCategoryUseCase(categoryToDelete.category)
+            deleteCategoryUseCase(categoryToDelete)
         }
 
     }
@@ -78,7 +77,7 @@ class CategoryManagerViewModel @Inject constructor(
 
     fun createCategory(category: Category) {
         viewModelScope.launch {
-            createCategoryUseCase(FullCategory(category))
+            createCategoryUseCase(category)
         }
     }
 

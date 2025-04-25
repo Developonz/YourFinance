@@ -2,21 +2,17 @@ package com.example.yourfinance.domain.model.entity
 
 import com.example.yourfinance.domain.StringHelper.Companion.getUpperFirstChar
 import com.example.yourfinance.domain.model.PeriodLite
+import com.example.yourfinance.domain.model.Title
 import com.example.yourfinance.domain.model.entity.category.Category
 
 data class Budget(
-    private var _title: String,
+    private var _title: Title,
     var balance: Double,
     var period: PeriodLite,
     val categories: MutableList<Category> = mutableListOf(),
     val id: Long = 0
 ) {
     var title: String
-        get() = _title
-        set(value) {
-            _title = getUpperFirstChar(value)
-        }
-    init {
-        title = title
-    }
+        get() = _title.value
+        set(value) { _title = Title(value) }
 }

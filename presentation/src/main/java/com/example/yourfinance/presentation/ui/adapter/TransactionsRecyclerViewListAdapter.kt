@@ -6,9 +6,9 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.example.yourfinance.presentation.databinding.EmptyPlaceBinding
-import com.example.yourfinance.presentation.databinding.HeaderTransactionsBinding
-import com.example.yourfinance.presentation.databinding.TransactionItemBinding
+import com.example.yourfinance.presentation.databinding.ItemEmptyPlaceBinding
+import com.example.yourfinance.presentation.databinding.ItemHeaderTransactionsBinding
+import com.example.yourfinance.presentation.databinding.ItemTransactionBinding
 import com.example.yourfinance.domain.model.Transaction
 import com.example.yourfinance.domain.model.entity.Payment
 import com.example.yourfinance.domain.model.entity.Transfer
@@ -52,7 +52,7 @@ class TransactionsRecyclerViewListAdapter(val editClick: (transaction: Transacti
 
 
     // ViewHolder для заголовка
-    class HeaderViewHolder(private val binding: HeaderTransactionsBinding) :
+    class HeaderViewHolder(private val binding: ItemHeaderTransactionsBinding) :
         RecyclerView.ViewHolder(binding.root) {
         fun bind(header: TransactionListItem.Header) {
             binding.dayOfMounth.text = StringHelper.getDayOfMonthStr(header.date)
@@ -63,7 +63,7 @@ class TransactionsRecyclerViewListAdapter(val editClick: (transaction: Transacti
     }
 
     // ViewHolder для транзакции
-    class TransactionViewHolder(private val binding: TransactionItemBinding) :
+    class TransactionViewHolder(private val binding: ItemTransactionBinding) :
         RecyclerView.ViewHolder(binding.root) {
         fun bind(item: TransactionListItem.TransactionItem, editClick: (transaction: Transaction) -> Unit) {
             val transaction = item.transaction
@@ -99,7 +99,7 @@ class TransactionsRecyclerViewListAdapter(val editClick: (transaction: Transacti
         }
     }
 
-    class EmptyViewHolder(binding: EmptyPlaceBinding) : RecyclerView.ViewHolder(binding.root) {
+    class EmptyViewHolder(binding: ItemEmptyPlaceBinding) : RecyclerView.ViewHolder(binding.root) {
         fun bind() {}
     }
 
@@ -115,15 +115,15 @@ class TransactionsRecyclerViewListAdapter(val editClick: (transaction: Transacti
         val inflater = LayoutInflater.from(parent.context)
         return when (viewType) {
             VIEW_TYPE_HEADER -> {
-                val binding = HeaderTransactionsBinding.inflate(inflater, parent, false)
+                val binding = ItemHeaderTransactionsBinding.inflate(inflater, parent, false)
                 HeaderViewHolder(binding)
             }
             VIEW_TYPE_TRANSACTION -> {
-                val binding = TransactionItemBinding.inflate(inflater, parent, false)
+                val binding = ItemTransactionBinding.inflate(inflater, parent, false)
                 TransactionViewHolder(binding)
             }
             else -> {
-                val binding = EmptyPlaceBinding.inflate(inflater, parent, false)
+                val binding = ItemEmptyPlaceBinding.inflate(inflater, parent, false)
                 EmptyViewHolder(binding)
             }
         }

@@ -63,8 +63,8 @@ class SubcategoryManagerFragment : Fragment() {
 
     private fun observeViewModel() {
         viewModel.allCategories.observe(viewLifecycleOwner) { categories ->
-            categories.filter { it.category.id == args.categoryId }.firstOrNull()?.let {
-                adapter.submitList(it.subcategories)
+            categories.filter { it.id == args.categoryId }.firstOrNull()?.let {
+                adapter.submitList(it.children)
             }
         }
 

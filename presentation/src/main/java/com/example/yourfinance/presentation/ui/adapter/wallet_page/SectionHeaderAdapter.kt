@@ -3,7 +3,7 @@ package com.example.yourfinance.presentation.ui.adapter.wallet_page
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
-import com.example.yourfinance.presentation.databinding.SectionsHeaderBinding
+import com.example.yourfinance.presentation.databinding.ItemHeaderSectionsBinding
 
 
 class SectionHeaderAdapter(
@@ -12,7 +12,7 @@ class SectionHeaderAdapter(
 ): RecyclerView.Adapter<SectionHeaderAdapter.HeaderViewHolder>() {
 
     class HeaderViewHolder(
-        private val binding: SectionsHeaderBinding,
+        private val binding: ItemHeaderSectionsBinding,
         private val onHeaderClick: (sectionTitle: String) -> Unit
     ) : RecyclerView.ViewHolder(binding.root) {
         fun bind(title: String) {
@@ -26,7 +26,7 @@ class SectionHeaderAdapter(
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): HeaderViewHolder {
         val inflater = LayoutInflater.from(parent.context)
-        return HeaderViewHolder(SectionsHeaderBinding.inflate(inflater, parent, false), onHeaderClick)
+        return HeaderViewHolder(ItemHeaderSectionsBinding.inflate(inflater, parent, false), onHeaderClick)
     }
 
     override fun getItemCount(): Int {

@@ -9,14 +9,14 @@ import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
 import com.example.yourfinance.presentation.R
-import com.example.yourfinance.presentation.databinding.FragmentRemittanceTransactionBinding
+import com.example.yourfinance.presentation.databinding.FragmentTransactionRemittanceBinding
 import com.example.yourfinance.domain.model.TransactionType
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class RemittanceTransactionFragment : BaseTransactionInputFragment() {
 
-    private var _binding: FragmentRemittanceTransactionBinding? = null
+    private var _binding: FragmentTransactionRemittanceBinding? = null
     private val binding get() = _binding!!
 
     override val viewModel: TransactionManagerViewModel by viewModels(ownerProducer = { requireParentFragment() })
@@ -34,7 +34,7 @@ class RemittanceTransactionFragment : BaseTransactionInputFragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        _binding = FragmentRemittanceTransactionBinding.inflate(inflater, container, false)
+        _binding = FragmentTransactionRemittanceBinding.inflate(inflater, container, false)
         return binding.root
     }
 

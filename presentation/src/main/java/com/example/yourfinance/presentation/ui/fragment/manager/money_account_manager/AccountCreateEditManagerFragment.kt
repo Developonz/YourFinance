@@ -16,6 +16,7 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
+import com.example.yourfinance.domain.model.Title
 import com.example.yourfinance.presentation.R
 import com.example.yourfinance.presentation.databinding.FragmentAccountCreateEditManagerBinding
 import com.example.yourfinance.domain.model.entity.MoneyAccount
@@ -245,7 +246,7 @@ class AccountCreateEditManagerFragment : Fragment() {
         hideKeyboard()
         if (isEditMode && accountToEdit != null) {
             val updatedAccount = accountToEdit!!.copy(
-                _title = accountName,
+                _title = Title(accountName),
                 startBalance = amount,
                 balance = accountToEdit!!.balance + (amount - accountToEdit!!.startBalance),// Или возможно нужно пересчитать текущий баланс? Зависит от логики. Пока меняем стартовый.
                 excluded = exclude
@@ -253,7 +254,7 @@ class AccountCreateEditManagerFragment : Fragment() {
             viewModel.updateAccount(updatedAccount)
         } else {
             val newAccount = MoneyAccount(
-                _title = accountName,
+                _title = Title(accountName),
                 startBalance = amount,
                 excluded = exclude
             )

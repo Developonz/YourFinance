@@ -6,48 +6,48 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.example.yourfinance.domain.model.entity.category.FullCategory
-import com.example.yourfinance.presentation.databinding.CategoryItemBinding
+import com.example.yourfinance.domain.model.entity.category.Category
+import com.example.yourfinance.presentation.databinding.ItemCategoryBinding
 
 
 class CategoryAdapter(
-    val deleteClick: (category: FullCategory) -> Unit,
-    val editClick: (category: FullCategory) -> Unit,
-    val editSubcategories: (category: FullCategory) -> Unit
-) : ListAdapter<FullCategory, CategoryAdapter.CategoryViewHolder>(
+    val deleteClick: (category: Category) -> Unit,
+    val editClick: (category: Category) -> Unit,
+    val editSubcategories: (category: Category) -> Unit
+) : ListAdapter<Category, CategoryAdapter.CategoryViewHolder>(
     DIFF_CALLBACK
 ) {
     companion object {
-        private val DIFF_CALLBACK = object : DiffUtil.ItemCallback<FullCategory>() {
+        private val DIFF_CALLBACK = object : DiffUtil.ItemCallback<Category>() {
             override fun areItemsTheSame(
-                oldItem: FullCategory,
-                newItem: FullCategory
+                oldItem: Category,
+                newItem: Category
             ): Boolean {
                 return when {
-                    oldItem.category.id == newItem.category.id -> true
+                    oldItem.id == newItem.id -> true
                     else -> false
                 }
             }
 
             override fun areContentsTheSame(
-                oldItem: FullCategory,
-                newItem: FullCategory
+                oldItem: Category,
+                newItem: Category
             ): Boolean {
                 return oldItem == newItem
             }
         }
     }
 
-    class CategoryViewHolder(private val binding: CategoryItemBinding) :
+    class CategoryViewHolder(private val binding: ItemCategoryBinding) :
         RecyclerView.ViewHolder(binding.root) {
         fun bind(
-            item: FullCategory,
-            deleteClick: (acc: FullCategory) -> Unit,
-            editClick: (acc: FullCategory) -> Unit,
-            editSubcategories: (acc: FullCategory) -> Unit)
+            item: Category,
+            deleteClick: (acc: Category) -> Unit,
+            editClick: (acc: Category) -> Unit,
+            editSubcategories: (acc: Category) -> Unit)
         {
-            binding.categoryTitle.text = item.category.title
-            binding.countSubcategories.text = "Подкатегорий: " + item.subcategories.size
+            binding.categoryTitle.text = item.title
+            binding.countSubcategories.text = "Подкатегорий: " + item.children.size
 
             binding.imageDelete.setOnClickListener {
                 deleteClick(item)
@@ -66,7 +66,7 @@ class CategoryAdapter(
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CategoryViewHolder {
         val inflater = LayoutInflater.from(parent.context)
-        return CategoryViewHolder(CategoryItemBinding.inflate(inflater, parent, false))
+        return CategoryViewHolder(ItemCategoryBinding.inflate(inflater, parent, false))
     }
 
     override fun onBindViewHolder(holder: CategoryViewHolder, position: Int) {

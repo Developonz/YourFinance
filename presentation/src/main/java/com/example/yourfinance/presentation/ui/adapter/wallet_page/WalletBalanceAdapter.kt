@@ -3,7 +3,7 @@ package com.example.yourfinance.presentation.ui.adapter.wallet_page
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
-import com.example.yourfinance.presentation.databinding.BalanceItemBinding
+import com.example.yourfinance.presentation.databinding.ItemBalanceBinding
 import com.example.yourfinance.domain.model.entity.MoneyAccount
 import com.example.yourfinance.domain.StringHelper
 
@@ -12,7 +12,7 @@ class WalletBalanceAdapter(
 ): RecyclerView.Adapter<WalletBalanceAdapter.WalletBalanceViewHolder>() {
 
 
-    class WalletBalanceViewHolder(private val binding: BalanceItemBinding) : RecyclerView.ViewHolder(binding.root){
+    class WalletBalanceViewHolder(private val binding: ItemBalanceBinding) : RecyclerView.ViewHolder(binding.root){
         fun bind(moneyAccounts: List<MoneyAccount>) {
             var sum = 0.0
             moneyAccounts.forEach({
@@ -29,7 +29,7 @@ class WalletBalanceAdapter(
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): WalletBalanceViewHolder {
         val inflater = LayoutInflater.from(parent.context)
-        return WalletBalanceViewHolder(BalanceItemBinding.inflate(inflater, parent, false))
+        return WalletBalanceViewHolder(ItemBalanceBinding.inflate(inflater, parent, false))
     }
 
     override fun getItemCount(): Int {

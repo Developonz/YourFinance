@@ -3,7 +3,7 @@ package com.example.yourfinance.presentation.ui.fragment.manager.subcategory_man
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.yourfinance.domain.model.entity.category.FullCategory
+import com.example.yourfinance.domain.model.entity.category.Category
 import com.example.yourfinance.domain.usecase.category.FetchFullCategoriesUseCase
 import com.example.yourfinance.domain.usecase.subcategory.LoadSubcategoryByIdUseCase
 import com.example.yourfinance.domain.usecase.subcategory.CreateSubcategoryUseCase
@@ -23,7 +23,7 @@ class SubcategoryManagerViewModel @Inject constructor(
     private val deleteSubcategoryUseCase: DeleteSubcategoryUseCase
 ) : ViewModel() {
 
-    val allCategories: LiveData<List<FullCategory>> = fetchFullCategoriesUseCase()
+    val allCategories: LiveData<List<Category>> = fetchFullCategoriesUseCase()
 
 
     suspend fun loadSubcategoryById(subcategoryId: Long): com.example.yourfinance.domain.model.entity.category.Subcategory? = loadSubcategoryByIdUseCase(subcategoryId)

@@ -5,7 +5,7 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.example.yourfinance.presentation.databinding.ListItemAccountManagerBinding
+import com.example.yourfinance.presentation.databinding.ItemAccountManagerListBinding
 import com.example.yourfinance.domain.model.entity.MoneyAccount
 import com.example.yourfinance.domain.StringHelper
 
@@ -39,7 +39,7 @@ class MoneyAccountAdapter(
         }
     }
 
-    class MoneyAccountViewHolder(private val binding: ListItemAccountManagerBinding) :
+    class MoneyAccountViewHolder(private val binding: ItemAccountManagerListBinding) :
         RecyclerView.ViewHolder(binding.root) {
         fun bind(
             item: MoneyAccount,
@@ -62,7 +62,7 @@ class MoneyAccountAdapter(
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MoneyAccountViewHolder {
         val inflater = LayoutInflater.from(parent.context)
-        return MoneyAccountViewHolder(ListItemAccountManagerBinding.inflate(inflater, parent, false))
+        return MoneyAccountViewHolder(ItemAccountManagerListBinding.inflate(inflater, parent, false))
     }
 
     override fun onBindViewHolder(holder: MoneyAccountViewHolder, position: Int) {

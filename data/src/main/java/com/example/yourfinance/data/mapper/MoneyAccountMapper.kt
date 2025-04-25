@@ -1,6 +1,7 @@
 package com.example.yourfinance.data.mapper
 
 import com.example.yourfinance.data.model.MoneyAccountEntity
+import com.example.yourfinance.domain.model.Title
 import com.example.yourfinance.domain.model.entity.MoneyAccount
 
 fun MoneyAccountEntity.toDomain(): MoneyAccount {
@@ -8,7 +9,7 @@ fun MoneyAccountEntity.toDomain(): MoneyAccount {
         startBalance = this.startBalance,
         balance = this.balance,
         excluded = this.excluded,
-        _title = this.title,
+        _title = Title(this.title),
         default = this.default,
         used = this.used,
         dateCreation = this.dateCreation,

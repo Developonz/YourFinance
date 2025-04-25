@@ -20,6 +20,7 @@ import androidx.navigation.fragment.navArgs
 import com.example.yourfinance.presentation.R
 import com.example.yourfinance.presentation.databinding.FragmentCategoryCreateEditBinding
 import com.example.yourfinance.domain.model.CategoryType
+import com.example.yourfinance.domain.model.Title
 import com.example.yourfinance.domain.model.entity.category.Category
 
 import com.google.android.material.tabs.TabLayout
@@ -127,7 +128,7 @@ class CategoryCreateEditFragment : Fragment() {
                                 viewModel.updateCategory(this)
                             }
                         } else {
-                            viewModel.createCategory(Category(name, currentSelectedTypeInCreateMode))
+                            viewModel.createCategory(Category(Title(name), currentSelectedTypeInCreateMode))
                         }
                         findNavController().popBackStack()
                         true
