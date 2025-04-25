@@ -22,6 +22,7 @@ fragmentKtx = "1.8.6"
 navigationSafeargs = "2.8.9"
 preference_version = "1.2.1"
 preference = "1.2.1"
+jetbrainsKotlinJvm = "2.1.10"
 
 
 [libraries]
@@ -55,3 +56,5 @@ ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 hilt = {id = "com.google.dagger.hilt.android", version.ref = "hilt" }
 navigation-safeargs = { id = "androidx.navigation.safeargs.kotlin", version.ref = "navigationSafeargs"}
 androidx-room = { id = "androidx.room", version.ref = "room" }
+android-library = { id = "com.android.library", version.ref = "agp" }
+jetbrains-kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "jetbrainsKotlinJvm" }
