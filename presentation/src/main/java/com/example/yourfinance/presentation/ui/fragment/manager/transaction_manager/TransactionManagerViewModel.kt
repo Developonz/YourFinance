@@ -9,7 +9,7 @@ import com.example.yourfinance.domain.model.entity.MoneyAccount
 import com.example.yourfinance.domain.model.entity.Payment
 import com.example.yourfinance.domain.model.entity.Transfer
 import com.example.yourfinance.domain.model.entity.category.Category
-import com.example.yourfinance.domain.usecase.category.FetchFullCategoriesUseCase
+import com.example.yourfinance.domain.usecase.categories.category.FetchCategoriesUseCase
 import com.example.yourfinance.domain.usecase.moneyaccount.FetchMoneyAccountsUseCase
 import com.example.yourfinance.domain.usecase.transaction.CreatePaymentUseCase
 import com.example.yourfinance.domain.usecase.transaction.CreateTransferUseCase
@@ -31,7 +31,7 @@ import javax.inject.Inject
 @HiltViewModel
 class TransactionManagerViewModel @Inject constructor(
     fetchMoneyAccountsUseCase: FetchMoneyAccountsUseCase,
-    fetchFullCategoriesUseCase: FetchFullCategoriesUseCase,
+    fetchFullCategoriesUseCase: FetchCategoriesUseCase,
     private val createPaymentUseCase: CreatePaymentUseCase,
     private val createTransferUseCase: CreateTransferUseCase,
     private val loadPaymentByIdUseCase: LoadPaymentByIdUseCase,

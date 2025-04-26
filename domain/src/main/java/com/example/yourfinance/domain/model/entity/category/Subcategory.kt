@@ -11,7 +11,7 @@ import com.example.yourfinance.domain.model.Title
 //) : Category(title, categoryType, id)
 
 data class Subcategory private constructor(
-    private val baseProperties: BaseCategoryProperties,
+    private val baseProperties: BaseCategory,
     val parentId: Long
 ) : ICategoryData by baseProperties {
 
@@ -20,6 +20,6 @@ data class Subcategory private constructor(
         categoryType: CategoryType,
         id: Long = 0,
         parentId: Long
-    ) : this(BaseCategoryProperties(title, categoryType, id), parentId)
+    ) : this(BaseCategory(title, categoryType, id), parentId)
 
 }

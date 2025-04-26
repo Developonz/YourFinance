@@ -4,15 +4,13 @@ import com.example.yourfinance.data.model.BudgetEntity
 import com.example.yourfinance.data.model.pojo.BudgetWithCategories
 import com.example.yourfinance.domain.model.Title
 import com.example.yourfinance.domain.model.entity.Budget
-import com.example.yourfinance.domain.model.entity.category.Category
+import com.example.yourfinance.domain.model.entity.category.BaseCategory
 
 fun BudgetWithCategories.toDomain() : Budget {
-    val tmpCategories: MutableList<Category> = mutableListOf()
-    tmpCategories.addAll(this.catigories.map { it.toDomain() })
     return Budget(
         _title = Title(this.budget.title),
         balance = this.budget.balance,
-        categories = tmpCategories,
+        categories = this.categories.map { it.toDomain() }.toMutableList(),
         period = this.budget.period,
         id = this.budget.id
     )

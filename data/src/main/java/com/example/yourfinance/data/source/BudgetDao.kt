@@ -9,8 +9,6 @@ import androidx.room.Query
 import androidx.room.Transaction
 import com.example.yourfinance.data.model.BudgetCategoriesCrossRef
 import com.example.yourfinance.data.model.BudgetEntity
-import com.example.yourfinance.data.model.CategoryEntity
-import com.example.yourfinance.data.model.SubcategoryEntity
 import com.example.yourfinance.data.model.pojo.BudgetWithCategories
 
 @Dao
@@ -23,19 +21,6 @@ abstract class BudgetDao() {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     abstract fun insertBudgetCategoriesCrossRef(entity: BudgetCategoriesCrossRef)
 
-
-    @Transaction
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insertFullBudget(budget: BudgetEntity, categories: List<CategoryEntity>, subcategories: List<SubcategoryEntity>) {
-        insertBudget(budget)
-        // Возможно, стоит очистить старые связи перед вставкой новых, если это обновление
-        // deleteAllBudgetCategoriesCrossRefForBudget(budget.id) // Пример
-        categories.forEach { category ->
-            insertBudgetCategoriesCrossRef(BudgetCategoriesCrossRef(budget.id, category.id))
-        }
-//        insertAllCategory(categories) // Возможно, это не нужно, если категории уже существуют
-//        insertAllSubcategory(subcategories) // Возможно, это не нужно, если субкатегории уже существуют
-    }
 
 
     @Transaction // Добавляем @Transaction для POJO с @Relation

@@ -8,11 +8,11 @@ import androidx.lifecycle.viewModelScope
 import com.example.yourfinance.domain.model.CategoryType
 import com.example.yourfinance.domain.model.TransactionType
 import com.example.yourfinance.domain.model.entity.category.Category
-import com.example.yourfinance.domain.usecase.category.CreateCategoryUseCase
-import com.example.yourfinance.domain.usecase.category.DeleteCategoryUseCase
-import com.example.yourfinance.domain.usecase.category.FetchFullCategoriesUseCase
-import com.example.yourfinance.domain.usecase.category.LoadCategoryByIdUseCase
-import com.example.yourfinance.domain.usecase.category.UpdateCategoryUseCase
+import com.example.yourfinance.domain.usecase.categories.general.CreateAnyCategoryUseCase
+import com.example.yourfinance.domain.usecase.categories.general.DeleteAnyCategoryUseCase
+import com.example.yourfinance.domain.usecase.categories.category.FetchCategoriesUseCase
+import com.example.yourfinance.domain.usecase.categories.category.LoadCategoryByIdUseCase
+import com.example.yourfinance.domain.usecase.categories.general.UpdateAnyCategoryUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -20,12 +20,12 @@ import javax.inject.Inject
 
 @HiltViewModel
 class CategoryManagerViewModel @Inject constructor(
-    fetchFullCategoriesUseCase: FetchFullCategoriesUseCase,
-    private val deleteCategoryUseCase: DeleteCategoryUseCase,
+    fetchFullCategoriesUseCase: FetchCategoriesUseCase,
+    private val deleteCategoryUseCase: DeleteAnyCategoryUseCase,
     private val loadCategoryByIdUseCase: LoadCategoryByIdUseCase,
 //    private val loadFullCategoryByIdUseCase: LoadFullCategoryByIdUseCase,
-    private val updateCategoryUseCase: UpdateCategoryUseCase,
-    private val createCategoryUseCase: CreateCategoryUseCase,
+    private val updateCategoryUseCase: UpdateAnyCategoryUseCase,
+    private val createCategoryUseCase: CreateAnyCategoryUseCase,
 ) : ViewModel() {
 
     val allCategories: LiveData<List<Category>> = fetchFullCategoriesUseCase()
@@ -61,7 +61,7 @@ class CategoryManagerViewModel @Inject constructor(
 
     fun deleteCategory(categoryToDelete: Category) {
         viewModelScope.launch(Dispatchers.IO) {
-            deleteCategoryUseCase(categoryToDelete)
+            deleteCategoryUseCase(categoryToDelete.id)
         }
 
     }

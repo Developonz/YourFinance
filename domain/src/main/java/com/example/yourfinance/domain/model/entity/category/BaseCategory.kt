@@ -3,7 +3,7 @@ package com.example.yourfinance.domain.model.entity.category
 import com.example.yourfinance.domain.model.CategoryType
 import com.example.yourfinance.domain.model.Title
 
-internal class BaseCategoryProperties(
+data class BaseCategory(
     private var _title: Title,
     override val categoryType: CategoryType,
     override val id: Long = 0,

@@ -4,11 +4,11 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.yourfinance.domain.model.entity.category.Category
-import com.example.yourfinance.domain.usecase.category.FetchFullCategoriesUseCase
-import com.example.yourfinance.domain.usecase.subcategory.LoadSubcategoryByIdUseCase
-import com.example.yourfinance.domain.usecase.subcategory.CreateSubcategoryUseCase
-import com.example.yourfinance.domain.usecase.subcategory.DeleteSubcategoryUseCase
-import com.example.yourfinance.domain.usecase.subcategory.UpdateSubcategoryUseCase
+import com.example.yourfinance.domain.usecase.categories.category.FetchCategoriesUseCase
+import com.example.yourfinance.domain.usecase.categories.general.CreateAnyCategoryUseCase
+import com.example.yourfinance.domain.usecase.categories.general.DeleteAnyCategoryUseCase
+import com.example.yourfinance.domain.usecase.categories.general.UpdateAnyCategoryUseCase
+import com.example.yourfinance.domain.usecase.categories.subcategory.LoadSubcategoryByIdUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -16,11 +16,11 @@ import javax.inject.Inject
 
 @HiltViewModel
 class SubcategoryManagerViewModel @Inject constructor(
-    fetchFullCategoriesUseCase: FetchFullCategoriesUseCase,
+    fetchFullCategoriesUseCase: FetchCategoriesUseCase,
     private val loadSubcategoryByIdUseCase: LoadSubcategoryByIdUseCase,
-    private val updateSubcategoryUseCase: UpdateSubcategoryUseCase,
-    private val createSubcategoryUseCase: CreateSubcategoryUseCase,
-    private val deleteSubcategoryUseCase: DeleteSubcategoryUseCase
+    private val updateICategoryUseCase: UpdateAnyCategoryUseCase,
+    private val createSubcategoryUseCase: CreateAnyCategoryUseCase,
+    private val deleteSubcategoryUseCase: DeleteAnyCategoryUseCase
 ) : ViewModel() {
 
     val allCategories: LiveData<List<Category>> = fetchFullCategoriesUseCase()
@@ -29,7 +29,7 @@ class SubcategoryManagerViewModel @Inject constructor(
     suspend fun loadSubcategoryById(subcategoryId: Long): com.example.yourfinance.domain.model.entity.category.Subcategory? = loadSubcategoryByIdUseCase(subcategoryId)
     fun updateSubcategory(subcategory: com.example.yourfinance.domain.model.entity.category.Subcategory) {
         viewModelScope.launch {
-            updateSubcategoryUseCase(subcategory)
+            updateICategoryUseCase(subcategory)
         }
     }
 
@@ -41,7 +41,7 @@ class SubcategoryManagerViewModel @Inject constructor(
 
     fun deleteSubcategory(subcategory: com.example.yourfinance.domain.model.entity.category.Subcategory) {
         viewModelScope.launch(Dispatchers.IO) {
-            deleteSubcategoryUseCase(subcategory)
+            deleteSubcategoryUseCase(subcategory.id)
         }
     }
 

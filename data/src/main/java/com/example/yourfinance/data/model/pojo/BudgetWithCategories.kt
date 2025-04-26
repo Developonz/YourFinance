@@ -18,5 +18,5 @@ data class BudgetWithCategories(
             entityColumn = "categoryId"
         )
     )
-    val catigories: MutableList<CategoryEntity>
+    val categories: MutableList<CategoryEntity>
 )

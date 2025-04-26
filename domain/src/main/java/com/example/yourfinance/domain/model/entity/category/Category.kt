@@ -15,7 +15,7 @@ import com.example.yourfinance.domain.model.Title
 //}
 
 data class Category private constructor(
-    private val baseProperties: BaseCategoryProperties,
+    private val baseProperties: BaseCategory,
     val children: MutableList<Subcategory> = mutableListOf()
 ) : ICategoryData by baseProperties {
 
@@ -25,7 +25,7 @@ data class Category private constructor(
         categoryType: CategoryType,
         id: Long = 0,
         children: MutableList<Subcategory> = mutableListOf()
-    ) : this(BaseCategoryProperties(title, categoryType, id), children)
+    ) : this(BaseCategory(title, categoryType, id), children)
 
 }
 

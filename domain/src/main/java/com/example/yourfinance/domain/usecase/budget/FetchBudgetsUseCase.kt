@@ -7,6 +7,6 @@ import javax.inject.Inject
 
 class FetchBudgetsUseCase @Inject constructor(private val budgetRepository: BudgetRepository ) {
     operator fun invoke() : LiveData<List<Budget>> {
-        return budgetRepository.getAllBudgets()
+        return budgetRepository.fetchBudgets()
     }
 }

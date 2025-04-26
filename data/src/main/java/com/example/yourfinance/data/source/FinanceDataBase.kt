@@ -8,10 +8,9 @@ import com.example.yourfinance.data.model.BudgetEntity
 import com.example.yourfinance.data.model.CategoryEntity
 import com.example.yourfinance.data.model.MoneyAccountEntity
 import com.example.yourfinance.data.model.PaymentEntity
-import com.example.yourfinance.data.model.SubcategoryEntity
 import com.example.yourfinance.data.model.TransferEntity
 
-@Database(entities = [PaymentEntity::class, TransferEntity::class, MoneyAccountEntity::class, CategoryEntity::class, BudgetEntity::class, BudgetCategoriesCrossRef::class, SubcategoryEntity::class], version = 1)
+@Database(entities = [PaymentEntity::class, TransferEntity::class, MoneyAccountEntity::class, CategoryEntity::class, BudgetEntity::class, BudgetCategoriesCrossRef::class], version = 1)
 @TypeConverters(Converters::class)
 abstract class FinanceDataBase : RoomDatabase() {
     companion object {

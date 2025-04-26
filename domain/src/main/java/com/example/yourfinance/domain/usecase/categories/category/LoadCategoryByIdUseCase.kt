@@ -1,4 +1,4 @@
-package com.example.yourfinance.domain.usecase.category
+package com.example.yourfinance.domain.usecase.categories.category
 
 import com.example.yourfinance.domain.model.entity.category.Category
 import com.example.yourfinance.domain.repository.CategoryRepository

@@ -1,35 +1,35 @@
 package com.example.yourfinance.data.mapper
 
 import com.example.yourfinance.data.model.CategoryEntity
-import com.example.yourfinance.data.model.SubcategoryEntity
 import com.example.yourfinance.data.model.pojo.CategoryWithSubcategories
 import com.example.yourfinance.domain.model.Title
+import com.example.yourfinance.domain.model.entity.category.BaseCategory
 import com.example.yourfinance.domain.model.entity.category.Category
 import com.example.yourfinance.domain.model.entity.category.Subcategory
 
-fun CategoryEntity.toDomain(): Category {
-    return Category(
+fun CategoryEntity.toDomain(): BaseCategory {
+    return BaseCategory(
         id = this.id,
-        title = Title(this.title),
+        _title = Title(this.title),
         categoryType = this.categoryType
     )
 }
 
-fun SubcategoryEntity.toDomain(): Subcategory {
+fun CategoryEntity.toDomainSubcategory(): Subcategory {
     return Subcategory(
         id = this.id,
         title = Title(this.title),
         categoryType = this.categoryType,
-        parentId = this.parentId
+        parentId = this.parentId!!
     )
 }
 
-fun CategoryWithSubcategories.toDomain() : Category {
+fun CategoryWithSubcategories.toDomainCategory() : Category {
     return Category(
         id = this.category.id,
         title = Title(this.category.title),
         categoryType = this.category.categoryType,
-        children = this.subcategories.map {it.toDomain()}.toMutableList()
+        children = this.subcategories.map {it.toDomainSubcategory()}.toMutableList()
     )
 }
 
@@ -41,8 +41,8 @@ fun Category.toData(): CategoryEntity {
     )
 }
 
-fun Subcategory.toData() : SubcategoryEntity {
-    return SubcategoryEntity(
+fun Subcategory.toData() : CategoryEntity {
+    return CategoryEntity(
         id = this.id,
         title = this.title,
         categoryType = this.categoryType,
