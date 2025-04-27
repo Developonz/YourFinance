@@ -16,24 +16,24 @@ import javax.inject.Inject
 
 class CategoryRepositoryImpl @Inject constructor(private val dao: CategoryDao) : CategoryRepository{
 
-    override suspend fun insertCategory(category: ICategoryData) : Long {
+    override suspend fun insertCategory(category: ICategoryData)  {
         val entityToInsert = when (category) {
             is Category -> category.toData()
             is Subcategory -> category.toData()
-            else -> throw IllegalArgumentException("Unsupported category type provided: ${category::class.simpleName}")
+            else -> return
         }
 
-        return withContext(Dispatchers.IO) {
+        withContext(Dispatchers.IO) {
             dao.insertCategory(entityToInsert)
         }
     }
 
     override suspend fun loadCategoryById(categoryId: Long): Category? {
-        return dao.loadCategoryById(categoryId)?.toDomainCategory()
+        return withContext(Dispatchers.IO) { dao.loadCategoryById(categoryId)?.toDomainCategory() }
     }
 
     override suspend fun loadSubcategoryById(subcategoryId: Long): Subcategory? {
-        return dao.loadSubcategoryById(subcategoryId)?.toDomainSubcategory()
+        return withContext(Dispatchers.IO) { dao.loadSubcategoryById(subcategoryId)?.toDomainSubcategory() }
     }
 
     override fun fetchCategories(): LiveData<List<Category>> {
@@ -56,7 +56,7 @@ class CategoryRepositoryImpl @Inject constructor(private val dao: CategoryDao) :
         val entityToUpdate = when (category) {
             is Category -> category.toData()
             is Subcategory -> category.toData()
-            else -> throw IllegalArgumentException("Unsupported category type provided: ${category::class.simpleName}")
+            else -> return
         }
         withContext(Dispatchers.IO) {
             dao.updateCategory(entityToUpdate)

@@ -1,7 +1,7 @@
 package com.example.yourfinance.presentation.ui.fragment.manager.category_manager
 
 
-
+import android.annotation.SuppressLint // Для OnTouchListener
 import android.content.Context
 import android.os.Bundle
 import android.view.*
@@ -9,6 +9,7 @@ import android.view.inputmethod.InputMethodManager
 import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import android.view.GestureDetector
 import androidx.core.view.MenuHost
 import androidx.core.view.MenuProvider
 import androidx.fragment.app.Fragment
@@ -22,10 +23,10 @@ import com.example.yourfinance.presentation.databinding.FragmentCategoryCreateEd
 import com.example.yourfinance.domain.model.CategoryType
 import com.example.yourfinance.domain.model.Title
 import com.example.yourfinance.domain.model.entity.category.Category
-
 import com.google.android.material.tabs.TabLayout
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
+import kotlin.math.abs
 
 @AndroidEntryPoint
 class CategoryCreateEditFragment : Fragment() {
@@ -38,18 +39,26 @@ class CategoryCreateEditFragment : Fragment() {
     private var categoryToEdit: Category? = null
 
     private var isEditMode = false
-
     private var currentSelectedTypeInCreateMode: CategoryType = CategoryType.EXPENSE
 
+    private lateinit var gestureDetector: GestureDetector
+
+    // Константы для определения свайпа
+    companion object {
+        private const val SWIPE_MIN_DISTANCE = 120
+        private const val SWIPE_THRESHOLD_VELOCITY = 200
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentCategoryCreateEditBinding.inflate(inflater, container, false)
+        gestureDetector = GestureDetector(requireContext(), SwipeGestureListener())
         return binding.root
     }
 
+    @SuppressLint("ClickableViewAccessibility") // Добавляем аннотацию для setOnTouchListener
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setupOptionsMenu()
@@ -57,13 +66,19 @@ class CategoryCreateEditFragment : Fragment() {
 
         setupSpinners()
         setupListeners()
-
         if (isEditMode) {
             setupEditMode()
         } else {
             setupCreateMode()
+
+            binding.contentLayout.setOnTouchListener { v, event ->
+                v.performClick()
+                gestureDetector.onTouchEvent(event)
+                true
+            }
         }
     }
+
 
     private fun setupEditMode() {
         (requireActivity() as? AppCompatActivity)?.supportActionBar?.title = getString(R.string.edit_category_title)
@@ -102,7 +117,6 @@ class CategoryCreateEditFragment : Fragment() {
         }
     }
 
-
     private fun setupOptionsMenu() {
         val menuHost: MenuHost = requireActivity()
         menuHost.addMenuProvider(object : MenuProvider {
@@ -113,24 +127,7 @@ class CategoryCreateEditFragment : Fragment() {
             override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
                 return when (menuItem.itemId) {
                     R.id.action_save -> {
-                        val name = binding.titleCategory.text.toString().trim()
-
-                        if (name.isEmpty()) {
-                            binding.inputLayoutName.error = "Название не может быть пустым"
-                            return true
-                        } else {
-                            binding.inputLayoutName.error = null
-                        }
-
-                        if (isEditMode) {
-                            categoryToEdit?.run {
-                                title = name
-                                viewModel.updateCategory(this)
-                            }
-                        } else {
-                            viewModel.createCategory(Category(Title(name), currentSelectedTypeInCreateMode))
-                        }
-                        findNavController().popBackStack()
+                        saveCategory()
                         true
                     }
                     else -> false
@@ -140,15 +137,13 @@ class CategoryCreateEditFragment : Fragment() {
     }
 
 
-
-
     private fun setupSpinners() {
-        val colors = listOf("Голубой", "Зеленый", "Красный", "Желтый")
+        val colors = listOf("Голубой", "Зеленый", "Красный", "Желтый") // Пример
         val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, colors).apply {
             setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         }
         binding.spinnerColor.adapter = adapter
-        // TODO: Listener для спиннера и обновление card_color_selector
+
     }
 
 
@@ -159,12 +154,11 @@ class CategoryCreateEditFragment : Fragment() {
             addTab(newTab().setText("Расход"))
             addTab(newTab().setText("Доход"))
 
-
+            // Устанавливаем начальную вкладку
             val initialIndex = if (initialType == CategoryType.EXPENSE) 0 else 1
             post {
                 getTabAt(initialIndex)?.select()
             }
-
 
             addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
                 override fun onTabSelected(tab: TabLayout.Tab?) {
@@ -180,18 +174,109 @@ class CategoryCreateEditFragment : Fragment() {
         }
     }
 
-    private fun setupListeners() {
 
+    private fun setupListeners() {
         binding.buttonIconSelector.setOnClickListener {
             Toast.makeText(context, "Выбор иконки (не реализовано)", Toast.LENGTH_SHORT).show()
-            // TODO: Логика выбора иконки (результат нужно будет где-то сохранить локально или читать перед сохранением)
+            // TODO: Логика выбора иконки
         }
     }
 
+    private fun saveCategory() {
+        val name = binding.titleCategory.text.toString().trim()
+
+        if (name.isEmpty()) {
+            binding.inputLayoutName.error = "Название не может быть пустым"
+            return // Выходим, если имя пустое
+        } else {
+            binding.inputLayoutName.error = null
+        }
+
+        // TODO: Получить выбранный цвет и иконку, когда они будут реализованы
+
+        if (isEditMode) {
+            categoryToEdit?.let {
+                it.title = name
+                // it.color = selectedColor
+                // it.icon = selectedIcon
+                viewModel.updateCategory(it)
+            } ?: run {
+                Toast.makeText(requireContext(), "Ошибка: Не удалось обновить категорию", Toast.LENGTH_SHORT).show()
+                return
+            }
+        } else {
+            val newCategory = Category(
+                title = Title(name),
+                categoryType = currentSelectedTypeInCreateMode
+                // color = selectedColor,
+                // icon = selectedIcon
+            )
+            viewModel.createCategory(newCategory)
+        }
+
+        hideKeyboard()
+        findNavController().popBackStack()
+    }
+
+    private fun hideKeyboard() {
+        val imm = activity?.getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager
+        view?.let { imm?.hideSoftInputFromWindow(it.windowToken, 0) }
+    }
 
 
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
+    }
+
+    private inner class SwipeGestureListener : GestureDetector.SimpleOnGestureListener() {
+
+        override fun onDown(e: MotionEvent): Boolean {
+            return true
+        }
+
+        override fun onFling(
+            e1: MotionEvent?,
+            e2: MotionEvent,
+            velocityX: Float,
+            velocityY: Float
+        ): Boolean {
+            if (isEditMode || e1 == null) {
+                return false
+            }
+
+            val diffX = e2.x - e1.x
+            val diffY = e2.y - e1.y
+
+            // Убеждаемся, что это горизонтальный свайп, а не вертикальный или диагональный
+            if (abs(diffX) > abs(diffY)) {
+                // Убеждаемся, что свайп достаточно длинный и быстрый
+                if (abs(diffX) > SWIPE_MIN_DISTANCE && abs(velocityX) > SWIPE_THRESHOLD_VELOCITY) {
+                    if (diffX > 0) {
+                        switchToPreviousTab()
+                    } else {
+                        switchToNextTab()
+                    }
+                    return true
+                }
+            }
+            return false
+        }
+    }
+
+    private fun switchToNextTab() {
+        val currentTab = binding.tabLayoutCategoryTypeCreateEdit.selectedTabPosition
+        val nextTab = currentTab + 1
+        if (nextTab < binding.tabLayoutCategoryTypeCreateEdit.tabCount) {
+            binding.tabLayoutCategoryTypeCreateEdit.getTabAt(nextTab)?.select()
+        }
+    }
+
+    private fun switchToPreviousTab() {
+        val currentTab = binding.tabLayoutCategoryTypeCreateEdit.selectedTabPosition
+        val previousTab = currentTab - 1
+        if (previousTab >= 0) {
+            binding.tabLayoutCategoryTypeCreateEdit.getTabAt(previousTab)?.select()
+        }
     }
 }

@@ -7,13 +7,12 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
-import androidx.recyclerview.widget.LinearLayoutManager
-import com.example.yourfinance.presentation.databinding.FragmentCategoryManagerBinding
+import androidx.viewpager2.adapter.FragmentStateAdapter // Импорт для адаптера ViewPager2
 import com.example.yourfinance.domain.model.CategoryType
-import com.example.yourfinance.presentation.ui.adapter.CategoryAdapter
-import com.google.android.material.tabs.TabLayout
+import com.example.yourfinance.presentation.databinding.FragmentCategoryManagerBinding
+import com.google.android.material.tabs.TabLayout // Импорт для TabLayout
+import com.google.android.material.tabs.TabLayoutMediator // Импорт для связывания TabLayout и ViewPager2
 import dagger.hilt.android.AndroidEntryPoint
-
 
 @AndroidEntryPoint
 class CategoryManagerFragment : Fragment() {
@@ -23,7 +22,7 @@ class CategoryManagerFragment : Fragment() {
 
     private val viewModel: CategoryManagerViewModel by viewModels()
 
-    private lateinit var categoryAdapter: CategoryAdapter
+    private lateinit var categoriesPagerAdapter: CategoriesPagerAdapter
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -36,85 +35,61 @@ class CategoryManagerFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        setupViewPagerAndTabs()
+        setupAddButton()
+    }
 
-        setupRecyclerView()
-        setupTabs()
-        observeViewModel()
+    private fun setupViewPagerAndTabs() {
+        categoriesPagerAdapter = CategoriesPagerAdapter(this)
+        binding.viewPagerCategories.adapter = categoriesPagerAdapter
 
+        // Связываем TabLayout и ViewPager2
+        TabLayoutMediator(binding.tabLayoutCategoryType, binding.viewPagerCategories) { tab, position ->
+            tab.text = when (position) {
+                0 -> "Расход"
+                1 -> "Доход"
+                else -> null
+            }
+        }.attach()
 
+        binding.tabLayoutCategoryType.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
+            override fun onTabSelected(tab: TabLayout.Tab?) {
+                val selectedType = when (tab?.position) {
+                    0 -> CategoryType.EXPENSE
+                    1 -> CategoryType.INCOME
+                    else -> CategoryType.EXPENSE
+                }
+                viewModel.setSelectedCategoryType(selectedType)
+            }
+            override fun onTabUnselected(tab: TabLayout.Tab?) {}
+            override fun onTabReselected(tab: TabLayout.Tab?) {}
+        })
+    }
+
+    private fun setupAddButton() {
         binding.buttonAddCategory.setOnClickListener {
-
             val currentType = viewModel.selectedCategoryType.value ?: CategoryType.EXPENSE
             val action = CategoryManagerFragmentDirections.actionCategoriesFragmentToCreateEditCategoriesFragment(categoryType = currentType)
             findNavController().navigate(action)
         }
     }
 
-    private fun setupRecyclerView() {
-        categoryAdapter = CategoryAdapter(
-            deleteClick = { categoryToDelete ->
-                viewModel.deleteCategory(categoryToDelete)
-            },
-            editClick = { categoryToEdit ->
-                val action = CategoryManagerFragmentDirections.actionCategoriesFragmentToCreateEditCategoriesFragment(categoryId = categoryToEdit.id)
-                findNavController().navigate(action)
-            },
-            editSubcategories = {parentCategory ->
-                val action = CategoryManagerFragmentDirections.actionCategoriesFragmentToSubcategoriesFragment(categoryId = parentCategory.id, categoryType = parentCategory.categoryType)
-                findNavController().navigate(action)
-            }
-        )
+    // Адаптер для ViewPager2
+    private inner class CategoriesPagerAdapter(fragment: Fragment) : FragmentStateAdapter(fragment) {
+        override fun getItemCount(): Int = 2
 
-        binding.recyclerViewCategories.apply {
-            adapter = categoryAdapter
-            layoutManager = LinearLayoutManager(requireContext())
-        }
-    }
-
-    private fun setupTabs() {
-        binding.tabLayoutCategoryType.apply {
-            clearOnTabSelectedListeners()
-            removeAllTabs()
-
-            addTab(newTab().setText("Расход"))
-            addTab(newTab().setText("Доход"))
-
-
-            addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
-                override fun onTabSelected(tab: TabLayout.Tab?) {
-                    val selectedType = when (tab?.position) {
-                        0 -> CategoryType.EXPENSE
-                        1 -> CategoryType.INCOME
-                        else -> CategoryType.EXPENSE
-                    }
-                    viewModel.setSelectedCategoryType(selectedType)
-                }
-
-                override fun onTabUnselected(tab: TabLayout.Tab?) {  }
-                override fun onTabReselected(tab: TabLayout.Tab?) {  }
-            })
-        }
-    }
-
-    private fun observeViewModel() {
-        viewModel.filteredCategories.observe(viewLifecycleOwner) { categories ->
-            categoryAdapter.submitList(categories)
-        }
-
-        viewModel.selectedCategoryType.observe(viewLifecycleOwner) { type ->
-            val tabIndex = if (type == CategoryType.EXPENSE) 0 else 1
-
-            if (binding.tabLayoutCategoryType.selectedTabPosition != tabIndex) {
-                binding.tabLayoutCategoryType.post {
-                    binding.tabLayoutCategoryType.getTabAt(tabIndex)?.select()
-                }
+        override fun createFragment(position: Int): Fragment {
+            return when (position) {
+                0 -> CategoryListContentFragment.newInstance(CategoryType.EXPENSE)
+                1 -> CategoryListContentFragment.newInstance(CategoryType.INCOME)
+                else -> throw IllegalStateException("Invalid position: $position")
             }
         }
     }
 
     override fun onDestroyView() {
+        binding.viewPagerCategories.adapter = null
         super.onDestroyView()
-        binding.recyclerViewCategories.adapter = null
         _binding = null
     }
 }
