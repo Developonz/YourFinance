@@ -7,9 +7,9 @@
         android:title="@string/title_transactions" />
 
     <item
-        android:id="@+id/navigation_calendar"
+        android:id="@+id/navigation_shopping_list"
         android:icon="@drawable/ic_calendar"
-        android:title="@string/title_calendar" />
+        android:title="@string/title_shopping_list" />
 
     <item
         android:id="@+id/navigation_empty"

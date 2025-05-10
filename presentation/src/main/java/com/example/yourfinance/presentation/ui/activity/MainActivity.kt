@@ -38,7 +38,7 @@ class MainActivity : AppCompatActivity() {
         appBarConfiguration = AppBarConfiguration(
             setOf(
                 R.id.navigation_transactions,
-                R.id.navigation_calendar,
+                R.id.navigation_shopping_list,
                 R.id.navigation_statistic,
                 R.id.navigation_wallet
             )

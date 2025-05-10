@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">YourFinance</string>
     <string name="title_transactions">Транзакции</string>
-    <string name="title_calendar">Календарь</string>
+    <string name="title_shopping_list">Календарь</string>
     <string name="title_statistic">Статистика</string>
     <string name="title_wallet">Кошелёк</string>
     <!-- TODO: Remove or change this placeholder text -->

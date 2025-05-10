@@ -10,16 +10,15 @@
         android:name="com.example.yourfinance.presentation.ui.fragment.TransactionsFragment"
         android:label="@string/title_transactions"
         tools:layout="@layout/fragment_transactions_list">
-        <!-- Действие для навигации на экран создания/редактирования -->
         <action
             android:id="@+id/action_transactions_to_transactionContainerFragment"
             app:destination="@id/transactionContainerFragment" />
     </fragment>
 
     <fragment
-        android:id="@+id/navigation_calendar"
+        android:id="@+id/navigation_shopping_list"
         android:name="com.example.yourfinance.presentation.ui.fragment.CalendarFragment"
-        android:label="@string/title_calendar"
+        android:label="@string/title_shopping_list"
         tools:layout="@layout/fragment_statistic" />
 
     <fragment

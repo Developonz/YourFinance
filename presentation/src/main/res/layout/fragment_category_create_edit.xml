@@ -8,7 +8,7 @@
     android:background="#1F1F1F"
     tools:context=".ui.fragment.manager.category_manager.CategoryCreateEditFragment">
 
-    <!-- Вкладки Расход/Доход (будут скрыты в режиме редактирования) -->
+
     <com.google.android.material.tabs.TabLayout
         android:id="@+id/tab_layout_category_type_create_edit"
         android:layout_width="0dp"
@@ -25,7 +25,7 @@
         android:visibility="gone"
         tools:visibility="visible"/>
 
-    <!-- Основной контент -->
+
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/content_layout"
         android:layout_width="0dp"
@@ -36,7 +36,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
-        <!-- Поле Имя -->
+
         <TextView
             android:id="@+id/label_name"
             android:layout_width="wrap_content"
@@ -72,7 +72,7 @@
 
         </com.google.android.material.textfield.TextInputLayout>
 
-        <!-- Поле Цвет -->
+
         <TextView
             android:id="@+id/label_color"
             android:layout_width="wrap_content"
@@ -84,7 +84,7 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/input_layout_name" />
 
-        <!-- Визуальное представление цвета + Спиннер -->
+
         <androidx.cardview.widget.CardView
             android:id="@+id/card_color_selector"
             android:layout_width="0dp"
@@ -114,7 +114,7 @@
             android:orientation="vertical"
             app:layout_constraintGuide_percent="0.6"/>
 
-        <!-- Поле Значок -->
+
         <TextView
             android:id="@+id/label_icon"
             android:layout_width="wrap_content"
@@ -147,7 +147,7 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintBottom_toBottomOf="@id/card_color_selector" />
 
-        <!-- Совет -->
+
         <TextView
             android:id="@+id/text_view_hint"
             android:layout_width="0dp"
