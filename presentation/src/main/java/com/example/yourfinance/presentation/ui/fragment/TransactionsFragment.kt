@@ -3,10 +3,16 @@ package com.example.yourfinance.presentation.ui.fragment
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
+import android.view.Menu
+import android.view.MenuInflater
+import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.view.MenuHost
+import androidx.core.view.MenuProvider
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.Lifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.yourfinance.presentation.databinding.FragmentTransactionsListBinding
@@ -14,6 +20,7 @@ import com.example.yourfinance.presentation.ui.adapter.list_item.TransactionList
 import com.example.yourfinance.presentation.ui.adapter.TransactionsRecyclerViewListAdapter
 import com.example.yourfinance.domain.model.TransactionType
 import com.example.yourfinance.domain.model.entity.Payment
+import com.example.yourfinance.presentation.R
 import com.example.yourfinance.util.StringHelper.Companion.getMoneyStr
 
 class TransactionsFragment : Fragment() {
@@ -33,9 +40,15 @@ class TransactionsFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentTransactionsListBinding.inflate(inflater, container, false)
+
+        return binding.root
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
         setupRecyclerView()
         setupObservers()
-        return binding.root
+        setupOptionsMenu()
     }
 
     private fun setupRecyclerView() {
@@ -88,6 +101,28 @@ class TransactionsFragment : Fragment() {
             items.add(TransactionListItem.EmptyItem)
             adapter.submitList(items)
         }
+    }
+
+    private fun setupOptionsMenu() {
+        val menuHost: MenuHost = requireActivity()
+        menuHost.addMenuProvider(object : MenuProvider {
+            override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
+                menuInflater.inflate(R.menu.transactions_menu, menu)
+            }
+
+            override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
+                return when (menuItem.itemId) {
+                    R.id.action_select_period -> {
+                        PeriodSelectionBottomSheetDialogFragment.newInstance().show(
+                            childFragmentManager, // или parentFragmentManager, если вызываете из Activity
+                            PeriodSelectionBottomSheetDialogFragment.TAG
+                        )
+                        true
+                    }
+                    else -> false
+                }
+            }
+        }, viewLifecycleOwner, Lifecycle.State.RESUMED)
     }
 
 

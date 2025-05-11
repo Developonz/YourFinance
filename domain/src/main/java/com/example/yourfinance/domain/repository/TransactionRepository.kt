@@ -4,10 +4,11 @@ import androidx.lifecycle.LiveData
 import com.example.yourfinance.domain.model.Transaction
 import com.example.yourfinance.domain.model.entity.Payment
 import com.example.yourfinance.domain.model.entity.Transfer
+import java.time.LocalDate
 
 
 interface TransactionRepository {
-    fun fetchTransactions(): LiveData<List<Transaction>>
+    fun fetchTransactions(startDate: LocalDate?, endDate: LocalDate?): LiveData<List<Transaction>>
 
     suspend fun createPayment(payment: Payment)
 

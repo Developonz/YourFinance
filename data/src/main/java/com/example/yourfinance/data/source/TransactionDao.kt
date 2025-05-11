@@ -43,11 +43,19 @@ abstract class TransactionDao(private val dataBase: FinanceDataBase) {
     abstract fun insertTransferTransaction(trans: TransferEntity)
 
     @Transaction // Добавляем @Transaction для POJO с @Relation
-    @Query("SELECT * FROM PaymentEntity ORDER BY time DESC") // Добавим сортировку для примера
+    @Query("SELECT * FROM PaymentEntity where date >= :startDate and date <= :endDate")
+    abstract fun getAllPaymentWithDateRange(startDate: LocalDate?, endDate: LocalDate?): LiveData<List<FullPayment>>
+
+    @Transaction
+    @Query("SELECT * FROM TransferEntity where date >= :startDate and date <= :endDate")
+    abstract fun getAllTransferWithDateRange(startDate: LocalDate?, endDate: LocalDate?) : LiveData<List<FullTransfer>>
+
+    @Transaction // Добавляем @Transaction для POJO с @Relation
+    @Query("SELECT * FROM PaymentEntity")
     abstract fun getAllPayment(): LiveData<List<FullPayment>>
 
     @Transaction
-    @Query("SELECT * FROM TransferEntity ORDER BY time DESC") // Добавим сортировку для примера
+    @Query("SELECT * FROM TransferEntity")
     abstract fun getAllTransfer() : LiveData<List<FullTransfer>>
 
     @Delete

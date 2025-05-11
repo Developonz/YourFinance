@@ -12,15 +12,17 @@ import com.example.yourfinance.domain.model.entity.Transfer
 import com.example.yourfinance.domain.repository.TransactionRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.time.LocalDate
 import javax.inject.Inject
 
 class TransactionRepositoryImpl @Inject constructor(private val dao: TransactionDao) : TransactionRepository {
 
-    override fun fetchTransactions(): LiveData<List<Transaction>> {
+    override fun fetchTransactions(startDate: LocalDate?, endDate: LocalDate?): LiveData<List<Transaction>> {
         val mediator = MediatorLiveData<List<Transaction>>()
 
-        val fullPayments = dao.getAllPayment()
-        val fullTransfers = dao.getAllTransfer()
+        val fullPayments = if (startDate != null && endDate != null) dao.getAllPaymentWithDateRange(startDate, endDate) else dao.getAllPayment()
+        val fullTransfers = if (startDate != null && endDate != null) dao.getAllTransferWithDateRange(startDate, endDate) else dao.getAllTransfer()
+
         fun update() {
             val combinedTransactions = mutableListOf<Transaction>()
             val tmpFullPayments = fullPayments.value ?: emptyList()
