@@ -42,4 +42,6 @@ abstract class RepositoryModule {
     abstract fun provideBudgetRepository(
         repository: BudgetRepositoryImpl
     ) : BudgetRepository
+
+
 }

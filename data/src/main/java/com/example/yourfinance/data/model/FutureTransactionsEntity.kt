@@ -9,7 +9,8 @@ import androidx.room.PrimaryKey
         parentColumns = ["id"],
         childColumns = ["id"],
         entity = PaymentEntity::class,
-        onDelete = ForeignKey.CASCADE
+        onDelete = ForeignKey.CASCADE,
+        deferred = true
     )
 ])
 class FutureTransactionsEntity (

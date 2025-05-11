@@ -8,16 +8,36 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Update
+import com.example.yourfinance.data.mapper.toDataFuture
 import com.example.yourfinance.data.model.PaymentEntity
 import com.example.yourfinance.data.model.TransferEntity
 import com.example.yourfinance.data.model.pojo.FullPayment
 import com.example.yourfinance.data.model.pojo.FullTransfer
+import com.example.yourfinance.domain.model.TransactionType
+import java.time.LocalDate
 
 @Dao
-abstract class TransactionDao {
+abstract class TransactionDao(private val dataBase: FinanceDataBase) {
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE) // Можно указать стратегию конфликта
-    abstract fun insertPaymentTransaction(trans: PaymentEntity)
+
+    @Insert
+    abstract fun insertPaymentTransactionInternal(payment: PaymentEntity) : Long
+
+    @Transaction
+    open suspend fun insertPaymentTransaction(payment: PaymentEntity) {
+        val paymentId = insertPaymentTransactionInternal(payment)
+        val account = dataBase.getMoneyAccountDao().getAccountById(payment.moneyAccID)
+        account?.let {
+            if (payment.date <= LocalDate.now()) {
+                it.balance += if (payment.type == TransactionType.INCOME) payment.balance else -payment.balance
+                dataBase.getMoneyAccountDao().updateAccount(it)
+            } else {
+                val paymentWithGeneratedId = payment.copy(id = paymentId)
+                dataBase.getFutureTransactionDao().insertFuturePaymentTransaction(paymentWithGeneratedId.toDataFuture())
+            }
+        }
+
+    }
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     abstract fun insertTransferTransaction(trans: TransferEntity)
@@ -26,12 +46,31 @@ abstract class TransactionDao {
     @Query("SELECT * FROM PaymentEntity ORDER BY time DESC") // Добавим сортировку для примера
     abstract fun getAllPayment(): LiveData<List<FullPayment>>
 
-    @Transaction // Добавляем @Transaction для POJO с @Relation
+    @Transaction
     @Query("SELECT * FROM TransferEntity ORDER BY time DESC") // Добавим сортировку для примера
     abstract fun getAllTransfer() : LiveData<List<FullTransfer>>
 
     @Delete
-    abstract fun deletePayment(payment: PaymentEntity)
+    abstract fun deletePaymentInternal(payment: PaymentEntity)
+
+    @Transaction
+    open suspend fun deletePayment(payment: PaymentEntity) {
+        val count = dataBase.getFutureTransactionDao().loadCountFuturePaymentTransaction(payment.id)
+        if (count == 0) {
+            val sum = if (payment.type == TransactionType.INCOME) payment.balance else -payment.balance
+            val account = dataBase.getMoneyAccountDao().getAccountById(payment.moneyAccID)
+            account?.let {
+                it.balance -= sum
+                dataBase.getMoneyAccountDao().updateAccount(it)
+            }
+            //TODO: также в кэше начального баланса изменить
+            deletePaymentInternal(payment)
+        } else {
+            val sum = if (payment.type == TransactionType.INCOME) payment.balance else -payment.balance
+            //TODO: также в кэше начального баланса изменить
+            deletePaymentInternal(payment)
+        }
+    }
 
     @Delete
     abstract fun deleteTransfer(transfer: TransferEntity)
@@ -49,7 +88,54 @@ abstract class TransactionDao {
     abstract suspend fun loadTransferById(id: Long): FullTransfer?
 
     @Update
-    abstract fun updatePayment(payment: PaymentEntity)
+    abstract fun updatePaymentInternal(payment: PaymentEntity)
+
+    @Transaction
+    open suspend fun updatePayment(newPayment: PaymentEntity) {
+
+        val oldPayment = loadPaymentById(newPayment.id)
+        oldPayment?.let {
+
+            val account = dataBase.getMoneyAccountDao().getAccountById(newPayment.moneyAccID)
+            val count = dataBase.getFutureTransactionDao().loadCountFuturePaymentTransaction(newPayment.id)
+            if (count == 0) {
+                if (newPayment.date > LocalDate.now()) {
+                    account?.let {
+                        val sum = if (oldPayment.payment.type == TransactionType.INCOME) oldPayment.payment.balance else -oldPayment.payment.balance
+                        it.balance -= sum
+                        dataBase.getMoneyAccountDao().updateAccount(it)
+                    }
+                    //TODO: также в кэше начального баланса изменить
+                } else {
+                    account?.let {
+                        val diff = newPayment.balance - oldPayment.payment.balance
+                        it.balance += diff
+                        dataBase.getMoneyAccountDao().updateAccount(it)
+                    }
+                    //TODO: также в кэше начального баланса изменить
+                }
+            } else {
+                if (newPayment.date > LocalDate.now()) {
+                    //TODO: в кэше начального баланса изменить
+                } else {
+                    dataBase.getFutureTransactionDao().deleteFuturePaymentTransaction(newPayment.id)
+                    account?.let {
+                        val sum = if (newPayment.type == TransactionType.INCOME) newPayment.balance else -newPayment.balance
+                        it.balance += sum
+                        dataBase.getMoneyAccountDao().updateAccount(it)
+                    }
+                    //TODO: также в кэше начального баланса изменить
+                }
+            }
+
+            updatePaymentInternal(newPayment)
+
+
+
+        }
+
+
+    }
 
     @Update
     abstract fun updateTransfer(transfer: TransferEntity)

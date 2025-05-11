@@ -1,6 +1,7 @@
 package com.example.yourfinance.data.mapper
 
 
+import com.example.yourfinance.data.model.FutureTransactionsEntity
 import com.example.yourfinance.data.model.PaymentEntity
 import com.example.yourfinance.data.model.pojo.FullPayment
 import com.example.yourfinance.domain.model.Title
@@ -29,5 +30,17 @@ fun Payment.toData(): PaymentEntity {
         note = this.note,
         date = this.date,
         time = this.time
+    )
+}
+
+fun Payment.toDataFuture(): FutureTransactionsEntity {
+    return FutureTransactionsEntity(
+        id = this.id,
+    )
+}
+
+fun PaymentEntity.toDataFuture(): FutureTransactionsEntity {
+    return FutureTransactionsEntity(
+        id = this.id,
     )
 }

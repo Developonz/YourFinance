@@ -26,6 +26,8 @@ inject = "1" # Для javax.inject
 junit = "4.13.2"
 junitExt = "1.2.1" # Переименовал junitVersion для ясности
 espressoCore = "3.6.1"
+navigationFragmentKtx = "2.9.0"
+navigationUiKtx = "2.9.0"
 
 # Удалены неиспользуемые или объединенные версии:
 # legacySupportV4 - удалена
@@ -76,7 +78,9 @@ javax-inject = { group = "javax.inject", name = "javax.inject", version.ref = "i
 # Testing
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-test-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitExt" } # Переименовано
-androidx-test-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" } # Переименовано
+androidx-test-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
+navigation-fragment-ktx = { group = "androidx.navigation", name = "navigation-fragment-ktx", version.ref = "navigationFragmentKtx" }
+navigation-ui-ktx = { group = "androidx.navigation", name = "navigation-ui-ktx", version.ref = "navigationUiKtx" } # Переименовано
 
 # Удалены неиспользуемые:
 # androidx-legacy-support-v4

@@ -67,6 +67,8 @@ dependencies {
 
     // Hilt (для Application класса и DI графа)
     implementation(libs.hilt.android)
+    implementation(libs.navigation.fragment.ktx)
+    implementation(libs.navigation.ui.ktx)
     ksp(libs.hilt.compiler) // KSP для Hilt
 
     // Room
