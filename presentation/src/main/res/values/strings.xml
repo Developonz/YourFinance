@@ -18,4 +18,11 @@
     <string name="edit_subcategory_title">Редактировать подкатегорию</string>
     <string name="cancel">Отмена</string>
     <string name="no_accounts_available">Нет доступных счетов</string>
+    <string name="period_not_selected">Дата не выбрана</string>
+    <string name="period_week_not_selected">Неделя не выбрана</string>
+    <string name="period_month_not_selected">Месяц не выбран</string>
+    <string name="period_quarter_not_selected">Квартал не выбран</string>
+    <string name="period_year_not_selected">Год не выбран</string>
+    <string name="period_all_time">Все время</string>
+    <string name="period_range_not_selected">Диапазон не выбран</string>
 </resources>

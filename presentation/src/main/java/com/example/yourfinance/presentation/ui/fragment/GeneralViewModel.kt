@@ -35,58 +35,121 @@ class GeneralViewModel @Inject constructor(
     val budgetsList: LiveData<List<Budget>> = fetchBudgetsUseCase()
 
 
-    // Метод для установки нового периода из UI
+    // --- МЕТОДЫ ДЛЯ УСТАНОВКИ ПЕРИОДА ---
+
+    // Основной метод для установки периода извне (из BottomSheet или инициализации)
     fun setPeriod(period: Period, customStartDate: LocalDate? = null, customEndDate: LocalDate? = null) {
-        val today = LocalDate.now()
-        var startDate: LocalDate? = null
-        var endDate: LocalDate? = null
+        when (period) {
+            Period.CUSTOM -> {
+                // Обработка пользовательского периода
+                handleCustomPeriodSelection(period, customStartDate, customEndDate)
+            }
+            Period.ALL -> {
+                // Обработка выбора "Все время"
+                _selectedPeriod.value = PeriodSelection(period, null, null)
+            }
+            else -> {
+                // Для стандартных периодов (Daily, Weekly и т.д.)
+                // устанавливаем период относительно ТЕКУЩЕЙ ДАТЫ
+                setStandardPeriodBasedOnDate(period, LocalDate.now())
+            }
+        }
+    }
+
+    // Обработка выбора пользовательского периода
+    private fun handleCustomPeriodSelection(period: Period, startDate: LocalDate?, endDate: LocalDate?) {
+        if (startDate != null && endDate != null && startDate.isAfter(endDate)) {
+            // Если начальная дата после конечной, меняем их местами
+            _selectedPeriod.value = PeriodSelection(period, endDate, startDate)
+        } else {
+            _selectedPeriod.value = PeriodSelection(period, startDate, endDate)
+        }
+    }
+
+    // Установка стандартного периода относительно заданной даты (referenceDate)
+    // Используется как для setPeriod, так и для навигации next/previousPeriod
+    private fun setStandardPeriodBasedOnDate(period: Period, referenceDate: LocalDate) {
+        if (period == Period.ALL || period == Period.CUSTOM) return // Не обрабатываем здесь
+
+        var calculatedStartDate: LocalDate? = null
+        var calculatedEndDate: LocalDate? = null
 
         when (period) {
             Period.DAILY -> {
-                startDate = today
-                endDate = today
+                calculatedStartDate = referenceDate
+                calculatedEndDate = referenceDate
             }
             Period.WEEKLY -> {
-                val weekFields = WeekFields.of(Locale.getDefault()) // или Locale.MONDAY_FIRST если нужно
-                startDate = today.with(weekFields.dayOfWeek(), 1) // Первый день недели
-                endDate = startDate.plusDays(6) // Последний день недели
+                val weekFields = WeekFields.of(Locale.getDefault()) // Или ваш предпочтительный Locale
+                calculatedStartDate = referenceDate.with(weekFields.dayOfWeek(), 1) // Первый день недели
+                calculatedEndDate = calculatedStartDate.plusDays(6) // Последний день недели
             }
             Period.MONTHLY -> {
-                startDate = today.withDayOfMonth(1)
-                endDate = today.withDayOfMonth(today.lengthOfMonth())
+                calculatedStartDate = referenceDate.withDayOfMonth(1)
+                calculatedEndDate = referenceDate.withDayOfMonth(referenceDate.lengthOfMonth())
             }
             Period.QUARTERLY -> {
-                val currentMonth = today.monthValue
+                val currentMonth = referenceDate.monthValue
                 val quarterStartMonth = when {
                     currentMonth <= 3 -> 1
                     currentMonth <= 6 -> 4
                     currentMonth <= 9 -> 7
                     else -> 10
                 }
-                startDate = LocalDate.of(today.year, quarterStartMonth, 1)
-                endDate = startDate.plusMonths(2).withDayOfMonth(startDate.plusMonths(2).lengthOfMonth())
+                calculatedStartDate = LocalDate.of(referenceDate.year, quarterStartMonth, 1)
+                calculatedEndDate = calculatedStartDate.plusMonths(2).withDayOfMonth(calculatedStartDate.plusMonths(2).lengthOfMonth())
             }
             Period.ANNUALLY -> {
-                startDate = today.withDayOfYear(1)
-                endDate = today.withDayOfYear(today.lengthOfYear())
+                calculatedStartDate = referenceDate.withDayOfYear(1)
+                calculatedEndDate = referenceDate.withDayOfYear(referenceDate.lengthOfYear())
             }
-            Period.ALL -> {
-                // startDate и endDate остаются null
-            }
-            Period.CUSTOM -> {
-                // Если Period.CUSTOM, используем переданные customStartDate и customEndDate
-                // Валидация дат (например, startDate не позже endDate) должна быть сделана перед вызовом этого метода
-                // или здесь
-                if (customStartDate != null && customEndDate != null && customStartDate.isAfter(customEndDate)) {
-                    // Обработка некорректного интервала, например, поменять их местами или не обновлять
-                    _selectedPeriod.value = PeriodSelection(period, customEndDate, customStartDate)
-                    return
-                }
-                _selectedPeriod.value = PeriodSelection(period, customStartDate, customEndDate)
-                return // Важно, чтобы не перезаписать значения ниже стандартными расчетами
-            }
+            // ALL и CUSTOM уже исключены
+            else -> {} // Добавлено для полноты when, хотя и не должно сюда попасть
         }
-        _selectedPeriod.value = PeriodSelection(period, startDate, endDate)
+        _selectedPeriod.value = PeriodSelection(period, calculatedStartDate, calculatedEndDate)
+    }
+
+
+    // --- МЕТОДЫ ДЛЯ НАВИГАЦИИ ПО ПЕРИОДУ ---
+
+    // Функция для перехода к следующему периоду
+    fun nextPeriod() {
+        val currentSelection = _selectedPeriod.value ?: return // Выходим, если нет текущего выбора
+        // Навигация не работает для ALL и CUSTOM
+        if (currentSelection.periodType == Period.ALL || currentSelection.periodType == Period.CUSTOM) return
+
+        // Используем текущую начальную дату как точку отсчета
+        val currentStartDate = currentSelection.startDate ?: LocalDate.now()
+        // Рассчитываем новую опорную дату
+        val newReferenceDate = calculateShiftedDate(currentStartDate, currentSelection.periodType, 1)
+        // Пересчитываем стандартный период на основе новой опорной даты
+        setStandardPeriodBasedOnDate(currentSelection.periodType, newReferenceDate)
+    }
+
+    // Функция для перехода к предыдущему периоду
+    fun previousPeriod() {
+        val currentSelection = _selectedPeriod.value ?: return // Выходим, если нет текущего выбора
+        // Навигация не работает для ALL и CUSTOM
+        if (currentSelection.periodType == Period.ALL || currentSelection.periodType == Period.CUSTOM) return
+
+        // Используем текущую начальную дату как точку отсчета
+        val currentStartDate = currentSelection.startDate ?: LocalDate.now()
+        // Рассчитываем новую опорную дату
+        val newReferenceDate = calculateShiftedDate(currentStartDate, currentSelection.periodType, -1)
+        // Пересчитываем стандартный период на основе новой опорной даты
+        setStandardPeriodBasedOnDate(currentSelection.periodType, newReferenceDate)
+    }
+
+    // Вспомогательная функция для расчета смещенной даты для навигации
+    private fun calculateShiftedDate(referenceDate: LocalDate, period: Period, amount: Long): LocalDate {
+        return when (period) {
+            Period.DAILY      -> referenceDate.plusDays(amount)
+            Period.WEEKLY     -> referenceDate.plusWeeks(amount)
+            Period.MONTHLY    -> referenceDate.plusMonths(amount)
+            Period.QUARTERLY  -> referenceDate.plusMonths(amount * 3)
+            Period.ANNUALLY   -> referenceDate.plusYears(amount)
+            else              -> referenceDate // Не должно произойти для ALL и CUSTOM
+        }
     }
 
 

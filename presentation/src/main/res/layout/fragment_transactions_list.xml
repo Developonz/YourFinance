@@ -7,141 +7,190 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:background="@color/black"
-    tools:context=".presentation.ui.fragment.TransactionsFragment">
+    tools:context=".ui.fragment.TransactionsFragment">
 
-    <!-- Используем ConstraintLayout для верхней секции Доход/Расход -->
+    <!-- === БЛОК НАВИГАЦИИ ПО ПЕРИОДУ (ПЕРЕМЕЩЕН ВВЕРХ) === -->
     <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/period_navigation_bar"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="#212323"
-        android:paddingHorizontal="16dp"
-        android:paddingVertical="20dp">
+        android:layout_height="56dp"
+        android:layout_marginBottom="5dp"
+        android:background="#212323"> <!-- Фон совпадает с блоком баланса -->
 
-        <!-- Направляющая линия для разделения 50/50 -->
-        <androidx.constraintlayout.widget.Guideline
-            android:id="@+id/guideline_center"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            app:layout_constraintGuide_percent="0.5" />
-
-        <!-- Блок "Доход" (используем CardView для фона и паддингов) -->
-        <androidx.cardview.widget.CardView
-            android:id="@+id/card_income"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toStartOf="@id/guideline_center"
-            app:layout_constraintTop_toTopOf="parent"
+        <ImageButton
+            android:id="@+id/button_previous_period"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:src="@drawable/ic_arrow_left_24"
+            android:background="?attr/selectableItemBackground"
             app:layout_constraintBottom_toBottomOf="parent"
-            android:layout_marginEnd="8dp"
-            app:cardBackgroundColor="@android:color/transparent"
-            app:cardElevation="0dp"
-            app:cardCornerRadius="16dp">
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:tint="@android:color/white"/> <!-- Добавил tint для иконки -->
 
-            <androidx.constraintlayout.widget.ConstraintLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="@drawable/round_back"
-                android:padding="12dp">
-
-                <ImageView
-                    android:id="@+id/icon_income"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
-                    android:src="@drawable/ic_up_arrow"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent"
-                    app:layout_constraintBottom_toBottomOf="parent"/>
-
-                <TextView
-                    android:id="@+id/label_income"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/income"
-                    android:textColor="@android:color/white"
-                    android:textSize="16sp"
-                    android:layout_marginStart="8dp"
-                    app:layout_constraintStart_toEndOf="@id/icon_income"
-                    app:layout_constraintTop_toTopOf="@id/icon_income"
-                    app:layout_constraintBottom_toTopOf="@id/income_balance"/>
-
-                <TextView
-                    android:id="@+id/income_balance"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    tools:text="18 500,00 ₽"
-                    android:textColor="#BDBDBD"
-                    android:textSize="14sp"
-                    android:layout_marginTop="2dp"
-                    app:layout_constraintStart_toStartOf="@id/label_income"
-                    app:layout_constraintTop_toBottomOf="@id/label_income"
-                    app:layout_constraintBottom_toBottomOf="@id/icon_income"/>
-
-            </androidx.constraintlayout.widget.ConstraintLayout>
-        </androidx.cardview.widget.CardView>
-
-        <!-- Блок "Расход" -->
-        <androidx.cardview.widget.CardView
-            android:id="@+id/card_expense"
+        <TextView
+            android:id="@+id/text_current_period"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            app:layout_constraintStart_toEndOf="@id/guideline_center"
+            android:gravity="center"
+            android:textAppearance="?attr/textAppearanceSubtitle1"
+            android:textColor="@android:color/white"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/button_next_period"
+            app:layout_constraintStart_toEndOf="@+id/button_previous_period"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:text="11-17 мая 2025 г." />
+
+        <ImageButton
+            android:id="@+id/button_next_period"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:src="@drawable/ic_arrow_right_24"
+            android:background="?attr/selectableItemBackground"
+            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"
-            android:layout_marginStart="8dp"
-            app:cardBackgroundColor="@android:color/transparent"
-            app:cardElevation="0dp"
-            app:cardCornerRadius="16dp">
-
-            <androidx.constraintlayout.widget.ConstraintLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="@drawable/round_back"
-                android:padding="12dp">
-
-                <ImageView
-                    android:id="@+id/icon_expense"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
-                    android:src="@drawable/ic_down_arrow"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent"
-                    app:layout_constraintBottom_toBottomOf="parent"/>
-
-                <TextView
-                    android:id="@+id/label_expense"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/expense"
-                    android:textColor="@android:color/white"
-                    android:textSize="16sp"
-                    android:layout_marginStart="8dp"
-                    app:layout_constraintStart_toEndOf="@id/icon_expense"
-                    app:layout_constraintTop_toTopOf="@id/icon_expense"
-                    app:layout_constraintBottom_toTopOf="@id/expense_balance"/>
-
-                <TextView
-                    android:id="@+id/expense_balance"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    tools:text="0,00 ₽"
-                    android:textColor="#BDBDBD"
-                    android:textSize="14sp"
-                    android:layout_marginTop="2dp"
-                    app:layout_constraintStart_toStartOf="@id/label_expense"
-                    app:layout_constraintTop_toBottomOf="@id/label_expense"
-                    app:layout_constraintBottom_toBottomOf="@id/icon_expense"/>
-
-            </androidx.constraintlayout.widget.ConstraintLayout>
-        </androidx.cardview.widget.CardView>
+            app:tint="@android:color/white"/> <!-- Добавил tint для иконки -->
 
     </androidx.constraintlayout.widget.ConstraintLayout>
+    <!-- === КОНЕЦ БЛОКА НАВИГАЦИИ === -->
+
+    <!-- Контейнер для секции Доход/Расход -->
+    <FrameLayout
+        android:id="@+id/top_section_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <!-- Ваш ConstraintLayout для Доход/Расход (без изменений внутри) -->
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/balance_section"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="#212323"
+            android:paddingHorizontal="16dp"
+            android:paddingVertical="20dp">
+
+            <!-- Guideline -->
+            <androidx.constraintlayout.widget.Guideline
+                android:id="@+id/guideline_center"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                app:layout_constraintGuide_end="189dp" />
+
+            <!-- CardView Доход -->
+            <androidx.cardview.widget.CardView
+                android:id="@+id/card_income"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toStartOf="@id/guideline_center"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                android:layout_marginEnd="8dp"
+                app:cardBackgroundColor="@android:color/transparent"
+                app:cardElevation="0dp"
+                app:cardCornerRadius="16dp">
+                <!-- Содержимое CardView Доход -->
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/round_back"
+                    android:padding="12dp">
+                    <!-- ... -->
+                    <ImageView
+                        android:id="@+id/icon_income"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:src="@drawable/ic_up_arrow"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintBottom_toBottomOf="parent"/>
+                    <TextView
+                        android:id="@+id/label_income"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/income"
+                        android:textColor="@android:color/white"
+                        android:textSize="16sp"
+                        android:layout_marginStart="8dp"
+                        app:layout_constraintStart_toEndOf="@id/icon_income"
+                        app:layout_constraintTop_toTopOf="@id/icon_income"
+                        app:layout_constraintBottom_toTopOf="@id/income_balance"/>
+                    <TextView
+                        android:id="@+id/income_balance"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        tools:text="18 500,00 ₽"
+                        android:textColor="#BDBDBD"
+                        android:textSize="14sp"
+                        android:layout_marginTop="2dp"
+                        app:layout_constraintStart_toStartOf="@id/label_income"
+                        app:layout_constraintTop_toBottomOf="@id/label_income"
+                        app:layout_constraintBottom_toBottomOf="@id/icon_income"/>
+                </androidx.constraintlayout.widget.ConstraintLayout>
+            </androidx.cardview.widget.CardView>
+
+            <!-- CardView Расход -->
+            <androidx.cardview.widget.CardView
+                android:id="@+id/card_expense"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                app:layout_constraintStart_toEndOf="@id/guideline_center"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                android:layout_marginStart="8dp"
+                app:cardBackgroundColor="@android:color/transparent"
+                app:cardElevation="0dp"
+                app:cardCornerRadius="16dp">
+                <!-- Содержимое CardView Расход -->
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/round_back"
+                    android:padding="12dp">
+                    <!-- ... -->
+                    <ImageView
+                        android:id="@+id/icon_expense"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:src="@drawable/ic_down_arrow"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintBottom_toBottomOf="parent"/>
+                    <TextView
+                        android:id="@+id/label_expense"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/expense"
+                        android:textColor="@android:color/white"
+                        android:textSize="16sp"
+                        android:layout_marginStart="8dp"
+                        app:layout_constraintStart_toEndOf="@id/icon_expense"
+                        app:layout_constraintTop_toTopOf="@id/icon_expense"
+                        app:layout_constraintBottom_toTopOf="@id/expense_balance"/>
+                    <TextView
+                        android:id="@+id/expense_balance"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        tools:text="0,00 ₽"
+                        android:textColor="#BDBDBD"
+                        android:textSize="14sp"
+                        android:layout_marginTop="2dp"
+                        app:layout_constraintStart_toStartOf="@id/label_expense"
+                        app:layout_constraintTop_toBottomOf="@id/label_expense"
+                        app:layout_constraintBottom_toBottomOf="@id/icon_expense"/>
+                </androidx.constraintlayout.widget.ConstraintLayout>
+            </androidx.cardview.widget.CardView>
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </FrameLayout>
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/transactions_list"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"/>
+
 </LinearLayout>
