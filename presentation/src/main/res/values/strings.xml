@@ -25,4 +25,6 @@
     <string name="period_year_not_selected">Год не выбран</string>
     <string name="period_all_time">Все время</string>
     <string name="period_range_not_selected">Диапазон не выбран</string>
+    <string name="delete">Удалить</string>
+    <string name="transaction_deleted_toast">Транзакция удалена</string>
 </resources>

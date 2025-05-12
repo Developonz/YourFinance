@@ -30,7 +30,6 @@ data class PaymentEntity(
     var categoryID: Long,
     var note: String = "",
     var date: LocalDate = LocalDate.now(),
-    var time: LocalTime = LocalTime.now(),
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
 )

@@ -14,7 +14,6 @@ fun FullTransfer.toDomain(): Transfer {
         moneyAccTo = this.moneyAccTo.toDomain(),
         _note = Title(this.transfer.note),
         date = this.transfer.date,
-        time = this.transfer.time
     )
 }
 
@@ -27,6 +26,5 @@ fun Transfer.toData(): TransferEntity {
         moneyAccToID = this.moneyAccTo.id,
         note = this.note,
         date = this.date,
-        time = this.time
     )
 }

@@ -1,5 +1,10 @@
 package com.example.yourfinance.presentation.ui.fragment
 
+import android.content.Context
+import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.Paint
+import android.graphics.RectF
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -8,6 +13,7 @@ import android.view.MenuInflater
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.core.view.MenuHost
 import androidx.core.view.MenuProvider
 import androidx.core.view.isVisible // Удобный import для visibility
@@ -15,7 +21,9 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
 import androidx.navigation.fragment.findNavController
+import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.example.yourfinance.domain.model.Period
 import com.example.yourfinance.presentation.databinding.FragmentTransactionsListBinding
 import com.example.yourfinance.presentation.ui.adapter.list_item.TransactionListItem
@@ -73,6 +81,7 @@ class TransactionsFragment : Fragment() {
         setupObservers()
         setupClickListeners() // Настройка обработчиков кликов на стрелки
         setupOptionsMenu() // Настройка меню в AppBar
+        setupSwipeToDelete(requireContext())
     }
 
     // Настройка RecyclerView для списка транзакций
@@ -125,10 +134,6 @@ class TransactionsFragment : Fragment() {
         // Группируем транзакции по дате
         val grouped = transactions
             .groupBy { it.date }
-            // Внутри каждой группы сортируем по времени (от новых к старым)
-            .mapValues { (_, dailyTransactions) ->
-                dailyTransactions.sortedByDescending { it.time }
-            }
             // Сортируем сами группы по дате (от новых к старым)
             .toSortedMap(compareByDescending { it })
 
@@ -228,6 +233,104 @@ class TransactionsFragment : Fragment() {
             }
         }, viewLifecycleOwner, Lifecycle.State.RESUMED) // Привязываем к жизненному циклу фрагмента
     }
+
+    private fun setupSwipeToDelete(context: Context) { // Принимаем Context
+        val itemTouchHelperCallback = object : ItemTouchHelper.SimpleCallback(
+            0,
+            ItemTouchHelper.LEFT
+        ) {
+            // --- Настройки для отрисовки фона и текста ---
+            private val backgroundPaint = Paint().apply { color = Color.RED } // Красный фон
+            private val textPaint = Paint().apply {
+                color = Color.WHITE // Белый текст
+                textSize = 40f // Размер текста (подберите нужный)
+                textAlign = Paint.Align.RIGHT // Выравнивание по правому краю
+                isAntiAlias = true
+            }
+            private val deleteText = context.getString(R.string.delete) // Получаем строку "Удалить" из ресурсов
+            private val textPadding = 60f // Отступ текста от правого края фона
+
+            override fun onMove(
+                recyclerView: RecyclerView,
+                viewHolder: RecyclerView.ViewHolder,
+                target: RecyclerView.ViewHolder
+            ): Boolean {
+                return false
+            }
+
+            override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
+                val position = viewHolder.bindingAdapterPosition
+                if (position != RecyclerView.NO_POSITION) {
+                    val item = adapter.currentList[position]
+                    if (item is TransactionListItem.TransactionItem) {
+                        val transactionToDelete = item.transaction
+                        viewModel.deleteTransaction(transactionToDelete)
+                        Log.d("SwipeToDelete", "Swiped item at position $position, requesting delete for transaction ${transactionToDelete.id}")
+                        Toast.makeText(requireContext(), R.string.transaction_deleted_toast, Toast.LENGTH_SHORT).show()
+                    } else {
+                        Log.d("SwipeToDelete", "Swiped item at position $position is not a TransactionItem, ignoring.")
+                        adapter.notifyItemChanged(position) // Обновляем, чтобы сбросить вид
+                    }
+                } else {
+                    Log.d("SwipeToDelete", "Swiped item at invalid position $position, ignoring.")
+                }
+            }
+
+            override fun getSwipeDirs(
+                recyclerView: RecyclerView,
+                viewHolder: RecyclerView.ViewHolder
+            ): Int {
+                val position = viewHolder.adapterPosition
+                if (position == RecyclerView.NO_POSITION) return 0
+                val item = adapter.currentList.getOrNull(position)
+                return if (item is TransactionListItem.TransactionItem) {
+                    super.getSwipeDirs(recyclerView, viewHolder)
+                } else {
+                    0
+                }
+            }
+
+            // --- Переопределение onChildDraw для кастомной отрисовки ---
+            override fun onChildDraw(
+                c: Canvas, recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder,
+                dX: Float, dY: Float, actionState: Int, isCurrentlyActive: Boolean
+            ) {
+                // Сначала вызываем стандартную отрисовку, чтобы элемент двигался
+                super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive)
+
+                // Рисуем фон и текст только при активном свайпе влево
+                if (actionState == ItemTouchHelper.ACTION_STATE_SWIPE && dX < 0) {
+                    val itemView = viewHolder.itemView
+                    val backgroundRect = RectF(
+                        itemView.right + dX, // Левая граница фона следует за сдвигом
+                        itemView.top.toFloat(),
+                        itemView.right.toFloat(), // Правая граница фона - изначальная правая граница элемента
+                        itemView.bottom.toFloat()
+                    )
+
+                    // Рисуем красный фон
+                    c.drawRect(backgroundRect, backgroundPaint)
+
+                    // Рассчитываем позицию текста
+                    // Вертикально по центру элемента
+                    val textY = itemView.top + (itemView.height / 2) - ((textPaint.descent() + textPaint.ascent()) / 2)
+                    // Горизонтально - отступ от правого края элемента
+                    val textX = itemView.right.toFloat() - textPadding
+
+                    // Рисуем текст "Удалить", только если свайп достаточно большой, чтобы текст поместился
+                    if (kotlin.math.abs(dX) > textPadding * 1.5) { // Условие можно настроить
+                        c.drawText(deleteText, textX, textY, textPaint)
+                    }
+                }
+            }
+            // --- Конец переопределения onChildDraw ---
+        }
+
+        val itemTouchHelper = ItemTouchHelper(itemTouchHelperCallback)
+        itemTouchHelper.attachToRecyclerView(binding.transactionsList)
+        Log.d("SwipeToDelete", "ItemTouchHelper attached to RecyclerView")
+    }
+
 
 
     // Очистка ссылки на binding при уничтожении View фрагмента

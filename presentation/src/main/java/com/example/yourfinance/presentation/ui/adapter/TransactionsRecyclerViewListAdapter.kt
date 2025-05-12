@@ -15,6 +15,7 @@ import com.example.yourfinance.domain.model.entity.Transfer
 import com.example.yourfinance.presentation.ui.adapter.list_item.TransactionListItem
 import com.example.yourfinance.domain.model.TransactionType
 import com.example.yourfinance.domain.StringHelper
+import java.time.LocalDate
 
 
 class TransactionsRecyclerViewListAdapter(val editClick: (transaction: Transaction) -> Unit) : ListAdapter<TransactionListItem, RecyclerView.ViewHolder>(
@@ -56,7 +57,7 @@ class TransactionsRecyclerViewListAdapter(val editClick: (transaction: Transacti
         RecyclerView.ViewHolder(binding.root) {
         fun bind(header: TransactionListItem.Header) {
             binding.dayOfMounth.text = StringHelper.getDayOfMonthStr(header.date)
-            binding.dayOfWeek.text = StringHelper.getDayOfWeekStr(header.date)
+            binding.dayOfWeek.text = if (header.date <= LocalDate.now()) StringHelper.getDayOfWeekStr(header.date) else "Будущая"
             binding.mounth.text = StringHelper.getMonthYearStr(header.date)
             binding.balance.text = StringHelper.getMoneyStr(header.balance)
         }
@@ -90,8 +91,6 @@ class TransactionsRecyclerViewListAdapter(val editClick: (transaction: Transacti
                 binding.price.setTextColor(if (transaction.type == TransactionType.INCOME)
                     Color.GREEN else Color.RED)
             }
-
-            binding.time.text = StringHelper.getTime(transaction.time)
 
             binding.root.setOnClickListener {
                 editClick(item.transaction)

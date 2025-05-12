@@ -16,12 +16,16 @@ import javax.inject.Inject
 import java.time.temporal.WeekFields
 import java.util.Locale
 import androidx.lifecycle.switchMap
+import androidx.lifecycle.viewModelScope
+import com.example.yourfinance.domain.usecase.transaction.DeleteTransactionUseCase
+import kotlinx.coroutines.launch
 
 @HiltViewModel
 class GeneralViewModel @Inject constructor(
     fetchTransactionsUseCase: FetchTransactionsUseCase,
     fetchMoneyAccountsUseCase: FetchMoneyAccountsUseCase,
     fetchBudgetsUseCase: FetchBudgetsUseCase,
+    private val deleteTransactionUseCase: DeleteTransactionUseCase
 
 ) : ViewModel() {
 
@@ -34,6 +38,12 @@ class GeneralViewModel @Inject constructor(
     val accountsList: LiveData<List<MoneyAccount>> = fetchMoneyAccountsUseCase()
     val budgetsList: LiveData<List<Budget>> = fetchBudgetsUseCase()
 
+
+    fun deleteTransaction(transactionToDelete: Transaction) {
+        viewModelScope.launch {
+            deleteTransactionUseCase(transactionToDelete)
+        }
+    }
 
     // --- МЕТОДЫ ДЛЯ УСТАНОВКИ ПЕРИОДА ---
 
@@ -151,6 +161,8 @@ class GeneralViewModel @Inject constructor(
             else              -> referenceDate // Не должно произойти для ALL и CUSTOM
         }
     }
+
+
 
 
     // Инициализация: по умолчанию, например, текущий месяц или "Все".

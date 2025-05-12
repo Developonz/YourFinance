@@ -7,6 +7,7 @@ import com.example.yourfinance.data.mapper.toData
 import com.example.yourfinance.data.mapper.toDomain
 import com.example.yourfinance.domain.model.Transaction
 import com.example.yourfinance.data.source.TransactionDao
+import com.example.yourfinance.domain.model.TransactionType
 import com.example.yourfinance.domain.model.entity.Payment
 import com.example.yourfinance.domain.model.entity.Transfer
 import com.example.yourfinance.domain.repository.TransactionRepository
@@ -71,6 +72,16 @@ class TransactionRepositoryImpl @Inject constructor(private val dao: Transaction
     override suspend fun updateTransfer(transfer: Transfer) {
         withContext(Dispatchers.IO) {
             dao.updateTransfer(transfer.toData())
+        }
+    }
+
+    override suspend fun deleteTransaction(transaction: Transaction) {
+        withContext(Dispatchers.IO) {
+            if (transaction.type == TransactionType.REMITTANCE) {
+                dao.deleteTransferById(transaction.id)
+            } else {
+                dao.deletePaymentById(transaction.id)
+            }
         }
     }
 }

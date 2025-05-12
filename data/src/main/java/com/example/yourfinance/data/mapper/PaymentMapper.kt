@@ -16,7 +16,6 @@ fun FullPayment.toDomain(): Payment {
         category = this.category.toDomain(),
         _note = Title(this.payment.note),
         date = this.payment.date,
-        time = this.payment.time
     )
 }
 
@@ -29,7 +28,6 @@ fun Payment.toData(): PaymentEntity {
         categoryID = this.category.id,
         note = this.note,
         date = this.date,
-        time = this.time
     )
 }
 

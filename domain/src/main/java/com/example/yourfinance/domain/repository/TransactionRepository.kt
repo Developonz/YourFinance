@@ -21,4 +21,6 @@ interface TransactionRepository {
     suspend fun updatePayment(payment: Payment)
 
     suspend fun updateTransfer(transfer: Transfer)
+
+    suspend fun deleteTransaction(transaction: Transaction)
 }

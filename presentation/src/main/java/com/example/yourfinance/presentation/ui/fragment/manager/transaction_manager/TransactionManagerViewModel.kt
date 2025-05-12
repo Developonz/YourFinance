@@ -171,7 +171,6 @@ class TransactionManagerViewModel @Inject constructor(
                         Log.d("ViewModel", "Loaded Payment: $payment")
                         _currentTransactionType.value = payment.type // Должен совпадать с type
                         _loadedTransactionType.value = payment.type // Используется контейнером
-                        loadedTransactionTime = payment.time
 
                         _activeTransactionState.value = ActiveTransactionState.ExpenseIncomeState(
                             selectedCategory = payment.category,
@@ -186,7 +185,6 @@ class TransactionManagerViewModel @Inject constructor(
                         Log.d("ViewModel", "Loaded Transfer: $transfer")
                         _currentTransactionType.value = TransactionType.REMITTANCE // Должен совпадать с type
                         _loadedTransactionType.value = TransactionType.REMITTANCE // Используется контейнером
-                        loadedTransactionTime = transfer.time
 
                         _activeTransactionState.value = ActiveTransactionState.RemittanceState(
                             selectedAccountFrom = transfer.moneyAccFrom,
@@ -455,7 +453,6 @@ class TransactionManagerViewModel @Inject constructor(
         }
 
         val transactionDate = _date.value!!
-        val transactionTime = if (isEditing && loadedTransactionTime != null) loadedTransactionTime!! else LocalTime.now()
         val transactionNote = _note.value ?: ""
         val currentActiveType = _currentTransactionType.value!! // Тип, который выбрал пользователь сейчас (или загружен)
 
@@ -489,8 +486,7 @@ class TransactionManagerViewModel @Inject constructor(
                                         moneyAccount = currentActiveState.selectedPaymentAccount!!,
                                         category = currentActiveState.selectedCategory!!,
                                         _note = Title(transactionNote),
-                                        date = transactionDate,
-                                        time = transactionTime
+                                        date = transactionDate
                                     )
                                     createPaymentUseCase(payment) // Создаем как новую
                                     Log.d("ViewModel", "Created new Payment after type change: $payment")
@@ -510,8 +506,7 @@ class TransactionManagerViewModel @Inject constructor(
                                         moneyAccFrom = currentActiveState.selectedAccountFrom!!,
                                         moneyAccTo = currentActiveState.selectedAccountTo!!,
                                         _note = Title(transactionNote),
-                                        date = transactionDate,
-                                        time = transactionTime
+                                        date = transactionDate
                                     )
                                     createTransferUseCase(transfer) // Создаем как новую
                                     Log.d("ViewModel", "Created new Transfer after type change: $transfer")
@@ -539,8 +534,7 @@ class TransactionManagerViewModel @Inject constructor(
                                         moneyAccount = currentActiveState.selectedPaymentAccount!!,
                                         category = currentActiveState.selectedCategory!!,
                                         _note = Title(transactionNote),
-                                        date = transactionDate,
-                                        time = transactionTime
+                                        date = transactionDate
                                     )
                                     updatePaymentUseCase(payment) // Обновляем
                                     Log.d("ViewModel", "Updating Payment: $payment")
@@ -559,8 +553,7 @@ class TransactionManagerViewModel @Inject constructor(
                                         moneyAccFrom = currentActiveState.selectedAccountFrom!!,
                                         moneyAccTo = currentActiveState.selectedAccountTo!!,
                                         _note = Title(transactionNote),
-                                        date = transactionDate,
-                                        time = transactionTime
+                                        date = transactionDate
                                     )
                                     updateTransferUseCase(transfer) // Обновляем
                                     Log.d("ViewModel", "Updating Transfer: $transfer")
@@ -585,8 +578,7 @@ class TransactionManagerViewModel @Inject constructor(
                                 moneyAccount = currentActiveState.selectedPaymentAccount!!,
                                 category = currentActiveState.selectedCategory!!,
                                 _note = Title(transactionNote),
-                                date = transactionDate,
-                                time = LocalTime.now()
+                                date = transactionDate
                             )
                             createPaymentUseCase(payment)
                             Log.d("ViewModel", "Inserting Payment: $payment")
@@ -598,8 +590,7 @@ class TransactionManagerViewModel @Inject constructor(
                                 moneyAccFrom = currentActiveState.selectedAccountFrom!!,
                                 moneyAccTo = currentActiveState.selectedAccountTo!!,
                                 _note = Title(transactionNote),
-                                date = transactionDate,
-                                time = LocalTime.now()
+                                date = transactionDate
                             )
                             createTransferUseCase(transfer)
                             Log.d("ViewModel", "Inserting Transfer: $transfer")
