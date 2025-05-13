@@ -71,11 +71,8 @@ abstract class TransactionDao(private val dataBase: FinanceDataBase) {
                 it.balance -= sum
                 dataBase.getMoneyAccountDao().updateAccount(it)
             }
-            //TODO: также в кэше начального баланса изменить
             deletePaymentInternal(payment)
         } else {
-            val sum = if (payment.type == TransactionType.INCOME) payment.balance else -payment.balance
-            //TODO: также в кэше начального баланса изменить
             deletePaymentInternal(payment)
         }
     }
@@ -100,49 +97,38 @@ abstract class TransactionDao(private val dataBase: FinanceDataBase) {
 
     @Transaction
     open suspend fun updatePayment(newPayment: PaymentEntity) {
-
-        val oldPayment = loadPaymentById(newPayment.id)
-        oldPayment?.let {
-
-            val account = dataBase.getMoneyAccountDao().getAccountById(newPayment.moneyAccID)
-            val count = dataBase.getFutureTransactionDao().loadCountFuturePaymentTransaction(newPayment.id)
-            if (count == 0) {
+        val account = dataBase.getMoneyAccountDao().getAccountById(newPayment.moneyAccID)
+        val count = dataBase.getFutureTransactionDao().loadCountFuturePaymentTransaction(newPayment.id)
+        if (count == 0) {
+            val oldPayment = loadPaymentById(newPayment.id)
+            oldPayment?.let {
                 if (newPayment.date > LocalDate.now()) {
                     account?.let {
-                        val sum = if (oldPayment.payment.type == TransactionType.INCOME) oldPayment.payment.balance else -oldPayment.payment.balance
+                        val sum =
+                            if (oldPayment.payment.type == TransactionType.INCOME) oldPayment.payment.balance else -oldPayment.payment.balance
                         it.balance -= sum
                         dataBase.getMoneyAccountDao().updateAccount(it)
+                        dataBase.getFutureTransactionDao().insertFuturePaymentTransaction(newPayment.toDataFuture())
                     }
-                    //TODO: также в кэше начального баланса изменить
                 } else {
                     account?.let {
                         val diff = newPayment.balance - oldPayment.payment.balance
                         it.balance += diff
                         dataBase.getMoneyAccountDao().updateAccount(it)
                     }
-                    //TODO: также в кэше начального баланса изменить
-                }
-            } else {
-                if (newPayment.date > LocalDate.now()) {
-                    //TODO: в кэше начального баланса изменить
-                } else {
-                    dataBase.getFutureTransactionDao().deleteFuturePaymentTransaction(newPayment.id)
-                    account?.let {
-                        val sum = if (newPayment.type == TransactionType.INCOME) newPayment.balance else -newPayment.balance
-                        it.balance += sum
-                        dataBase.getMoneyAccountDao().updateAccount(it)
-                    }
-                    //TODO: также в кэше начального баланса изменить
                 }
             }
-
-            updatePaymentInternal(newPayment)
-
-
-
+        } else {
+            if (newPayment.date <= LocalDate.now()) {
+                dataBase.getFutureTransactionDao().deleteFuturePaymentTransaction(newPayment.id)
+                account?.let {
+                    val sum = if (newPayment.type == TransactionType.INCOME) newPayment.balance else -newPayment.balance
+                    it.balance += sum
+                    dataBase.getMoneyAccountDao().updateAccount(it)
+                }
+            }
         }
-
-
+        updatePaymentInternal(newPayment)
     }
 
     @Update

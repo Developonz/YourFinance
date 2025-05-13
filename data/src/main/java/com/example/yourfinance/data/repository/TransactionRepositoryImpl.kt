@@ -80,7 +80,7 @@ class TransactionRepositoryImpl @Inject constructor(private val dao: Transaction
             if (transaction.type == TransactionType.REMITTANCE) {
                 dao.deleteTransferById(transaction.id)
             } else {
-                dao.deletePaymentById(transaction.id)
+                dao.deletePayment((transaction as Payment).toData())
             }
         }
     }
