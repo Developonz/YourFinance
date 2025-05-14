@@ -13,6 +13,8 @@ fun MoneyAccountEntity.toDomain(): MoneyAccount {
         default = this.default,
         used = this.used,
         dateCreation = this.dateCreation,
+        iconResourceId = this.iconResourceId,
+        colorHex = this.colorHex,
         id = this.id
     )
 }
@@ -26,6 +28,8 @@ fun MoneyAccount.toData(): MoneyAccountEntity {
         title = this.title,
         default = this.default,
         used = this.used,
+        iconResourceId = this.iconResourceId,
+        colorHex = this.colorHex,
         dateCreation = this.dateCreation
     )
 }

@@ -3,6 +3,7 @@ package com.example.yourfinance.presentation.ui.adapter.wallet_page
 import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.core.graphics.ColorUtils
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
@@ -53,6 +54,11 @@ class WalletAccountsAdapter(
     class MoneyAccountViewHolder(private val binding: ItemAccountBinding) :
         RecyclerView.ViewHolder(binding.root) {
         fun bind(item: MoneyAccount, editAccountClick: (acc: MoneyAccount) -> Unit) {
+            binding.iconAccount.setImageResource(item.iconResourceId!!)
+            binding.iconAccount.setBackgroundColor(Color.parseColor(item.colorHex))
+            val iconTintColor = if (ColorUtils.calculateLuminance(Color.parseColor(item.colorHex)) > 0.5) Color.BLACK else Color.WHITE
+            binding.iconAccount.setColorFilter(iconTintColor)
+
             binding.titleAccount.text = item.title
             binding.balanceAccount.text = StringHelper.getMoneyStr(item.balance)
 

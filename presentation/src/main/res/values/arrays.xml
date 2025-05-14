@@ -24,7 +24,7 @@
         <item>dark</item>
     </string-array>
 
-    <string-array name="category_creation_available_colors">
+    <string-array name="available_colors_category_account">
         <item>#FFEB3B</item>
         <item>#03A9F4</item>
         <item>#4CAF50</item>
@@ -48,6 +48,11 @@
     <!-- Группа "Развлечения" -->
     <array name="category_icons_entertainment">
 
+    </array>
+
+    <!-- Группа "Развлечения" -->
+    <array name="account_icons">
+        <item>@drawable/transfer_money</item>
     </array>
 
 </resources>

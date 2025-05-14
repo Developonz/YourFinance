@@ -1,7 +1,9 @@
 package com.example.yourfinance.presentation.ui.adapter
 
+import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.core.graphics.ColorUtils
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
@@ -46,6 +48,12 @@ class MoneyAccountAdapter(
             deleteClick: (acc: MoneyAccount) -> Unit,
             editClick: (acc: MoneyAccount) -> Unit)
         {
+            binding.accountImage.setImageResource(item.iconResourceId!!)
+            binding.accountImage.setBackgroundColor(Color.parseColor(item.colorHex))
+            val iconTintColor = if (ColorUtils.calculateLuminance(Color.parseColor(item.colorHex)) > 0.5) Color.BLACK else Color.WHITE
+            binding.accountImage.setColorFilter(iconTintColor)
+
+
             binding.accountTitle.text = item.title
             binding.textAccountBalance.text = StringHelper.getMoneyStr(item.balance)
 

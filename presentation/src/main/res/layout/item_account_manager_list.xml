@@ -27,6 +27,7 @@
         android:layout_height="45dp"
         android:layout_marginStart="10dp"
         android:padding="4dp"
+        app:contentPadding="4dp"
         android:scaleType="centerInside"
         app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Full"
         app:strokeColor="#42A5F5"

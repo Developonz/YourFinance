@@ -112,7 +112,7 @@ class CategoryCreateEditFragment : Fragment() {
 
     private fun loadAvailableColors() {
         availableColors = try {
-            requireContext().resources.getStringArray(R.array.category_creation_available_colors).toList()
+            requireContext().resources.getStringArray(R.array.available_colors_category_account).toList()
         } catch (e: Exception) {
             Log.e("CategoryCreateEdit", "Failed to load colors from resources", e)
             listOf(DEFAULT_FALLBACK_COLOR)

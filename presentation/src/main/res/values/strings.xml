@@ -42,4 +42,7 @@
 
     <string name="default_icon_group_name">Иконки</string>
     <string name="ic_placeholder_category_description">Иконка-заглушка для категории</string>
+    <string name="error_name_empty">Название пусто\n</string>
+    <string name="error_negative_amount">Сумма не может быть отрицательной</string>
+    <string name="error_invalid_amount_format">Неверный формат суммы</string>
 </resources>
