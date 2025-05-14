@@ -21,6 +21,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.example.yourfinance.domain.model.Title
+import com.example.yourfinance.domain.model.entity.category.Subcategory
 import com.example.yourfinance.presentation.R
 import com.example.yourfinance.presentation.databinding.FragmentSubcategoryCreateEditBinding
 import dagger.hilt.android.AndroidEntryPoint
@@ -33,7 +34,7 @@ class SubcategoryCreateEditFragment : Fragment() {
 
     private val args: SubcategoryCreateEditFragmentArgs by navArgs()
     private val viewModel: SubcategoryManagerViewModel by viewModels()
-    private var subcategoryToEdit: com.example.yourfinance.domain.model.entity.category.Subcategory? = null
+    private var subcategoryToEdit: Subcategory? = null
 
     private var isEditMode = false
 
@@ -108,37 +109,57 @@ class SubcategoryCreateEditFragment : Fragment() {
             override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
                 return when (menuItem.itemId) {
                     R.id.action_save -> {
-                        val name = binding.titleSubcategory.text.toString().trim()
-
-                        if (name.isEmpty()) {
-                            binding.inputLayoutName.error = "Название не может быть пустым"
-                            return true
-                        } else {
-                            binding.inputLayoutName.error = null
-                        }
-                        Log.i("TESTD", " create subcategory1 ")
-                        if (isEditMode) {
-                            subcategoryToEdit?.run {
-                                title = name
-                                viewModel.updateSubcategory(this)
-                            }
-                        } else {
-                            Log.i("TESTD", " create subcategory2 " + args.parentId)
-                            viewModel.createSubcategory(
-                                com.example.yourfinance.domain.model.entity.category.Subcategory(
-                                    title = Title(name),
-                                    categoryType = args.categoryType,
-                                    parentId = args.parentId
-                                )
-                            )
-                        }
-                        findNavController().popBackStack()
+                        saveSubcategory() // Вынесем логику сохранения в отдельный метод
                         true
                     }
                     else -> false
                 }
             }
         }, viewLifecycleOwner, Lifecycle.State.RESUMED)
+    }
+
+    private fun saveSubcategory() {
+        val name = binding.titleSubcategory.text.toString().trim()
+
+        if (name.isEmpty()) {
+            binding.inputLayoutName.error = "Название не может быть пустым"
+            return // Выходим, если имя пустое
+        } else {
+            binding.inputLayoutName.error = null
+        }
+
+        hideKeyboard()
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            if (isEditMode) {
+                subcategoryToEdit?.let {
+                    it.title = name // Обновляем только название, цвет и parentId не меняются
+                    viewModel.updateSubcategory(it)
+                    findNavController().popBackStack()
+                } ?: run {
+                    Toast.makeText(requireContext(), "Ошибка: Не удалось обновить подкатегорию", Toast.LENGTH_SHORT).show()
+                }
+            } else {
+                // Для создания новой подкатегории нам нужен цвет родителя
+                // Предполагаем, что в SubcategoryManagerViewModel есть метод getParentCategoryColor
+                val parentColorHex = viewModel.getParentCategoryColor(args.parentId) // Эта функция должна быть в ViewModel
+
+
+                val newSubcategory = Subcategory(
+                    Title(name),
+                    args.categoryType,
+                    args.parentId,
+                    parentColorHex
+                )
+                viewModel.createSubcategory(newSubcategory)
+                findNavController().popBackStack()
+            }
+        }
+    }
+
+    private fun hideKeyboard() {
+        val imm = activity?.getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager
+        view?.let { imm?.hideSoftInputFromWindow(it.windowToken, 0) }
     }
 
 

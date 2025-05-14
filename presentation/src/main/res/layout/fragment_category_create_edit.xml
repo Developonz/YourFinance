@@ -8,7 +8,6 @@
     android:background="#1F1F1F"
     tools:context=".ui.fragment.manager.category_manager.CategoryCreateEditFragment">
 
-
     <com.google.android.material.tabs.TabLayout
         android:id="@+id/tab_layout_category_type_create_edit"
         android:layout_width="0dp"
@@ -22,145 +21,164 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:visibility="gone"
         tools:visibility="visible"/>
 
-
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/content_layout"
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/nested_scroll_view"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:padding="16dp"
         app:layout_constraintTop_toBottomOf="@+id/tab_layout_category_type_create_edit"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
+        app:layout_constraintEnd_toEndOf="parent"
+        android:fillViewport="true">
 
-
-        <TextView
-            android:id="@+id/label_name"
-            android:layout_width="wrap_content"
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/content_layout"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Имя"
-            android:textColor="@android:color/darker_gray"
-            android:textSize="14sp"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            android:padding="16dp">
 
-        <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/input_layout_name"
-            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            app:boxStrokeWidth="0dp"
-            app:boxStrokeWidthFocused="0dp"
-            app:boxBackgroundColor="#333333"
-            app:hintEnabled="false"
-            app:layout_constraintTop_toBottomOf="@id/label_name"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent">
-
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/title_category"
-                android:layout_width="match_parent"
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/card_category_input_container"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:hint="Название Категории"
-                android:textColor="@android:color/white"
-                android:textColorHint="@android:color/darker_gray"
-                android:inputType="textCapSentences"/>
+                app:cardBackgroundColor="#333333"
+                app:cardCornerRadius="8dp"
+                app:cardElevation="0dp"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent">
 
-        </com.google.android.material.textfield.TextInputLayout>
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="8dp">
 
+                    <com.google.android.material.card.MaterialCardView
+                        android:id="@+id/card_icon_preview_wrapper"
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
+                        app:cardBackgroundColor="#FFEB3B"
+                        app:cardCornerRadius="24dp"
+                        app:cardElevation="0dp"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintStart_toStartOf="parent">
+                        <ImageView
+                            android:id="@+id/image_view_selected_icon_preview"
+                            android:layout_width="28dp"
+                            android:layout_height="28dp"
+                            android:layout_gravity="center"
+                            tools:srcCompat="@drawable/ic_down_arrow"
+                            app:tint="@android:color/black" />
+                    </com.google.android.material.card.MaterialCardView>
 
-        <TextView
-            android:id="@+id/label_color"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="Цвет"
-            android:textColor="@android:color/darker_gray"
-            android:textSize="14sp"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/input_layout_name" />
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/input_layout_name"
+                        style="@style/Widget.MaterialComponents.TextInputLayout.FilledBox.Dense"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="12dp"
+                        android:layout_marginEnd="12dp"
+                        app:boxStrokeWidth="0dp"
+                        app:boxStrokeWidthFocused="0dp"
+                        app:boxBackgroundColor="@android:color/transparent"
+                        app:hintEnabled="false"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintStart_toEndOf="@id/card_icon_preview_wrapper"
+                        app:layout_constraintEnd_toStartOf="@id/color_selector_container">
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/title_category"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:hint="Название категории..."
+                            android:textColor="@android:color/white"
+                            android:textColorHint="@android:color/darker_gray"
+                            android:inputType="textCapSentences"
+                            android:background="@android:color/transparent"
+                            android:paddingTop="12dp"
+                            android:paddingBottom="12dp"/>
+                    </com.google.android.material.textfield.TextInputLayout>
 
+                    <FrameLayout
+                        android:id="@+id/color_selector_container"
+                        android:layout_width="wrap_content"
+                        android:layout_height="0dp"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:paddingStart="8dp"
+                        android:paddingEnd="8dp"
+                        android:foreground="?attr/selectableItemBackgroundBorderless"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintEnd_toEndOf="parent">
 
-        <androidx.cardview.widget.CardView
-            android:id="@+id/card_color_selector"
-            android:layout_width="0dp"
-            android:layout_height="40dp"
-            app:cardBackgroundColor="#03A9F4"
-            app:cardCornerRadius="8dp"
-            app:cardElevation="0dp"
-            android:layout_marginTop="8dp"
-            android:layout_marginEnd="8dp"
-            app:layout_constraintTop_toBottomOf="@id/label_color"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toStartOf="@+id/guideline_middle">
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:layout_gravity="center_vertical|end">
 
-            <Spinner
-                android:id="@+id/spinner_color"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:background="@android:color/transparent"
-                android:popupBackground="#424242" />
+                            <View
+                                android:id="@+id/view_color_indicator"
+                                android:layout_width="32dp"
+                                android:layout_height="32dp"
+                                android:background="@drawable/shape_rounded_rectangle" />
 
-        </androidx.cardview.widget.CardView>
+                            <ImageView
+                                android:id="@+id/image_view_color_arrow"
+                                android:layout_width="16dp"
+                                android:layout_height="16dp"
+                                android:layout_marginStart="4dp"
+                                android:layout_gravity="center_vertical"
+                                android:src="@drawable/ic_down_arrow"
+                                app:tint="@android:color/darker_gray"/>
+                        </LinearLayout>
+                    </FrameLayout>
 
-        <androidx.constraintlayout.widget.Guideline
-            android:id="@+id/guideline_middle"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            app:layout_constraintGuide_percent="0.6"/>
+                </androidx.constraintlayout.widget.ConstraintLayout>
+            </com.google.android.material.card.MaterialCardView>
 
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/card_color_selector_panel"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:visibility="gone"
+                app:cardBackgroundColor="#424242"
+                app:cardCornerRadius="8dp"
+                app:cardElevation="4dp"
+                app:layout_constraintTop_toBottomOf="@id/card_category_input_container"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                tools:visibility="visible"
+                android:background="@android:color/holo_blue_light">
 
-        <TextView
-            android:id="@+id/label_icon"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:text="Значок"
-            android:textColor="@android:color/darker_gray"
-            android:textSize="14sp"
-            app:layout_constraintStart_toEndOf="@id/guideline_middle"
-            app:layout_constraintTop_toTopOf="@id/label_color" />
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/recycler_view_color_selector"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="8dp"
+                    app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
+                    app:spanCount="6"
+                    tools:listitem="@layout/item_color_swatch_rectangle"
+                    tools:itemCount="12" />
+            </com.google.android.material.card.MaterialCardView>
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/button_icon_selector"
-            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            android:layout_marginStart="8dp"
-            android:layout_marginTop="8dp"
-            android:text="\?"
-            android:textSize="20sp"
-            android:textColor="@android:color/white"
-            app:iconPadding="0dp"
-            app:iconGravity="textStart"
-            app:iconTint="@android:color/white"
-            app:strokeWidth="0dp"
-            app:backgroundTint="#333333"
-            app:shapeAppearanceOverlay="@style/ShapeAppearance.MaterialComponents.SmallComponent"
-            app:layout_constraintTop_toBottomOf="@id/label_icon"
-            app:layout_constraintStart_toEndOf="@id/guideline_middle"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintBottom_toBottomOf="@id/card_color_selector" />
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recycler_view_icon_groups"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:nestedScrollingEnabled="false"
+                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                app:layout_constraintTop_toBottomOf="@id/card_color_selector_panel"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                tools:itemCount="2"/>
 
-
-        <TextView
-            android:id="@+id/text_view_hint"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:layout_marginEnd="16dp"
-            android:text="Совет: Выберите разные цвета для каждой категории, чтобы вы могли легко определять категорию по цвету."
-            android:textColor="@android:color/darker_gray"
-            android:textSize="12sp"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/card_color_selector" />
-
-    </androidx.constraintlayout.widget.ConstraintLayout>
-
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </androidx.core.widget.NestedScrollView>
 </androidx.constraintlayout.widget.ConstraintLayout>

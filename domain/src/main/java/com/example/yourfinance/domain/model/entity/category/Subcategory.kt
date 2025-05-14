@@ -9,11 +9,13 @@ data class Subcategory private constructor(
     val parentId: Long
 ) : ICategoryData by baseProperties {
 
+
     constructor(
         title: Title,
         categoryType: CategoryType,
+        parentId: Long,
+        colorHex: String?,
         id: Long = 0,
-        parentId: Long
-    ) : this(BaseCategory(title, categoryType, id), parentId)
+    ) : this(BaseCategory(title, categoryType, id, colorHex = colorHex), parentId)
 
 }

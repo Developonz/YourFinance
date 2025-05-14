@@ -23,4 +23,31 @@
         <item>light</item>
         <item>dark</item>
     </string-array>
+
+    <string-array name="category_creation_available_colors">
+        <item>#FFEB3B</item>
+        <item>#03A9F4</item>
+        <item>#4CAF50</item>
+        <item>#F44336</item>
+        <item>#FF9800</item>
+        <item>#E91E63</item>
+        <item>#9C27B0</item>
+        <item>#00BCD4</item>
+        <item>#795548</item>
+        <item>#9E9E9E</item>
+        <item>#607D8B</item>
+        <item>#FFFFFF</item>
+    </string-array>
+
+
+    <array name="category_icons_food">
+        <item>@drawable/ic_food_1</item>
+
+    </array>
+
+    <!-- Группа "Развлечения" -->
+    <array name="category_icons_entertainment">
+
+    </array>
+
 </resources>

@@ -7,6 +7,7 @@ data class BaseCategory(
     private var _title: Title,
     override val categoryType: CategoryType,
     override val id: Long = 0,
+    override var colorHex: String? = "#FFEB3B"
 ) : ICategoryData {
     override var title: String
         get() = _title.value

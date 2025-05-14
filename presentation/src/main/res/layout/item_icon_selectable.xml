@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/card_icon_selectable_root"
+    android:layout_width="48dp"
+    android:layout_height="48dp"
+    app:cardBackgroundColor="#333333"
+    app:cardCornerRadius="30dp"
+    app:cardElevation="0dp"
+    android:layout_margin="6dp">
+
+    <ImageView
+        android:id="@+id/image_view_icon_selectable_item"
+        android:layout_width="28dp"
+        android:layout_height="28dp"
+        android:layout_gravity="center"
+        app:tint="@android:color/white"
+        tools:srcCompat="@drawable/ic_down_arrow" />
+</androidx.cardview.widget.CardView>

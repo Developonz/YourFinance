@@ -15,37 +15,55 @@ fun CategoryEntity.toDomain(): BaseCategory {
     )
 }
 
+
 fun CategoryEntity.toDomainSubcategory(): Subcategory {
     return Subcategory(
         id = this.id,
         title = Title(this.title),
         categoryType = this.categoryType,
-        parentId = this.parentId!!
+        parentId = this.parentId!!,
+        colorHex = this.colorHex
     )
 }
 
-fun CategoryWithSubcategories.toDomainCategory() : Category {
+
+
+// Маппер для CategoryWithSubcategories в Domain Category
+fun CategoryWithSubcategories.toDomainCategory(): Category {
+    val domainSubcategories = this.subcategories.map { subEntity ->
+        subEntity.toDomainSubcategory()
+    }.toMutableList()
+
     return Category(
         id = this.category.id,
         title = Title(this.category.title),
         categoryType = this.category.categoryType,
-        children = this.subcategories.map {it.toDomainSubcategory()}.toMutableList()
+        iconResourceId = this.category.iconResourceId,
+        colorHex = this.category.colorHex ?: "#FFEB3B",
+        children = domainSubcategories
     )
 }
 
+// Маппер из Domain Category в Data CategoryEntity
 fun Category.toData(): CategoryEntity {
     return CategoryEntity(
         id = this.id,
         title = this.title,
-        categoryType = this.categoryType
+        categoryType = this.categoryType,
+        parentId = null,
+        iconResourceId = this.iconResourceId,
+        colorHex = this.colorHex
     )
 }
 
-fun Subcategory.toData() : CategoryEntity {
+// Маппер из Domain Subcategory в Data CategoryEntity
+fun Subcategory.toData(): CategoryEntity {
     return CategoryEntity(
         id = this.id,
         title = this.title,
         categoryType = this.categoryType,
-        parentId = this.parentId
+        parentId = this.parentId,
+        iconResourceId = null,
+        colorHex = this.colorHex
     )
 }

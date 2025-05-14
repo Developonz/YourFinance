@@ -27,4 +27,19 @@
     <string name="period_range_not_selected">Диапазон не выбран</string>
     <string name="delete">Удалить</string>
     <string name="transaction_deleted_toast">Транзакция удалена</string>
+
+
+    <string name="category_type_expense">Расход</string>
+    <string name="category_type_income">Доход</string>
+
+    <!-- CategoryCreateEdit -->
+    <string name="category_group_entertainment">Развлечения</string>
+    <string name="category_group_food">Еда</string>
+    <string name="error_category_name_empty">Название не может быть пустым</string>
+    <string name="error_select_icon_for_category">Пожалуйста, выберите иконку для категории</string>
+    <string name="error_category_not_found">Категория не найдена</string>
+    <string name="error_failed_to_update_category">Ошибка: Не удалось обновить категорию</string>
+
+    <string name="default_icon_group_name">Иконки</string>
+    <string name="ic_placeholder_category_description">Иконка-заглушка для категории</string>
 </resources>
