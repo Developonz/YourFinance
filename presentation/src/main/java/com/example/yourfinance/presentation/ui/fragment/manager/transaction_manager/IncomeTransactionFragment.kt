@@ -14,6 +14,7 @@ import com.example.yourfinance.presentation.databinding.FragmentTransactionIncom
 import com.example.yourfinance.domain.model.CategoryType
 import com.example.yourfinance.domain.model.TransactionType
 import com.example.yourfinance.domain.model.entity.category.Category
+import com.example.yourfinance.domain.model.entity.category.ICategoryData
 import com.example.yourfinance.presentation.ui.adapter.CategoryTransactionAdapter
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -101,8 +102,15 @@ class IncomeTransactionFragment : BaseTransactionInputFragment(), CategoryTransa
                 ?.map { it }
                 ?: emptyList()
 
+            val allCategories = mutableListOf<ICategoryData>()
+
+            for (category in relevantCategories) {
+                allCategories.add(category)
+                allCategories.addAll(category.children)
+            }
+
             if (::categoryAdapter.isInitialized) {
-                categoryAdapter.submitList(relevantCategories)
+                categoryAdapter.submitList(allCategories)
             } else {
                 Log.w("Frag(${getFragmentTransactionType().name})", "CategoryAdapter not initialized.")
             }
@@ -169,7 +177,7 @@ class IncomeTransactionFragment : BaseTransactionInputFragment(), CategoryTransa
         showPaymentAccountSelectionDialog()
     }
 
-    override fun onItemClick(category: Category) {
+    override fun onItemClick(category: ICategoryData) {
         val expectedCategoryType = CategoryType.INCOME
 
         if (category.categoryType == expectedCategoryType) {

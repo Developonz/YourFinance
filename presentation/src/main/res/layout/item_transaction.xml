@@ -3,6 +3,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:orientation="horizontal"
     android:background="#232121"
     android:paddingHorizontal="20dp"
@@ -10,13 +11,22 @@
     android:gravity="center_vertical">
 
 
-    <de.hdodenhof.circleimageview.CircleImageView
-        android:layout_width="48dp"
-        android:layout_height="48dp"
-        android:src="@drawable/ic_up_arrow"
-        app:civ_border_width="2dp"
-        app:civ_border_color="#FF000000"
-        app:civ_border_overlay="true" />
+
+    <com.google.android.material.imageview.ShapeableImageView
+        android:id="@+id/transaction_image"
+        android:layout_width="45dp"
+        android:layout_height="45dp"
+        android:padding="2dp"
+        android:scaleType="centerInside"
+        app:contentPadding="8dp"
+        app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Full"
+        app:strokeColor="#000"
+        app:strokeWidth="1dp"
+        app:layout_constraintStart_toEndOf="@id/image_drag_handle"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:background="#7E646464"
+        app:srcCompat="@drawable/transfer_money" />
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -35,7 +45,7 @@
                 android:id="@+id/title"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Продукты"
+                tools:text="Продукты"
                 android:textColor="@android:color/white"
                 android:textSize="16sp"/>
 
@@ -43,7 +53,7 @@
                 android:id="@+id/account"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Наличные"
+                tools:text="Наличные"
                 android:textColor="@android:color/darker_gray"
                 android:textSize="14sp"/>
         </LinearLayout>
@@ -53,7 +63,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:gravity="end"
-            android:text="500"
+            tools:text="500"
             android:textColor="@android:color/white"
             android:textSize="20sp"
             android:textStyle="bold"/>

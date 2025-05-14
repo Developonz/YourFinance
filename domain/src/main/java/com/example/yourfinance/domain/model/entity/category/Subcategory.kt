@@ -14,8 +14,9 @@ data class Subcategory private constructor(
         title: Title,
         categoryType: CategoryType,
         parentId: Long,
-        colorHex: String?,
+        iconResourceId: Int? = null,
+        colorHex: String? = null,
         id: Long = 0,
-    ) : this(BaseCategory(title, categoryType, id, colorHex = colorHex), parentId)
+    ) : this(BaseCategory(title, categoryType, id, iconResourceId, colorHex = colorHex), parentId)
 
 }

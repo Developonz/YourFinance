@@ -11,7 +11,9 @@ fun CategoryEntity.toDomain(): BaseCategory {
     return BaseCategory(
         id = this.id,
         _title = Title(this.title),
-        categoryType = this.categoryType
+        categoryType = this.categoryType,
+        iconResourceId = this.iconResourceId,
+        colorHex = this.colorHex
     )
 }
 

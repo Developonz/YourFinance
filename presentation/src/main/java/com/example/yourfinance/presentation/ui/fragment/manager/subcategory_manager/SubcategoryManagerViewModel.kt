@@ -44,11 +44,4 @@ class SubcategoryManagerViewModel @Inject constructor(
             deleteSubcategoryUseCase(subcategory.id)
         }
     }
-
-
-    suspend fun getParentCategoryColor(parentId: Long): String? {
-        if (parentId == 1L) return "#FF0000" // Красный для теста
-        if (parentId == 2L) return "#00FF00" // Зеленый для теста
-        return "#0000FF"
-    }
 }

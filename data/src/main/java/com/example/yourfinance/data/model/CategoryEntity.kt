@@ -23,7 +23,7 @@ data class CategoryEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
     val parentId: Long? = null,
-    val iconResourceId: Int?,
+    var iconResourceId: Int?,
     var colorHex: String?
 )
 

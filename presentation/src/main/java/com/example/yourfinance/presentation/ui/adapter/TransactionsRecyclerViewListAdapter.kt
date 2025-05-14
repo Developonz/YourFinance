@@ -3,6 +3,7 @@ package com.example.yourfinance.presentation.ui.adapter
 import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.core.graphics.ColorUtils
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
@@ -68,6 +69,17 @@ class TransactionsRecyclerViewListAdapter(val editClick: (transaction: Transacti
         RecyclerView.ViewHolder(binding.root) {
         fun bind(item: TransactionListItem.TransactionItem, editClick: (transaction: Transaction) -> Unit) {
             val transaction = item.transaction
+            if (transaction is Payment) {
+                if (transaction.category.iconResourceId != null) {
+                    binding.transactionImage.setImageResource(transaction.category.iconResourceId!!)
+                    val iconTintColor =
+                        if (ColorUtils.calculateLuminance(Color.parseColor(transaction.category.colorHex)) > 0.5) Color.BLACK else Color.WHITE
+                    binding.transactionImage.setColorFilter(iconTintColor)
+                }
+                binding.transactionImage.setBackgroundColor(Color.parseColor(transaction.category.colorHex))
+            }
+
+
             binding.title.text = when (transaction) {
                 is Payment -> transaction.note.ifEmpty { transaction.category.title }
                 is Transfer -> transaction.note.ifEmpty { "Перевод" }

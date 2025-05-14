@@ -1,6 +1,7 @@
 package com.example.yourfinance.data.source
 
 import androidx.lifecycle.LiveData
+import androidx.lifecycle.map
 import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Insert
@@ -14,6 +15,7 @@ import com.example.yourfinance.data.model.TransferEntity
 import com.example.yourfinance.data.model.pojo.FullPayment
 import com.example.yourfinance.data.model.pojo.FullTransfer
 import com.example.yourfinance.domain.model.TransactionType
+import com.example.yourfinance.domain.model.entity.category.Subcategory
 import java.time.LocalDate
 
 @Dao
@@ -42,7 +44,7 @@ abstract class TransactionDao(private val dataBase: FinanceDataBase) {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     abstract fun insertTransferTransaction(trans: TransferEntity)
 
-    @Transaction // Добавляем @Transaction для POJO с @Relation
+    @Transaction
     @Query("SELECT * FROM PaymentEntity where date >= :startDate and date <= :endDate")
     abstract fun getAllPaymentWithDateRange(startDate: LocalDate?, endDate: LocalDate?): LiveData<List<FullPayment>>
 

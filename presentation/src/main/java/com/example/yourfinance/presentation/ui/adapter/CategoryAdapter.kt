@@ -1,8 +1,10 @@
 package com.example.yourfinance.presentation.ui.adapter
 
 
+import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.core.graphics.ColorUtils
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
@@ -46,6 +48,10 @@ class CategoryAdapter(
             editClick: (acc: Category) -> Unit,
             editSubcategories: (acc: Category) -> Unit)
         {
+            binding.categoryImage.setImageResource(item.iconResourceId!!)
+            binding.categoryImage.setBackgroundColor(Color.parseColor(item.colorHex))
+            val iconTintColor = if (ColorUtils.calculateLuminance(Color.parseColor(item.colorHex)) > 0.5) Color.BLACK else Color.WHITE
+            binding.categoryImage.setColorFilter(iconTintColor)
             binding.categoryTitle.text = item.title
             binding.countSubcategories.text = "Подкатегорий: " + item.children.size
 

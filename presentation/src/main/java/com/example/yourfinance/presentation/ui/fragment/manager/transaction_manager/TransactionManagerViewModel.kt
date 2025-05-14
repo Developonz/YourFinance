@@ -9,6 +9,7 @@ import com.example.yourfinance.domain.model.entity.MoneyAccount
 import com.example.yourfinance.domain.model.entity.Payment
 import com.example.yourfinance.domain.model.entity.Transfer
 import com.example.yourfinance.domain.model.entity.category.Category
+import com.example.yourfinance.domain.model.entity.category.ICategoryData
 import com.example.yourfinance.domain.usecase.categories.category.FetchCategoriesUseCase
 import com.example.yourfinance.domain.usecase.moneyaccount.FetchMoneyAccountsUseCase
 import com.example.yourfinance.domain.usecase.transaction.CreatePaymentUseCase
@@ -609,7 +610,7 @@ class TransactionManagerViewModel @Inject constructor(
         }
     }
 
-    fun selectCategory(category: Category) {
+    fun selectCategory(category: ICategoryData) {
         val currentType = _currentTransactionType.value
         val expectedCategoryType = when(currentType) {
             TransactionType.EXPENSE -> CategoryType.EXPENSE

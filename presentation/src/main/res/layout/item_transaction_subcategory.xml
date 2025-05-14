@@ -11,22 +11,24 @@
     android:clickable="true"
     android:focusable="true">
 
+
     <com.google.android.material.imageview.ShapeableImageView
-        android:id="@+id/imageViewCategoryIcon"
-        android:layout_width="45dp"
-        android:layout_height="45dp"
-        android:padding="1dp"
+        android:id="@+id/imageViewSubcategoryIcon"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
         android:scaleType="centerInside"
         app:contentPadding="8dp"
+        android:padding="1dp"
+        android:layout_margin="8dp"
         app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Full"
-        app:strokeColor="#000"
         app:strokeWidth="1dp"
         app:layout_constraintStart_toEndOf="@id/image_drag_handle"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent" />
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:background="#42A5F5" />
 
     <TextView
-        android:id="@+id/title_category"
+        android:id="@+id/title_subcategory"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="4dp"

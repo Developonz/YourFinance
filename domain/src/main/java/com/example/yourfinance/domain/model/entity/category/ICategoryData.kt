@@ -6,5 +6,6 @@ interface ICategoryData {
     val id: Long
     var title: String
     val categoryType: CategoryType
+    var iconResourceId: Int?
     var colorHex: String?
 }

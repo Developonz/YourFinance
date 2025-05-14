@@ -140,16 +140,11 @@ class SubcategoryCreateEditFragment : Fragment() {
                     Toast.makeText(requireContext(), "Ошибка: Не удалось обновить подкатегорию", Toast.LENGTH_SHORT).show()
                 }
             } else {
-                // Для создания новой подкатегории нам нужен цвет родителя
-                // Предполагаем, что в SubcategoryManagerViewModel есть метод getParentCategoryColor
-                val parentColorHex = viewModel.getParentCategoryColor(args.parentId) // Эта функция должна быть в ViewModel
-
 
                 val newSubcategory = Subcategory(
                     Title(name),
                     args.categoryType,
-                    args.parentId,
-                    parentColorHex
+                    args.parentId
                 )
                 viewModel.createSubcategory(newSubcategory)
                 findNavController().popBackStack()
