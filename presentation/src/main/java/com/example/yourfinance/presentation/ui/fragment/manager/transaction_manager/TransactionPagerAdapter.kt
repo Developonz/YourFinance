@@ -2,9 +2,8 @@ package com.example.yourfinance.presentation.ui.adapter
 
 import androidx.fragment.app.Fragment
 import androidx.viewpager2.adapter.FragmentStateAdapter
-import com.example.yourfinance.domain.model.TransactionType
-import com.example.yourfinance.presentation.ui.fragment.manager.transaction_manager.ExpenseTransactionFragment
-import com.example.yourfinance.presentation.ui.fragment.manager.transaction_manager.IncomeTransactionFragment
+import com.example.yourfinance.domain.model.CategoryType // Убедитесь, что импорт правильный
+import com.example.yourfinance.presentation.ui.fragment.manager.transaction_manager.ExpenseIncomeTransactionFragment // Новый фрагмент
 import com.example.yourfinance.presentation.ui.fragment.manager.transaction_manager.RemittanceTransactionFragment
 
 class TransactionPagerAdapter(fragment: Fragment) : FragmentStateAdapter(fragment) {
@@ -13,8 +12,8 @@ class TransactionPagerAdapter(fragment: Fragment) : FragmentStateAdapter(fragmen
 
     override fun createFragment(position: Int): Fragment {
         return when (position) {
-            0 -> ExpenseTransactionFragment()
-            1 -> IncomeTransactionFragment()
+            0 -> ExpenseIncomeTransactionFragment.newInstance(CategoryType.EXPENSE)
+            1 -> ExpenseIncomeTransactionFragment.newInstance(CategoryType.INCOME)
             2 -> RemittanceTransactionFragment()
             else -> throw IllegalStateException("Invalid position: $position")
         }

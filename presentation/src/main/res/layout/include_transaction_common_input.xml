@@ -18,17 +18,20 @@
         android:paddingEnd="16dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        android:background="?attr/colorSurfaceVariant">
+        app:layout_constraintTop_toTopOf="parent">
 
-        <ImageView
+        <com.google.android.material.imageview.ShapeableImageView
             android:id="@+id/selected_item_icon"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:clickable="true"
-            android:focusable="true"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            tools:src="@drawable/ic_mobile_wallet"/>
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:padding="1dp"
+            android:scaleType="centerInside"
+            app:contentPadding="5dp"
+            app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Small"
+            app:strokeColor="#000"
+            app:strokeWidth="1dp"
+            android:background="@color/yellow"
+            tools:srcCompat="@drawable/ic_mobile_wallet"/>
 
         <TextView
             android:id="@+id/amount_text_view"
