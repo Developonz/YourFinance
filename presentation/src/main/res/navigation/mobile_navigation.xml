@@ -163,6 +163,13 @@
             android:name="transactionTypeInt"
             app:argType="integer"
             android:defaultValue="-1" />
+
+        <action
+            android:id="@+id/action_transactionContainerFragment_to_accountManagerFragment"
+            app:destination="@id/accountManagerFragment" />
+        <action
+            android:id="@+id/action_transactionContainerFragment_to_categoriesFragment"
+            app:destination="@id/categoriesFragment" />
     </fragment>
 
 </navigation>

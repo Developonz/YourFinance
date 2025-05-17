@@ -1,18 +1,26 @@
 package com.example.yourfinance.presentation.ui.fragment.manager.transaction_manager
 
+// import android.content.res.ColorStateList // Заменим на setBackgroundColor
+import android.graphics.Color
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.core.graphics.ColorUtils
 import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
+// import androidx.navigation.fragment.findNavController // Навигация через ViewModel
 import com.example.yourfinance.presentation.R
 import com.example.yourfinance.presentation.databinding.FragmentTransactionRemittanceBinding
 import com.example.yourfinance.domain.model.TransactionType
+import com.example.yourfinance.domain.model.entity.MoneyAccount
+import com.google.android.material.imageview.ShapeableImageView
 import dagger.hilt.android.AndroidEntryPoint
+import java.text.NumberFormat
+import java.util.Locale
 
 @AndroidEntryPoint
 class RemittanceTransactionFragment : BaseTransactionInputFragment() {
@@ -24,10 +32,14 @@ class RemittanceTransactionFragment : BaseTransactionInputFragment() {
 
     override val commonInputRoot: View get() = binding.includeCommonInput.root
     override val amountTextView: android.widget.TextView get() = binding.includeCommonInput.amountTextView
-    override val selectedItemIcon: android.widget.ImageView get() = binding.includeCommonInput.selectedItemIcon
+    override val selectedItemIcon: ShapeableImageView get() = binding.includeCommonInput.selectedItemIcon // Уточнили тип
     override val noteEditText: com.google.android.material.textfield.TextInputEditText get() = binding.includeCommonInput.noteEditText
     override val keypadView: View get() = binding.includeCommonInput.keypad
 
+    private val currencyFormatter = NumberFormat.getCurrencyInstance(Locale("ru", "RU")).apply {
+        minimumFractionDigits = 0 // Обычно баланс целыми или до 2 знаков
+        maximumFractionDigits = 2
+    }
 
     override fun getFragmentTransactionType() = TransactionType.REMITTANCE
 
@@ -41,66 +53,27 @@ class RemittanceTransactionFragment : BaseTransactionInputFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
         Log.i("Frag(${getFragmentTransactionType().name})", "onViewCreated")
-
         setupSpecificClickListeners()
         observeSpecificViewModel()
     }
 
-    protected open fun setupSpecificClickListeners() {
+    private fun setupSpecificClickListeners() { // Сделал private, т.к. вызывается только из onViewCreated
         binding.includeRemittance.cardAccountFrom.setOnClickListener {
-            showAccountSelectionBottomSheet(isSelectingFromAccount = true)
+            if (viewModel.accountsList.value.isNullOrEmpty()) {
+                Toast.makeText(requireContext(), R.string.no_accounts_available, Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+            viewModel.requestAccountSelectionForRemittanceFrom()
         }
         binding.includeRemittance.cardAccountTo.setOnClickListener {
-            showAccountSelectionBottomSheet(isSelectingFromAccount = false)
-        }
-    }
-
-    private fun showAccountSelectionBottomSheet(isSelectingFromAccount: Boolean) {
-        val accounts = viewModel.accountsList.value ?: emptyList()
-        if (accounts.isEmpty()) {
-            Toast.makeText(requireContext(), R.string.no_accounts_available, Toast.LENGTH_SHORT).show()
-            return
-        }
-
-        val currentRemittanceState = viewModel.activeTransactionState.value as? ActiveTransactionState.RemittanceState
-        val currentSelectedAccountId = if (isSelectingFromAccount) {
-            currentRemittanceState?.selectedAccountFrom?.id
-        } else {
-            currentRemittanceState?.selectedAccountTo?.id
-        }
-
-        val title = if (isSelectingFromAccount) "Счет списания" else "Счет зачисления"
-        // Можно передать title в BottomSheet, если добавить туда поле для заголовка,
-        // но в нашем текущем bottom_sheet_account_selection.xml заголовок статичный.
-
-        val bottomSheet = AccountSelectionBottomSheet.newInstance(
-            accounts = accounts,
-            selectedAccountId = currentSelectedAccountId,
-            onAccountSelectedCallback = { selectedAccount ->
-                if (isSelectingFromAccount) {
-                    viewModel.selectAccountFrom(selectedAccount)
-                } else {
-                    viewModel.selectAccountTo(selectedAccount)
-                }
-            },
-            onSettingsClickedCallback = {
-                // TODO: Заменить R.id.action_to_account_management на ваш реальный action ID
-                try {
-                    // Пример навигации. Замените на ваш action_id.
-                    // findNavController().navigate(R.id.action_transactionContainerFragment_to_moneyAccountManagerFragment)
-                    Toast.makeText(context, "Переход к настройкам счетов (TODO)", Toast.LENGTH_SHORT).show()
-                    Log.d("Frag(${getFragmentTransactionType().name})","Переход к настройкам счетов (TODO: implement navigation)")
-                } catch (e: Exception) {
-                    Log.e("Frag(${getFragmentTransactionType().name})", "Navigation to account settings failed", e)
-                    Toast.makeText(context, "Ошибка навигации к настройкам счетов", Toast.LENGTH_SHORT).show()
-                }
+            if (viewModel.accountsList.value.isNullOrEmpty()) {
+                Toast.makeText(requireContext(), R.string.no_accounts_available, Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
             }
-        )
-        bottomSheet.show(parentFragmentManager, AccountSelectionBottomSheet.TAG)
+            viewModel.requestAccountSelectionForRemittanceTo()
+        }
     }
-
 
     override fun onDestroyView() {
         super.onDestroyView()
@@ -108,82 +81,109 @@ class RemittanceTransactionFragment : BaseTransactionInputFragment() {
         _binding = null
     }
 
-    // --- Observation ---
-    protected open fun observeSpecificViewModel() {
+    private fun updateAccountCard(
+        account: MoneyAccount?,
+        imageView: ShapeableImageView,
+        nameTextView: android.widget.TextView,
+        balanceTextView: android.widget.TextView,
+        defaultName: String,
+        defaultIconResId: Int = R.drawable.ic_plus, // Иконка плюса для выбора
+        defaultBackgroundColor: Int = Color.LTGRAY, // Светло-серый фон для выбора
+        defaultIconTintColor: Int = Color.DKGRAY   // Темно-серая иконка для выбора
+    ) {
+        if (account != null) {
+            nameTextView.text = account.title
+            imageView.setImageResource(account.iconResourceId ?: R.drawable.ic_mobile_wallet) // Иконка счета
+
+            val colorHex = account.colorHex ?: "#FFFF00" // Желтый по умолчанию, если нет цвета
+            var parsedColor = Color.YELLOW // Fallback color
+            try {
+                parsedColor = Color.parseColor(colorHex)
+            } catch (e: IllegalArgumentException) {
+                Log.w("FragRemit", "Invalid color hex: $colorHex for account ${account.title}. Using default yellow.")
+            }
+
+            imageView.setBackgroundColor(parsedColor) // Устанавливаем цвет фона
+            val iconTintColor = if (ColorUtils.calculateLuminance(parsedColor) > 0.5) Color.BLACK else Color.WHITE
+            imageView.setColorFilter(iconTintColor) // Устанавливаем цвет самой иконки (src)
+
+            balanceTextView.text = currencyFormatter.format(account.balance)
+            balanceTextView.isVisible = true
+        } else {
+            nameTextView.text = defaultName
+            imageView.setImageResource(defaultIconResId)
+            imageView.setBackgroundColor(defaultBackgroundColor)
+            imageView.setColorFilter(defaultIconTintColor)
+            balanceTextView.isVisible = false
+        }
+    }
+
+
+    private fun observeSpecificViewModel() { // Сделал private
         Log.d("Frag(${getFragmentTransactionType().name})", "Setting up specific observers.")
 
         viewModel.activeTransactionState.observe(viewLifecycleOwner, Observer { state ->
             Log.d("Frag(${getFragmentTransactionType().name})", "Observed activeTransactionState change: $state")
+            val isActiveRemittance = viewModel.currentTransactionType.value == TransactionType.REMITTANCE
 
-            if (state is ActiveTransactionState.RemittanceState) {
-                Log.d("Frag(${getFragmentTransactionType().name})", "Updating UI for Remittance State.")
-                binding.includeRemittance.textAccountFrom.text = state.selectedAccountFrom?.title ?: "Счет списания"
-//                binding.includeRemittance.imageAccountFrom.setImageResource(state.selectedAccountFrom?.iconResId ?: R.drawable.ic_mobile_wallet) // ВЕРНУЛ ВАШ ВРЕМЕННЫЙ КОД
-                binding.includeRemittance.imageAccountFrom.setImageResource(R.drawable.ic_mobile_wallet) // ВЕРНУЛ ВАШ ВРЕМЕННЫЙ КОД
-                binding.includeRemittance.textAccountTo.text = state.selectedAccountTo?.title ?: "Счет зачисления"
-//                binding.includeRemittance.imageAccountTo.setImageResource(state.selectedAccountTo?.iconResId ?: R.drawable.ic_mobile_wallet) // ВЕРНУЛ ВАШ ВРЕМЕННЫЙ КОД
-                binding.includeRemittance.imageAccountTo.setImageResource(R.drawable.ic_mobile_wallet) // ВЕРНУЛ ВАШ ВРЕМЕННЫЙ КОД
+            if (isActiveRemittance) { // Обновляем UI только если это текущая активная вкладка
+                if (state is ActiveTransactionState.RemittanceState) {
+                    Log.d("Frag(${getFragmentTransactionType().name})", "Updating UI for Remittance State.")
+                    updateAccountCard(
+                        state.selectedAccountFrom,
+                        binding.includeRemittance.imageAccountFrom,
+                        binding.includeRemittance.textAccountFrom,
+                        binding.includeRemittance.textBalanceAccountFrom,
+                        getString(R.string.placeholder_account_from)
+                    )
+                    updateAccountCard(
+                        state.selectedAccountTo,
+                        binding.includeRemittance.imageAccountTo,
+                        binding.includeRemittance.textAccountTo,
+                        binding.includeRemittance.textBalanceAccountTo,
+                        getString(R.string.placeholder_account_to)
+                    )
+                } else if (state is ActiveTransactionState.InitialState || state == null) {
+                    // Если это InitialState И текущий тип - Перевод, то отображаем плейсхолдеры
+                    Log.d("Frag(${getFragmentTransactionType().name})", "Updating UI for InitialState (Remittance Active).")
+                    updateAccountCard(null, binding.includeRemittance.imageAccountFrom, binding.includeRemittance.textAccountFrom, binding.includeRemittance.textBalanceAccountFrom, getString(R.string.placeholder_account_from))
+                    updateAccountCard(null, binding.includeRemittance.imageAccountTo, binding.includeRemittance.textAccountTo, binding.includeRemittance.textBalanceAccountTo, getString(R.string.placeholder_account_to))
+                }
+                // Обновление общего layout'а ввода суммы, если он видим
                 if (commonInputRoot.isVisible) {
                     updateAmountDisplayLayout()
                 }
-            } else if (state is ActiveTransactionState.InitialState) {
-                binding.includeRemittance.textAccountFrom.text = "Счет списания"
-                binding.includeRemittance.textAccountTo.text = "Счет зачисления"
-                binding.includeRemittance.imageAccountFrom.setImageResource(R.drawable.ic_mobile_wallet)
-                binding.includeRemittance.imageAccountTo.setImageResource(R.drawable.ic_mobile_wallet)
-                if (commonInputRoot.isVisible) {
-                    updateAmountDisplayLayout()
-                }
-                Log.d("Frag(${getFragmentTransactionType().name})", "Active state is InitialState.")
+            } else {
+                // Состояние изменилось, но это не для текущего активного фрагмента "Перевод"
+                // Можно ничего не делать, или скрыть/очистить специфичные для перевода UI элементы, если они видны
+                Log.d("Frag(${getFragmentTransactionType().name})", "State change ignored, not active Remittance tab.")
             }
         })
     }
-
-    // --- UI Updates & Dialogs ---
 
     override fun updateAmountDisplayLayout() {
         if (_binding == null) {
             Log.w("Frag(${getFragmentTransactionType().name})", "updateAmountDisplayLayout called but binding is null!")
             return
         }
+        // Иконка selectedItemIcon из common_input здесь НЕ НУЖНА для переводов
+        val iconView = selectedItemIcon // Это ImageView из include_common_input
+        val isActiveFragment = viewModel.currentTransactionType.value == getFragmentTransactionType()
+        val shouldShowCommonInput = commonInputRoot.isVisible
 
-        val iconView = selectedItemIcon
-
-        Log.d("Frag(${getFragmentTransactionType().name})", "Updating AmountDisplayLayout icon.")
-
-        when (viewModel.activeTransactionState.value) {
-            is ActiveTransactionState.RemittanceState -> {
-                val state = viewModel.activeTransactionState.value as ActiveTransactionState.RemittanceState
-                iconView.setImageResource(R.drawable.ic_mobile_wallet)
-                iconView.isClickable = false
-                iconView.isVisible = true
-            }
-            ActiveTransactionState.InitialState -> {
-                if (commonInputRoot.isVisible) {
-                    iconView.setImageResource(R.drawable.ic_mobile_wallet)
-                    iconView.isClickable = false
-                    iconView.isVisible = true
-                } else {
-                    iconView.isVisible = false
-                }
-            }
-            null -> {
-                Log.w("Frag(${getFragmentTransactionType().name})", "Active state is null.")
-                if (commonInputRoot.isVisible) {
-                    iconView.setImageResource(R.drawable.ic_mobile_wallet)
-                    iconView.isClickable = false
-                    iconView.isVisible = true
-                } else {
-                    iconView.isVisible = false
-                }
-            }
-            else -> {
-                Log.w("Frag(${getFragmentTransactionType().name})", "Ignoring non-Remittance state: ${viewModel.activeTransactionState.value}")
-            }
+        if (isActiveFragment && shouldShowCommonInput) {
+            iconView.isVisible = false // Скрываем иконку слева от суммы для Переводов
+            // Log.d("Frag(${getFragmentTransactionType().name})", "selectedItemIcon in common_input hidden for Remittance.")
+        } else {
+            iconView.isVisible = false // Также скрываем, если панель ввода не видна или фрагмент неактивен
         }
     }
 
     override fun onIconClick() {
-        Log.d("Frag(${getFragmentTransactionType().name})", "Icon click ignored.")
+        // Для переводов клик по этой иконке (которая должна быть скрыта) не обрабатывается
+        Log.d("Frag(${getFragmentTransactionType().name})", "Icon click ignored for Remittance.")
     }
+
+    // Метод showAccountSelectionBottomSheet больше не нужен здесь, т.к. показ инициируется через ViewModel
+    // private fun showAccountSelectionBottomSheet(isSelectingFromAccount: Boolean) { ... }
 }

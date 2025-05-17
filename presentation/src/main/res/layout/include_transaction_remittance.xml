@@ -28,24 +28,41 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:gravity="center_horizontal">
-                <ImageView
+                <com.google.android.material.imageview.ShapeableImageView
                     android:id="@+id/image_account_from"
                     android:layout_width="40dp"
                     android:layout_height="40dp"
-                    android:src="@drawable/ic_mobile_wallet"/>
+                    android:padding="1dp"
+                    android:scaleType="centerInside"
+                    app:contentPadding="6dp"
+                    app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Small"
+                    app:strokeColor="@color/black"
+                    app:strokeWidth="0.5dp"
+                    tools:srcCompat="@drawable/ic_mobile_wallet"
+                    tools:backgroundTint="@color/yellow"/>
                 <TextView
                     android:id="@+id/text_account_from"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
                     android:text="Счет списания"/>
+                <TextView
+                    android:id="@+id/text_balance_account_from"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:textSize="12sp"
+                    android:textColor="?android:attr/textColorSecondary"
+                    tools:text="10 000.00 ₽"
+                    android:visibility="gone"
+                    tools:visibility="visible"/>
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
         <ImageView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:src="@drawable/ic_down_arrow"
+            android:src="@drawable/ic_arrow_right_24dp"
             app:tint="?android:attr/textColorSecondary"
             android:layout_marginStart="16dp"
             android:layout_marginEnd="16dp"/>
@@ -64,17 +81,34 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:gravity="center_horizontal">
-                <ImageView
+                <com.google.android.material.imageview.ShapeableImageView
                     android:id="@+id/image_account_to"
                     android:layout_width="40dp"
                     android:layout_height="40dp"
-                    android:src="@drawable/ic_mobile_wallet"/>
+                    android:padding="1dp"
+                    android:scaleType="centerInside"
+                    app:contentPadding="6dp"
+                    app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Small"
+                    app:strokeColor="@color/black"
+                    app:strokeWidth="0.5dp"
+                    tools:srcCompat="@drawable/ic_mobile_wallet"
+                    tools:backgroundTint="@color/yellow"/>
                 <TextView
                     android:id="@+id/text_account_to"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
                     android:text="Счет зачисления"/>
+                <TextView
+                    android:id="@+id/text_balance_account_to"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:textSize="12sp"
+                    android:textColor="?android:attr/textColorSecondary"
+                    tools:text="5 000.00 ₽"
+                    android:visibility="gone"
+                    tools:visibility="visible"/>
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 

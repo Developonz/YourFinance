@@ -45,4 +45,14 @@
     <string name="error_name_empty">Название пусто\n</string>
     <string name="error_negative_amount">Сумма не может быть отрицательной</string>
     <string name="error_invalid_amount_format">Неверный формат суммы</string>
+    <string name="placeholder_account_from">Счёт списания</string>
+    <string name="placeholder_account_to">Счёт зачисления</string>
+    <string name="settings_text">Настройки</string>
+    <string name="error_nav_category_settings">Возникла ошибка при открытии менеджера категорий</string>
+    <string name="error_nav_account_settings">Возникла ошибка рпи открытии менеджера счетов</string>
+    <string name="tab_expense">Расход</string>
+    <string name="tab_income">Доход</string>
+    <string name="tab_remittance">Перевод</string>
+    <string name="title_edit_transaction">Редактировать транзакцию</string>
+    <string name="title_add_transaction">Создать транзакцию</string>
 </resources>
