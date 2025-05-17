@@ -7,6 +7,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.core.graphics.ColorUtils
 import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
@@ -209,10 +210,38 @@ class ExpenseIncomeTransactionFragment : BaseTransactionInputFragment(), Categor
     }
 
     override fun onIconClick() {
-        // Здесь будет логика показа BottomSheetDialog для выбора счета (Шаг 2)
-        // Пока оставим вызов старого метода, если он есть, или просто лог
-        Log.d("Frag(${getFragmentTransactionType().name})", "selectedItemIcon clicked. Current impl: showPaymentAccountSelectionDialog (old)")
-        showPaymentAccountSelectionDialog() // Пока оставляем старый диалог
+        Log.d("Frag(${getFragmentTransactionType().name})", "selectedItemIcon clicked. Showing AccountSelectionBottomSheet.")
+
+        val accounts = viewModel.accountsList.value ?: emptyList()
+        if (accounts.isEmpty()) {
+            Toast.makeText(requireContext(), R.string.no_accounts_available, Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        // Получаем текущий выбранный счет, если он есть, для ExpenseIncomeState
+        val currentSelectedAccountId = (viewModel.activeTransactionState.value as? ActiveTransactionState.ExpenseIncomeState)
+            ?.selectedPaymentAccount?.id
+
+        val bottomSheet = AccountSelectionBottomSheet.newInstance(
+            accounts = accounts,
+            selectedAccountId = currentSelectedAccountId,
+            onAccountSelectedCallback = { selectedAccount ->
+                viewModel.selectPaymentAccount(selectedAccount)
+            },
+            onSettingsClickedCallback = {
+                // TODO: Заменить R.id.action_to_account_management на ваш реальный action ID
+                try {
+                    // Пример навигации. Замените на ваш action_id.
+                    // findNavController().navigate(R.id.action_transactionContainerFragment_to_moneyAccountManagerFragment)
+                    Toast.makeText(context, "Переход к настройкам счетов (TODO)", Toast.LENGTH_SHORT).show()
+                    Log.d("Frag(${getFragmentTransactionType().name})","Переход к настройкам счетов (TODO: implement navigation)")
+                } catch (e: Exception) {
+                    Log.e("Frag(${getFragmentTransactionType().name})", "Navigation to account settings failed", e)
+                    Toast.makeText(context, "Ошибка навигации к настройкам счетов", Toast.LENGTH_SHORT).show()
+                }
+            }
+        )
+        bottomSheet.show(parentFragmentManager, AccountSelectionBottomSheet.TAG)
     }
 
     override fun onItemClick(category: ICategoryData) {

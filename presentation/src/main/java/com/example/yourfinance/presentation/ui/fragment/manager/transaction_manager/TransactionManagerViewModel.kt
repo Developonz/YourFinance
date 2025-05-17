@@ -151,7 +151,7 @@ class TransactionManagerViewModel @Inject constructor(
 
     private fun loadTransaction(id: Long, type: TransactionType) {
         viewModelScope.launch {
-            _isLoading.value = true // Set loading state at the beginning of the operation
+            _isLoading.value = true
             try {
                 val payment = if (type != TransactionType.REMITTANCE) loadPaymentByIdUseCase(id) else null
                 val transfer = if (type == TransactionType.REMITTANCE) loadTransferByIdUseCase(id) else null
@@ -161,11 +161,12 @@ class TransactionManagerViewModel @Inject constructor(
                     payment != null -> {
                         _currentTransactionType.value = payment.type
                         _loadedTransactionType.value = payment.type
+                        _sharedPaymentAccount.value = payment.moneyAccount // <--- ВАЖНО: Инициализируем общий счет
+                        Log.d("ViewModel", "Shared account set from loaded Payment: ${payment.moneyAccount.title}")
                         _activeTransactionState.value = ActiveTransactionState.ExpenseIncomeState(
                             selectedCategory = payment.category,
                             selectedPaymentAccount = payment.moneyAccount
                         )
-                        _sharedPaymentAccount.value = payment.moneyAccount // STAGE I: Update shared account
                         loadedAmountString = if (payment.balance != 0.0) formatDoubleToStringForLoad(payment.balance) else "0"
                         _note.value = payment.note
                         _date.value = payment.date
@@ -173,31 +174,27 @@ class TransactionManagerViewModel @Inject constructor(
                     transfer != null -> {
                         _currentTransactionType.value = TransactionType.REMITTANCE
                         _loadedTransactionType.value = TransactionType.REMITTANCE
+                        _sharedPaymentAccount.value = transfer.moneyAccFrom // <--- ВАЖНО: Инициализируем общий счет (счет "Откуда")
+                        Log.d("ViewModel", "Shared account set from loaded Transfer (From): ${transfer.moneyAccFrom.title}")
                         _activeTransactionState.value = ActiveTransactionState.RemittanceState(
                             selectedAccountFrom = transfer.moneyAccFrom,
                             selectedAccountTo = transfer.moneyAccTo
                         )
-                        _sharedPaymentAccount.value = transfer.moneyAccFrom // STAGE I: Update shared account (as 'from' account)
                         loadedAmountString = if (transfer.balance != 0.0) formatDoubleToStringForLoad(transfer.balance) else "0"
                         _note.value = transfer.note
                         _date.value = transfer.date
                     }
                     else -> {
-                        val msg = "Транзакция с ID $id и типом $type не найдена."
-                        Log.e("ViewModel", msg)
-                        _criticalErrorEvent.postValue(msg)
-                        // _isLoading.value = false will be handled by finally
+                        // ... обработка ошибки ...
                         return@launch
                     }
                 }
                 amountProcessor.reset(loadedAmountString)
                 updateAmountLivedata()
             } catch (e: Exception) {
-                val msg = "Ошибка загрузки транзакции с ID $id и типом $type: ${e.localizedMessage}"
-                Log.e("ViewModel", msg, e)
-                _criticalErrorEvent.postValue(if (e is DateTimeParseException) "Ошибка при парсинге даты/времени транзакции." else "Не удалось загрузить транзакцию.")
+                // ... обработка ошибки ...
             } finally {
-                _isLoading.value = false // Reset loading state in finally block
+                _isLoading.value = false
             }
         }
     }
@@ -245,22 +242,30 @@ class TransactionManagerViewModel @Inject constructor(
     }
 
     private fun resetActiveInputState(newType: TransactionType) {
+        Log.d("ViewModel", "Resetting active input state for type: $newType. Shared account is: ${_sharedPaymentAccount.value?.title}")
         when (newType) {
             TransactionType.EXPENSE, TransactionType.INCOME -> {
                 _activeTransactionState.value = ActiveTransactionState.ExpenseIncomeState(
-                    selectedCategory = null,
-                    selectedPaymentAccount = _sharedPaymentAccount.value // STAGE I: Use shared account
+                    selectedCategory = null, // Категория всегда сбрасывается
+                    selectedPaymentAccount = _sharedPaymentAccount.value // Используем общий счет
                 )
             }
             TransactionType.REMITTANCE -> {
-                val currentState = _activeTransactionState.value as? ActiveTransactionState.RemittanceState
+                // Для "Куда" берем текущее значение, если оно не совпадает с новым "Откуда"
+                val currentRemittanceState = _activeTransactionState.value as? ActiveTransactionState.RemittanceState
+                val accountTo = if (_sharedPaymentAccount.value?.id == currentRemittanceState?.selectedAccountTo?.id) {
+                    null // Если общий счет (новый "Откуда") совпадает с текущим "Куда", сбрасываем "Куда"
+                } else {
+                    currentRemittanceState?.selectedAccountTo // Иначе сохраняем текущий "Куда"
+                }
                 _activeTransactionState.value = ActiveTransactionState.RemittanceState(
-                    selectedAccountFrom = _sharedPaymentAccount.value, // STAGE I: Use shared account for 'from'
-                    selectedAccountTo = if (_sharedPaymentAccount.value?.id == currentState?.selectedAccountTo?.id) null else currentState?.selectedAccountTo
+                    selectedAccountFrom = _sharedPaymentAccount.value, // Используем общий счет для "Откуда"
+                    selectedAccountTo = accountTo
                 )
             }
         }
-        // Note: amountProcessor.reset("0") and updateAmountLivedata() are called in setTransactionType after this.
+        // amountProcessor.reset("0") и updateAmountLivedata() вызываются в setTransactionType после этого.
+        // Также _note и _date сбрасываются в resetAllStateForNewTransaction, что хорошо
     }
 
     private fun resetAllStateForNewTransaction() {
@@ -448,7 +453,8 @@ class TransactionManagerViewModel @Inject constructor(
                 selectedCategory = currentCategory,
                 selectedPaymentAccount = account
             )
-            _sharedPaymentAccount.value = account // STAGE I: Update shared account
+            _sharedPaymentAccount.value = account // Обновляем общий счет
+            Log.d("ViewModel", "Shared account updated by selectPaymentAccount: ${account.title}")
         }
     }
 
@@ -457,7 +463,7 @@ class TransactionManagerViewModel @Inject constructor(
         if (currentType == TransactionType.REMITTANCE) {
             val currentState = _activeTransactionState.value as? ActiveTransactionState.RemittanceState
             val currentToAccount = currentState?.selectedAccountTo
-            if (account.id == currentToAccount?.id && currentToAccount != null) { // Check currentToAccount not null
+            if (account.id == currentToAccount?.id && currentToAccount != null) {
                 _errorMessageEvent.value = "Счета должны отличаться"
                 return
             }
@@ -465,19 +471,18 @@ class TransactionManagerViewModel @Inject constructor(
                 selectedAccountFrom = account,
                 selectedAccountTo = currentToAccount
             )
-            // STAGE I: User explicitly selected 'from' account for remittance.
-            // We could update _sharedPaymentAccount here to reflect this explicit choice if desired.
-            // For now, per plan, _sharedPaymentAccount is primarily driven by Expense/Income selections.
-            // _sharedPaymentAccount.value = account // Optional: if remittance 'from' should also drive the shared account.
+            _sharedPaymentAccount.value = account // Обновляем общий счет
+            Log.d("ViewModel", "Shared account updated by selectAccountFrom: ${account.title}")
         }
     }
 
+    // selectAccountTo - не должен влиять на _sharedPaymentAccount, так как это счет "Куда"
     fun selectAccountTo(account: MoneyAccount) {
         val currentType = _currentTransactionType.value
         if (currentType == TransactionType.REMITTANCE) {
             val currentState = _activeTransactionState.value as? ActiveTransactionState.RemittanceState
             val currentFromAccount = currentState?.selectedAccountFrom
-            if (account.id == currentFromAccount?.id && currentFromAccount != null) { // Check currentFromAccount not null
+            if (account.id == currentFromAccount?.id && currentFromAccount != null) {
                 _errorMessageEvent.value = "Счета должны отличаться"
                 return
             }

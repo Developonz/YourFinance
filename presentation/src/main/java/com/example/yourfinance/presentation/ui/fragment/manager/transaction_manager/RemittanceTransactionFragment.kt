@@ -5,6 +5,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
@@ -48,8 +49,56 @@ class RemittanceTransactionFragment : BaseTransactionInputFragment() {
     }
 
     protected open fun setupSpecificClickListeners() {
-        binding.includeRemittance.cardAccountFrom.setOnClickListener { showAccountSelectionDialog(true) }
-        binding.includeRemittance.cardAccountTo.setOnClickListener { showAccountSelectionDialog(false) }
+        binding.includeRemittance.cardAccountFrom.setOnClickListener {
+            showAccountSelectionBottomSheet(isSelectingFromAccount = true)
+        }
+        binding.includeRemittance.cardAccountTo.setOnClickListener {
+            showAccountSelectionBottomSheet(isSelectingFromAccount = false)
+        }
+    }
+
+    private fun showAccountSelectionBottomSheet(isSelectingFromAccount: Boolean) {
+        val accounts = viewModel.accountsList.value ?: emptyList()
+        if (accounts.isEmpty()) {
+            Toast.makeText(requireContext(), R.string.no_accounts_available, Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val currentRemittanceState = viewModel.activeTransactionState.value as? ActiveTransactionState.RemittanceState
+        val currentSelectedAccountId = if (isSelectingFromAccount) {
+            currentRemittanceState?.selectedAccountFrom?.id
+        } else {
+            currentRemittanceState?.selectedAccountTo?.id
+        }
+
+        val title = if (isSelectingFromAccount) "Счет списания" else "Счет зачисления"
+        // Можно передать title в BottomSheet, если добавить туда поле для заголовка,
+        // но в нашем текущем bottom_sheet_account_selection.xml заголовок статичный.
+
+        val bottomSheet = AccountSelectionBottomSheet.newInstance(
+            accounts = accounts,
+            selectedAccountId = currentSelectedAccountId,
+            onAccountSelectedCallback = { selectedAccount ->
+                if (isSelectingFromAccount) {
+                    viewModel.selectAccountFrom(selectedAccount)
+                } else {
+                    viewModel.selectAccountTo(selectedAccount)
+                }
+            },
+            onSettingsClickedCallback = {
+                // TODO: Заменить R.id.action_to_account_management на ваш реальный action ID
+                try {
+                    // Пример навигации. Замените на ваш action_id.
+                    // findNavController().navigate(R.id.action_transactionContainerFragment_to_moneyAccountManagerFragment)
+                    Toast.makeText(context, "Переход к настройкам счетов (TODO)", Toast.LENGTH_SHORT).show()
+                    Log.d("Frag(${getFragmentTransactionType().name})","Переход к настройкам счетов (TODO: implement navigation)")
+                } catch (e: Exception) {
+                    Log.e("Frag(${getFragmentTransactionType().name})", "Navigation to account settings failed", e)
+                    Toast.makeText(context, "Ошибка навигации к настройкам счетов", Toast.LENGTH_SHORT).show()
+                }
+            }
+        )
+        bottomSheet.show(parentFragmentManager, AccountSelectionBottomSheet.TAG)
     }
 
 

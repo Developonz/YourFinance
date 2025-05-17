@@ -225,22 +225,4 @@ abstract class BaseTransactionInputFragment : Fragment() {
             .show()
     }
 
-    protected fun showPaymentAccountSelectionDialog() {
-        val accounts = viewModel.accountsList.value ?: emptyList()
-        if (accounts.isEmpty()) {
-            Toast.makeText(requireContext(), R.string.no_accounts_available, Toast.LENGTH_SHORT).show()
-            return
-        }
-        val accountNames = accounts.map { it.title }.toTypedArray()
-
-        AlertDialog.Builder(requireContext())
-            .setTitle("Выберите счет")
-            .setItems(accountNames) { dialog, which ->
-                val selectedAccount = accounts[which]
-                viewModel.selectPaymentAccount(selectedAccount)
-                dialog.dismiss()
-            }
-            .setNegativeButton(R.string.cancel, null)
-            .show()
-    }
 }
