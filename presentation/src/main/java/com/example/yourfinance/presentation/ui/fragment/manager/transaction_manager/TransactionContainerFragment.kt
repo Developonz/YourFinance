@@ -131,6 +131,22 @@ class TransactionContainerFragment : Fragment() {
     }
 
     private fun observeViewModel() {
+
+        viewModel.transactionSavedEvent.observe(viewLifecycleOwner, Observer { saved ->
+            if (saved) {
+                Log.i("Container", "Transaction saved → closing container")
+                Toast.makeText(requireContext(), "Транзакция сохранена", Toast.LENGTH_SHORT).show()
+                findNavController().popBackStack()
+            }
+        })
+
+        viewModel.criticalErrorEvent.observe(viewLifecycleOwner, Observer { errorMessage ->
+            Log.e("Container", "Critical error → closing container: $errorMessage")
+            Toast.makeText(requireContext(), errorMessage, Toast.LENGTH_LONG).show()
+            findNavController().popBackStack()
+        })
+
+
         viewModel.navigateToAccountSettingsEvent.observe(viewLifecycleOwner, Observer {
             Log.d("Container", "Handling navigateToAccountSettingsEvent")
             try {

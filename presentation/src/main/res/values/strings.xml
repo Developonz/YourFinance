@@ -55,4 +55,5 @@
     <string name="tab_remittance">Перевод</string>
     <string name="title_edit_transaction">Редактировать транзакцию</string>
     <string name="title_add_transaction">Создать транзакцию</string>
+    <string name="subcategories_count_format">Подкатегорий: %1$d</string>
 </resources>

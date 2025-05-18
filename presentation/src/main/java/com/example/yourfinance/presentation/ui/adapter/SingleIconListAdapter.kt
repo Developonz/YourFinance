@@ -4,51 +4,48 @@ import android.content.Context
 import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.ViewGroup
-import androidx.core.content.ContextCompat
+import androidx.annotation.ColorInt
 import androidx.core.graphics.ColorUtils
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.example.yourfinance.presentation.R // Убедись, что R импортирован правильно
-import com.example.yourfinance.presentation.databinding.ItemIconSelectableBinding // Используем тот же layout, что и для категорий
+import com.example.yourfinance.presentation.R
+import com.example.yourfinance.presentation.databinding.ItemIconSelectableBinding
+import com.example.yourfinance.presentation.IconMap
+
 
 class SingleIconListAdapter(
     private val context: Context,
-    private var currentSelectedColorHex: String,
-    private var selectedIconResId: Int?,
+    @ColorInt private var currentSelectedColor: Int,
+    private var selectedIconName: String?,
     private val onIconClick: (IconItem) -> Unit
 ) : ListAdapter<IconItem, SingleIconListAdapter.IconViewHolder>(IconItemDiffCallback()) {
 
-    fun setSelectedIcon(iconResId: Int?) {
-        val oldSelected = selectedIconResId
-        selectedIconResId = iconResId
-        if (oldSelected != iconResId) {
-            // Обновить старую и новую выбранные иконки
+    fun setSelectedIcon(iconName: String?) {
+        val old = selectedIconName
+        selectedIconName = iconName
+        if (old != iconName) {
             currentList.forEachIndexed { index, item ->
-                if (item.resourceId == oldSelected || item.resourceId == selectedIconResId) {
+                if (item.resourceId == old || item.resourceId == selectedIconName) {
                     notifyItemChanged(index)
                 }
             }
         }
     }
 
-    fun setSelectedColor(colorHex: String) {
-        val oldColor = currentSelectedColorHex
-        currentSelectedColorHex = colorHex
-        if (oldColor != colorHex) {
-            // Перерисовать только выделенный элемент, если цвет изменился
-            currentList.forEachIndexed { index, item ->
-                if (item.resourceId == selectedIconResId) {
-                    notifyItemChanged(index)
-                    return@forEachIndexed // Выходим, так как только одна иконка может быть выбрана
-                }
-            }
+    fun setSelectedColor(@ColorInt color: Int) {
+        val old = currentSelectedColor
+        currentSelectedColor = color
+        if (old != color) {
+            currentList.indexOfFirst { it.resourceId == selectedIconName }
+                .takeIf { it >= 0 }
+                ?.let { notifyItemChanged(it) }
         }
     }
-
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): IconViewHolder {
-        val binding = ItemIconSelectableBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+        val binding = ItemIconSelectableBinding
+            .inflate(LayoutInflater.from(parent.context), parent, false)
         return IconViewHolder(binding)
     }
 
@@ -56,43 +53,41 @@ class SingleIconListAdapter(
         holder.bind(getItem(position))
     }
 
-    inner class IconViewHolder(private val binding: ItemIconSelectableBinding) : RecyclerView.ViewHolder(binding.root) {
-        fun bind(iconItem: IconItem) {
-            binding.imageViewIconSelectableItem.setImageResource(iconItem.resourceId)
-            val isSelected = iconItem.resourceId == selectedIconResId
+    inner class IconViewHolder(
+        private val binding: ItemIconSelectableBinding
+    ) : RecyclerView.ViewHolder(binding.root) {
+        fun bind(item: IconItem) {
+            // Получаем настоящий ID через генераторную мапу
+            val resId = IconMap.idOf(item.resourceId)
+            binding.imageViewIconSelectableItem.setImageResource(resId)
 
+            val isSelected = item.resourceId == selectedIconName
             if (isSelected) {
-                try {
-                    val color = Color.parseColor(currentSelectedColorHex)
-                    binding.cardIconSelectableRoot.setCardBackgroundColor(color)
-                    val iconTintColor = if (ColorUtils.calculateLuminance(color) > 0.5) Color.BLACK else Color.WHITE
-                    binding.imageViewIconSelectableItem.setColorFilter(iconTintColor)
-                } catch (e: IllegalArgumentException) {
-                    binding.cardIconSelectableRoot.setCardBackgroundColor(
-                        ContextCompat.getColor(context, R.color.teal_200) // Нужен цвет для ошибки
-                    )
-                    binding.imageViewIconSelectableItem.setColorFilter(Color.WHITE)
-                }
+                // если в item.colorHex хранится цвет
+                binding.cardIconSelectableRoot.setCardBackgroundColor(
+                    item.colorHex ?: currentSelectedColor
+                )
+                val tint = if (ColorUtils.calculateLuminance(
+                        item.colorHex ?: currentSelectedColor
+                    ) > 0.5
+                ) Color.BLACK else Color.WHITE
+                binding.imageViewIconSelectableItem.setColorFilter(tint)
             } else {
                 binding.cardIconSelectableRoot.setCardBackgroundColor(
-                    ContextCompat.getColor(context, R.color.default_icon_background) // Стандартный фон невыбранной иконки
+                    context.getColor(R.color.default_icon_background)
                 )
-                binding.imageViewIconSelectableItem.setColorFilter(Color.WHITE) // Стандартный цвет невыбранной иконки
+                binding.imageViewIconSelectableItem.setColorFilter(Color.WHITE)
             }
 
-            binding.root.setOnClickListener {
-                onIconClick(iconItem)
-            }
+            binding.root.setOnClickListener { onIconClick(item) }
         }
     }
 
     class IconItemDiffCallback : DiffUtil.ItemCallback<IconItem>() {
-        override fun areItemsTheSame(oldItem: IconItem, newItem: IconItem): Boolean {
-            return oldItem.resourceId == newItem.resourceId
-        }
+        override fun areItemsTheSame(old: IconItem, new: IconItem): Boolean =
+            old.resourceId == new.resourceId
 
-        override fun areContentsTheSame(oldItem: IconItem, newItem: IconItem): Boolean {
-            return oldItem == newItem
-        }
+        override fun areContentsTheSame(old: IconItem, new: IconItem): Boolean =
+            old == new
     }
 }

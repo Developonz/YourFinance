@@ -2,7 +2,7 @@ package com.example.yourfinance.presentation.ui.fragment.manager.category_manage
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.content.res.TypedArray
+import android.content.res.Resources
 import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
@@ -12,6 +12,7 @@ import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
 import androidx.annotation.ArrayRes
 import androidx.annotation.StringRes
+import androidx.annotation.ColorInt
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.graphics.ColorUtils
 import androidx.core.view.MenuHost
@@ -28,6 +29,7 @@ import androidx.transition.TransitionManager
 import com.example.yourfinance.domain.model.CategoryType
 import com.example.yourfinance.domain.model.Title
 import com.example.yourfinance.domain.model.entity.category.Category
+import com.example.yourfinance.presentation.IconMap
 import com.example.yourfinance.presentation.R
 import com.example.yourfinance.presentation.databinding.FragmentCategoryCreateEditBinding
 import com.example.yourfinance.presentation.ui.adapter.ColorPickerAdapter
@@ -53,152 +55,122 @@ class CategoryCreateEditFragment : Fragment() {
     private var isEditMode = false
     private var currentSelectedTypeInCreateMode: CategoryType = CategoryType.EXPENSE
 
+    // Имя drawable (ключ для IconMap)
+    private var selectedIconKey: String? = null
+
+    // ARGB-цвет
+    @ColorInt private var selectedColor: Int = DEFAULT_FALLBACK_COLOR
+
+    private lateinit var availableColors: List<Int>
     private lateinit var iconGroupAdapter: IconGroupAdapter
     private lateinit var colorSelectorAdapter: ColorPickerAdapter
 
-    private var selectedIconResId: Int? = null
-    private lateinit var selectedColorHex: String
-
-    private lateinit var availableColors: List<String>
-
-    // Данные для загрузки групп иконок
     private data class IconGroupInfo(
-        @StringRes val groupNameResId: Int,
-        @ArrayRes val iconArrayResId: Int // ID ресурса <array> из XML
+        @StringRes val titleRes: Int,
+        @ArrayRes  val namesRes: Int
     )
 
     private val iconGroupDefinitions = listOf(
-        IconGroupInfo(R.string.category_group_food, R.array.category_icons_food),
+        IconGroupInfo(R.string.category_group_food,          R.array.category_icons_food),
         IconGroupInfo(R.string.category_group_entertainment, R.array.category_icons_entertainment)
-        // TODO: Добавить сюда другие группы иконок по аналогии,
+        // … другие группы …
     )
 
     companion object {
-        private const val GRID_LAYOUT_COLUMNS_COLORS = 6
+        private const val GRID_LAYOUT_COLUMNS_COLORS     = 6
+        private const val ICON_GRID_COLUMNS              = 5
         private const val COLOR_PANEL_ANIMATION_DURATION = 150L
-        private const val DEFAULT_FALLBACK_COLOR = "#FFEB3B" // Желтый, если ресурсы не загрузятся
-        private const val ICON_GRID_COLUMNS = 5 // Для GridLayoutManager и SpanSizeLookup
+        private val DEFAULT_FALLBACK_COLOR: Int          = Color.parseColor("#FFEB3B")
     }
 
     override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
         _binding = FragmentCategoryCreateEditBinding.inflate(inflater, container, false)
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-
+        // 1) Загрузить цвета из string-array
         loadAvailableColors()
-        selectedColorHex = availableColors.firstOrNull() ?: DEFAULT_FALLBACK_COLOR
+        selectedColor = availableColors.firstOrNull() ?: DEFAULT_FALLBACK_COLOR
 
+        // 2) Определить режим (Create/Edit)
         isEditMode = args.categoryId != -1L
 
+        // 3) Menu + RecyclerViews
         setupOptionsMenu()
         setupIconRecyclerView()
         setupColorSelectorRecyclerView()
 
-        if (isEditMode) {
-            setupEditMode()
-        } else {
-            setupCreateMode()
-        }
+        // 4) Инициализация в зависимости от режима
+        if (isEditMode) setupEditMode() else setupCreateMode()
 
-        loadAndPrepareIconDisplayableItems()
+        // 5) Подготовка и показ групп иконок
+        loadAndDisplayIconGroups()
+
+        // 6) Листенеры
         setupListeners()
     }
 
     private fun loadAvailableColors() {
         availableColors = try {
-            requireContext().resources.getStringArray(R.array.available_colors_category_account).toList()
-        } catch (e: Exception) {
-            Log.e("CategoryCreateEdit", "Failed to load colors from resources", e)
+            // читаем string-array, а не int-array
+            requireContext().resources.getStringArray(R.array.available_colors_category_account)
+                .mapNotNull { hex ->
+                    try { Color.parseColor(hex) }
+                    catch (_: IllegalArgumentException) { null }
+                }
+        } catch (e: Resources.NotFoundException) {
+            Log.e("CategoryEdit", "colors-array not found", e)
+            emptyList()
+        }.ifEmpty {
             listOf(DEFAULT_FALLBACK_COLOR)
-        }
-        if (availableColors.isEmpty()) {
-            Log.w("CategoryCreateEdit", "Loaded color list is empty, using fallback.")
-            availableColors = listOf(DEFAULT_FALLBACK_COLOR)
         }
     }
 
     private fun setupOptionsMenu() {
         val menuHost: MenuHost = requireActivity()
         menuHost.addMenuProvider(object : MenuProvider {
-            override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
-                menuInflater.inflate(R.menu.confirm_menu, menu)
+            override fun onCreateMenu(menu: Menu, inflater: MenuInflater) {
+                inflater.inflate(R.menu.confirm_menu, menu)
             }
-
-            override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
-                return when (menuItem.itemId) {
-                    R.id.action_save -> {
-                        saveCategory()
-                        true
-                    }
-                    else -> false
-                }
-            }
+            override fun onMenuItemSelected(item: MenuItem): Boolean =
+                if (item.itemId == R.id.action_save) { saveCategory(); true } else false
         }, viewLifecycleOwner, Lifecycle.State.RESUMED)
     }
 
     private fun setupIconRecyclerView() {
-        iconGroupAdapter = IconGroupAdapter(
-            requireContext(),
-            selectedColorHex
-        ) { clickedIconItem ->
-            val oldSelectedIcon = selectedIconResId
-            if (oldSelectedIcon != clickedIconItem.resourceId) {
-                selectedIconResId = clickedIconItem.resourceId
-                updateIconPreviewImage()
-                refreshIconDisplayForAdapter()
+        iconGroupAdapter = IconGroupAdapter(requireContext(), selectedColor) { clicked ->
+            if (selectedIconKey != clicked.resourceId) {
+                selectedIconKey = clicked.resourceId
+                updateIconPreview()
+                refreshIconGroups()
             }
         }
-
-        val layoutManager = GridLayoutManager(requireContext(), ICON_GRID_COLUMNS)
-        layoutManager.spanSizeLookup = object : GridLayoutManager.SpanSizeLookup() {
-            override fun getSpanSize(position: Int): Int {
-                if (position < 0 || position >= iconGroupAdapter.currentList.size) {
-                    return ICON_GRID_COLUMNS
-                }
-                return when (iconGroupAdapter.getItemViewType(position)) {
-                    IconGroupAdapter.VIEW_TYPE_HEADER -> ICON_GRID_COLUMNS
-                    IconGroupAdapter.VIEW_TYPE_CONTENT -> 1
-                    else -> 1
+        val lm = GridLayoutManager(requireContext(), ICON_GRID_COLUMNS).apply {
+            spanSizeLookup = object: GridLayoutManager.SpanSizeLookup() {
+                override fun getSpanSize(position: Int) = when (iconGroupAdapter.currentList[position]) {
+                    is DisplayableItem.HeaderItem  -> ICON_GRID_COLUMNS
+                    is DisplayableItem.ContentItem -> 1
                 }
             }
         }
-
         binding.recyclerViewIconGroups.apply {
-            this.layoutManager = layoutManager
+            layoutManager = lm
             adapter = iconGroupAdapter
             itemAnimator = null
         }
     }
 
-    private fun loadAndPrepareIconDisplayableItems() {
-        val iconGroupsData: List<IconGroup> = loadIconGroupsInternal()
-
-        if (!isEditMode && selectedIconResId == null) {
-            val firstIconFromLoadedData = iconGroupsData.firstOrNull()?.icons?.firstOrNull()
-            firstIconFromLoadedData?.let {
-                selectedIconResId = it.resourceId
-                if (_binding != null) { // Проверка на случай быстрого уничтожения view
-                    updateIconPreviewImage()
-                }
-            }
-        }
-        refreshIconDisplayForAdapter(iconGroupsData)
-    }
-
     private fun setupColorSelectorRecyclerView() {
-        colorSelectorAdapter = ColorPickerAdapter(availableColors) { newlySelectedColorHex ->
-            selectedColorHex = newlySelectedColorHex
+        colorSelectorAdapter = ColorPickerAdapter(availableColors) { color ->
+            selectedColor = color
             updateColorIndicator()
             updateIconPreviewBackground()
-            updateIconPreviewImage()
-            refreshIconDisplayForAdapter()
-            toggleColorSelectorPanel(show = false)
+            updateIconPreview()
+            refreshIconGroups()
+            toggleColorPanel(false)
         }
         binding.recyclerViewColorSelector.apply {
             layoutManager = GridLayoutManager(requireContext(), GRID_LAYOUT_COLUMNS_COLORS)
@@ -206,247 +178,181 @@ class CategoryCreateEditFragment : Fragment() {
         }
     }
 
-    private fun refreshIconDisplayForAdapter(currentIconGroups: List<IconGroup>? = null) {
-        if (_binding == null) return
-
-        val groupsToDisplay = currentIconGroups ?: loadIconGroupsInternal()
-
-        val displayableItems = mutableListOf<DisplayableItem>()
-        groupsToDisplay.forEach { group ->
-            if (group.icons.isNotEmpty()) {
-                displayableItems.add(DisplayableItem.HeaderItem(group.groupName))
-                group.icons.forEach { icon ->
-                    displayableItems.add(
-                        DisplayableItem.ContentItem(
-                            iconItem = icon,
-                            isSelected = (icon.resourceId == selectedIconResId)
-                        )
-                    )
-                }
-            }
+    private fun loadAndDisplayIconGroups() {
+        val groups = buildIconGroups()
+        if (!isEditMode && selectedIconKey == null) {
+            selectedIconKey = groups.firstOrNull()?.icons?.firstOrNull()?.resourceId
         }
-        iconGroupAdapter.setSelectedColor(selectedColorHex)
-        iconGroupAdapter.submitList(displayableItems)
+        updateIconPreview()
+        refreshIconGroups(groups)
     }
 
-    private fun loadIconGroupsInternal(): List<IconGroup> {
-        val iconGroupsResult = mutableListOf<IconGroup>()
-        val currentResources = requireContext().resources
+    private fun buildIconGroups(): List<IconGroup> {
+        val res = requireContext().resources
+        return iconGroupDefinitions.mapNotNull { info ->
+            val title = getString(info.titleRes)
+            val keys = try { res.getStringArray(info.namesRes) } catch (_: Exception) { emptyArray() }
+            val icons = keys.filter { it.isNotBlank() }.map { k -> IconItem(resourceId = k, name = k) }
+            IconGroup(title, icons).takeIf { it.icons.isNotEmpty() }
+        }
+    }
 
-        for (groupInfo in iconGroupDefinitions) {
-            val groupName = getString(groupInfo.groupNameResId)
-            val iconsList = mutableListOf<IconItem>()
-            var typedArray: TypedArray? = null
-
-            try {
-                typedArray = currentResources.obtainTypedArray(groupInfo.iconArrayResId)
-                for (i in 0 until typedArray.length()) {
-                    val resId = typedArray.getResourceId(i, 0)
-                    if (resId != 0) {
-                        val iconName: String = try {
-                            currentResources.getResourceEntryName(resId)
-                        } catch (e: android.content.res.Resources.NotFoundException) {
-                            Log.e("CategoryCreateEdit", "Resource name not found for ID: $resId. Using fallback name.", e)
-                            "icon_id_$resId"
-                        }
-                        iconsList.add(IconItem(resId, iconName))
-                    }
-                }
-            } catch (e: android.content.res.Resources.NotFoundException) {
-                Log.e("CategoryCreateEdit", "Icon array resource not found for group: $groupName (ArrayResId: ${groupInfo.iconArrayResId})", e)
-            } finally {
-                typedArray?.recycle()
-            }
-
-            if (iconsList.isNotEmpty()) {
-                iconGroupsResult.add(IconGroup(groupName, iconsList))
+    private fun refreshIconGroups(groups: List<IconGroup> = buildIconGroups()) {
+        val items = mutableListOf<DisplayableItem>()
+        groups.forEach { g ->
+            items += DisplayableItem.HeaderItem(g.groupName)
+            g.icons.forEach { icon ->
+                items += DisplayableItem.ContentItem(icon, icon.resourceId == selectedIconKey)
             }
         }
-        return iconGroupsResult
+        iconGroupAdapter.setSelectedColor(selectedColor)
+        iconGroupAdapter.submitList(items)
     }
 
     private fun updateColorIndicator() {
-        val colorInt = Color.parseColor(selectedColorHex)
-        val bgDrawable = binding.viewColorIndicator.background as? GradientDrawable
-        bgDrawable?.setColor(colorInt)
-        if (ColorUtils.calculateLuminance(colorInt) > 0.9) {
-            bgDrawable?.setStroke(2, Color.LTGRAY)
-        } else {
-            bgDrawable?.setStroke(0, Color.TRANSPARENT)
+        (binding.viewColorIndicator.background as? GradientDrawable)?.apply {
+            setColor(selectedColor)
+            setStroke(
+                if (ColorUtils.calculateLuminance(selectedColor) > 0.9) 2 else 0,
+                Color.LTGRAY
+            )
         }
     }
 
     private fun updateIconPreviewBackground() {
-        binding.cardIconPreviewWrapper.setCardBackgroundColor(Color.parseColor(selectedColorHex))
-        applyStrokeToCardIfNecessary(selectedColorHex, binding.cardIconPreviewWrapper)
-    }
-
-    private fun updateIconPreviewImage() {
-        selectedIconResId?.let { resId ->
-            binding.imageViewSelectedIconPreview.setImageResource(resId)
-            val iconTintColor = if (ColorUtils.calculateLuminance(Color.parseColor(selectedColorHex)) > 0.5) Color.BLACK else Color.WHITE
-            binding.imageViewSelectedIconPreview.setColorFilter(iconTintColor)
-            binding.imageViewSelectedIconPreview.visibility = View.VISIBLE
-        } ?: run {
-            binding.imageViewSelectedIconPreview.visibility = View.GONE
+        binding.cardIconPreviewWrapper.setCardBackgroundColor(selectedColor)
+        (binding.cardIconPreviewWrapper as MaterialCardView).apply {
+            strokeWidth = if (ColorUtils.calculateLuminance(selectedColor) > 0.9) 3 else 0
+            strokeColor = Color.LTGRAY
         }
     }
 
-    private fun applyStrokeToCardIfNecessary(colorHex: String, targetView: MaterialCardView) {
-        val colorInt = Color.parseColor(colorHex)
-        if (ColorUtils.calculateLuminance(colorInt) > 0.9) { // >0.9 для очень светлых цветов
-            targetView.strokeWidth = 3 // dp, если не указано явно в пикселях
-            targetView.strokeColor = Color.LTGRAY
-        } else {
-            targetView.strokeWidth = 0
-        }
-    }
-
-    private fun setupEditMode() {
-        (requireActivity() as? AppCompatActivity)?.supportActionBar?.title = getString(R.string.edit_category_title)
-        binding.tabLayoutCategoryTypeCreateEdit.visibility = View.GONE
-        viewLifecycleOwner.lifecycleScope.launch {
-            categoryToEdit = viewModel.loadCategoryById(args.categoryId)
-            categoryToEdit?.let { category ->
-                binding.titleCategory.setText(category.title)
-                selectedIconResId = category.iconResourceId
-                selectedColorHex = category.colorHex ?: availableColors.firstOrNull() ?: DEFAULT_FALLBACK_COLOR
-                currentSelectedTypeInCreateMode = category.categoryType // Сохраняем для логики, хотя табы скрыты
-
-                updateColorIndicator()
-                updateIconPreviewBackground()
-                updateIconPreviewImage()
-                // Данные для адаптера уже будут загружены и обновлены через loadAndPrepareIconDisplayableItems,
-                // который вызывается после setupEditMode
+    private fun updateIconPreview() {
+        binding.imageViewSelectedIconPreview.apply {
+            selectedIconKey?.let { key ->
+                setImageResource(IconMap.idOf(key))
+                val tint = if (ColorUtils.calculateLuminance(selectedColor) > 0.5) Color.BLACK else Color.WHITE
+                setColorFilter(tint)
+                visibility = View.VISIBLE
             } ?: run {
-                Toast.makeText(requireContext(), getString(R.string.error_category_not_found), Toast.LENGTH_SHORT).show()
-                findNavController().popBackStack()
-                return@launch // Выход из корутины, если категория не найдена
+                visibility = View.GONE
             }
-            if (_binding != null) refreshIconDisplayForAdapter() // Обновляем адаптер после загрузки данных категории
         }
     }
 
     private fun setupCreateMode() {
-        (requireActivity() as? AppCompatActivity)?.supportActionBar?.title = getString(R.string.add_category_title)
+        (requireActivity() as AppCompatActivity).supportActionBar
+            ?.title = getString(R.string.add_category_title)
         binding.tabLayoutCategoryTypeCreateEdit.visibility = View.VISIBLE
-        currentSelectedTypeInCreateMode = args.categoryType
-        setupTabs(currentSelectedTypeInCreateMode)
-
-        updateColorIndicator()
-        updateIconPreviewBackground()
-        // updateIconPreviewImage() будет вызван из loadAndPrepareIconDisplayableItems, если иконка по умолчанию выбрана
-        // refreshIconDisplayForAdapter() также будет вызван из loadAndPrepareIconDisplayableItems
-
-        setupInitialFocusAndKeyboard()
-    }
-
-    private fun setupInitialFocusAndKeyboard() {
-        binding.titleCategory.run {
-            post { // post для гарантии, что view уже добавлено и имеет размеры
-                requestFocus()
-                val imm = activity?.getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager
-                imm?.showSoftInput(this, InputMethodManager.SHOW_IMPLICIT)
-            }
-        }
-    }
-
-    private fun setupTabs(initialType: CategoryType) {
+        // настраиваем табы
         binding.tabLayoutCategoryTypeCreateEdit.apply {
-            clearOnTabSelectedListeners()
             removeAllTabs()
-            addTab(newTab().setText(getString(R.string.category_type_expense)))
-            addTab(newTab().setText(getString(R.string.category_type_income)))
-
-            val initialIndex = if (initialType == CategoryType.EXPENSE) 0 else 1
-            post { getTabAt(initialIndex)?.select() } // post для выбора после добавления вкладок
-
-            addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
-                override fun onTabSelected(tab: TabLayout.Tab?) {
-                    currentSelectedTypeInCreateMode = when (tab?.position) {
-                        0 -> CategoryType.EXPENSE
-                        1 -> CategoryType.INCOME
-                        else -> CategoryType.EXPENSE // Фоллбэк
-                    }
+            addTab(newTab().setText(R.string.category_type_expense))
+            addTab(newTab().setText(R.string.category_type_income))
+            getTabAt(if (currentSelectedTypeInCreateMode == CategoryType.EXPENSE) 0 else 1)
+                ?.select()
+            addOnTabSelectedListener(object: TabLayout.OnTabSelectedListener {
+                override fun onTabSelected(tab: TabLayout.Tab) {
+                    currentSelectedTypeInCreateMode =
+                        if (tab.position == 0) CategoryType.EXPENSE else CategoryType.INCOME
                 }
-                override fun onTabUnselected(tab: TabLayout.Tab?) {}
-                override fun onTabReselected(tab: TabLayout.Tab?) {}
+                override fun onTabUnselected(tab: TabLayout.Tab) {}
+                override fun onTabReselected(tab: TabLayout.Tab) {}
             })
         }
+        updateColorIndicator()
+        updateIconPreviewBackground()
+        setupInitialFocus()
     }
 
-    private fun setupListeners() {
-        binding.colorSelectorContainer.setOnClickListener {
-            toggleColorSelectorPanel()
+    private fun setupEditMode() {
+        (requireActivity() as AppCompatActivity).supportActionBar
+            ?.title = getString(R.string.edit_category_title)
+        binding.tabLayoutCategoryTypeCreateEdit.visibility = View.GONE
+
+        lifecycleScope.launch {
+            categoryToEdit = viewModel.loadCategoryById(args.categoryId)
+            categoryToEdit?.let { cat ->
+                binding.titleCategory.setText(cat.title)
+                selectedIconKey = cat.iconResourceId
+                selectedColor    = cat.colorHex ?: DEFAULT_FALLBACK_COLOR
+
+                updateColorIndicator()
+                updateIconPreviewBackground()
+                updateIconPreview()
+                refreshIconGroups()
+            } ?: run {
+                Toast.makeText(requireContext(),
+                    getString(R.string.error_category_not_found),
+                    Toast.LENGTH_SHORT).show()
+                findNavController().popBackStack()
+            }
         }
     }
 
     @SuppressLint("ClickableViewAccessibility")
-    private fun toggleColorSelectorPanel(show: Boolean? = null) {
+    private fun toggleColorPanel(show: Boolean? = null) {
         val panel = binding.cardColorSelectorPanel
         val arrow = binding.imageViewColorArrow
-        val shouldShow = show ?: (panel.visibility == View.GONE)
-
-        TransitionManager.beginDelayedTransition(binding.contentLayout, AutoTransition().apply { duration = COLOR_PANEL_ANIMATION_DURATION })
-
-        if (shouldShow) {
+        val expand = show ?: (panel.visibility == View.GONE)
+        TransitionManager.beginDelayedTransition(
+            binding.contentLayout, AutoTransition().apply { duration = COLOR_PANEL_ANIMATION_DURATION }
+        )
+        if (expand) {
             panel.visibility = View.VISIBLE
-            arrow.animate().rotation(180f).setDuration(COLOR_PANEL_ANIMATION_DURATION).start()
-            // Прокрутка к панели выбора цвета, если она открывается
-            binding.nestedScrollView.post {
-                binding.nestedScrollView.smoothScrollTo(0, panel.bottom)
-            }
+            arrow.animate().rotation(180f).start()
+            binding.nestedScrollView.post { binding.nestedScrollView.smoothScrollTo(0, panel.bottom) }
         } else {
             panel.visibility = View.GONE
-            arrow.animate().rotation(0f).setDuration(COLOR_PANEL_ANIMATION_DURATION).start()
+            arrow.animate().rotation(0f).start()
+        }
+    }
+
+    private fun setupListeners() {
+        binding.colorSelectorContainer.setOnClickListener { toggleColorPanel() }
+    }
+
+    private fun setupInitialFocus() {
+        binding.titleCategory.post {
+            binding.titleCategory.requestFocus()
+            (requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager)
+                ?.showSoftInput(binding.titleCategory, InputMethodManager.SHOW_IMPLICIT)
         }
     }
 
     private fun saveCategory() {
         val name = binding.titleCategory.text.toString().trim()
-
         if (name.isEmpty()) {
             binding.inputLayoutName.error = getString(R.string.error_category_name_empty)
             return
-        } else {
-            binding.inputLayoutName.error = null
         }
-
-        if (selectedIconResId == null) { // Проверяем для обоих режимов, но для edit иконка уже должна быть
-            Toast.makeText(context, getString(R.string.error_select_icon_for_category), Toast.LENGTH_SHORT).show()
+        if (selectedIconKey.isNullOrBlank()) {
+            Toast.makeText(requireContext(),
+                getString(R.string.error_select_icon_for_category),
+                Toast.LENGTH_SHORT).show()
             return
         }
 
-        hideKeyboard()
+        (requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager)
+            ?.hideSoftInputFromWindow(view?.windowToken, 0)
 
-        val categoryToSave: Category
         if (isEditMode) {
-            categoryToEdit?.let {
-                it.title = name // Используем Title(name) если это value class, иначе просто name
-                it.iconResourceId = selectedIconResId
-                it.colorHex = selectedColorHex
-                // categoryType не меняем в режиме редактирования через этот UI
-                categoryToSave = it
-                viewModel.updateCategory(categoryToSave)
-            } ?: run {
-                Toast.makeText(requireContext(), getString(R.string.error_failed_to_update_category), Toast.LENGTH_SHORT).show()
-                return
+            categoryToEdit!!.apply {
+                title          = name
+                iconResourceId = selectedIconKey
+                colorHex       = selectedColor
+                viewModel.updateCategory(this)
             }
         } else {
-            categoryToSave = Category(
-                title = Title(name),
-                categoryType = currentSelectedTypeInCreateMode,
-                iconResourceId = selectedIconResId,
-                colorHex = selectedColorHex
-            )
-            viewModel.createCategory(categoryToSave)
+            Category(
+                title          = Title(name),
+                categoryType   = currentSelectedTypeInCreateMode,
+                iconResourceId = selectedIconKey,
+                colorHex       = selectedColor
+            ).also { viewModel.createCategory(it) }
         }
-        findNavController().popBackStack()
-    }
 
-    private fun hideKeyboard() {
-        val imm = activity?.getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager
-        view?.let { imm?.hideSoftInputFromWindow(it.windowToken, 0) }
+        findNavController().popBackStack()
     }
 
     override fun onDestroyView() {

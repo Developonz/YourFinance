@@ -14,8 +14,8 @@ data class Category private constructor(
         title: Title,
         categoryType: CategoryType,
         id: Long = 0,
-        iconResourceId: Int? = null,
-        colorHex: String? = null,
+        iconResourceId: String? = null,
+        colorHex: Int? = null,
         children: MutableList<Subcategory> = mutableListOf()
     ) : this(BaseCategory(title, categoryType, id, iconResourceId, colorHex), children)
 

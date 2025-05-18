@@ -13,8 +13,8 @@ data class MoneyAccount(
     var default: Boolean = false,
     var used: Boolean = true,
     val dateCreation: LocalDate = LocalDate.now(),
-    var iconResourceId: Int? = null,
-    var colorHex: String? = null,
+    var iconResourceId: String? = null,
+    var colorHex: Int? = null,
     val id: Long = 0
 ) {
     var title: String

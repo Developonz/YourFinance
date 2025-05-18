@@ -14,8 +14,8 @@ data class MoneyAccountEntity(
     var default: Boolean = false,
     var used: Boolean = true,
     val dateCreation: LocalDate = LocalDate.now(),
-    var iconResourceId: Int? = null,
-    var colorHex: String? = null,
+    var iconResourceId: String? = null,
+    var colorHex: Int? = null,
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0
 )

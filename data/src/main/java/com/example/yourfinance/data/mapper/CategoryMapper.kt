@@ -41,7 +41,7 @@ fun CategoryWithSubcategories.toDomainCategory(): Category {
         title = Title(this.category.title),
         categoryType = this.category.categoryType,
         iconResourceId = this.category.iconResourceId,
-        colorHex = this.category.colorHex ?: "#FFEB3B",
+        colorHex = this.category.colorHex,
         children = domainSubcategories
     )
 }

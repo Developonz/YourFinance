@@ -40,15 +40,20 @@
     </string-array>
 
 
-    <array name="category_icons_food">
-        <item>@drawable/ic_food_1</item>
-
-    </array>
+    <!-- Группа "Еда" -->
+    <string-array name="category_icons_food">
+        <item>ic_food_1</item>
+        <item>ic_food_2</item>
+        <item>ic_food_3</item>
+        <!-- … остальные имена без расширения … -->
+    </string-array>
 
     <!-- Группа "Развлечения" -->
-    <array name="category_icons_entertainment">
-
-    </array>
+    <string-array name="category_icons_entertainment">
+        <item>ic_movie</item>
+        <item>ic_music</item>
+        <item>ic_game</item>
+    </string-array>
 
     <!-- Группа "Развлечения" -->
     <array name="account_icons">

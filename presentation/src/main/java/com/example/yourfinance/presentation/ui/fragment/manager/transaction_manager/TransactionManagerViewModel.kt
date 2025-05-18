@@ -1,3 +1,4 @@
+// TransactionManagerViewModel.kt
 package com.example.yourfinance.presentation.ui.fragment.manager.transaction_manager
 
 import android.util.Log
@@ -8,31 +9,22 @@ import com.example.yourfinance.domain.model.TransactionType
 import com.example.yourfinance.domain.model.entity.MoneyAccount
 import com.example.yourfinance.domain.model.entity.Payment
 import com.example.yourfinance.domain.model.entity.Transfer
-import com.example.yourfinance.domain.model.entity.category.Category
 import com.example.yourfinance.domain.model.entity.category.ICategoryData
 import com.example.yourfinance.domain.usecase.categories.category.FetchCategoriesUseCase
 import com.example.yourfinance.domain.usecase.moneyaccount.FetchMoneyAccountsUseCase
-import com.example.yourfinance.domain.usecase.transaction.CreatePaymentUseCase
-import com.example.yourfinance.domain.usecase.transaction.CreateTransferUseCase
-import com.example.yourfinance.domain.usecase.transaction.LoadPaymentByIdUseCase
-import com.example.yourfinance.domain.usecase.transaction.LoadTransferByIdUseCase
-import com.example.yourfinance.domain.usecase.transaction.UpdatePaymentUseCase
-import com.example.yourfinance.domain.usecase.transaction.UpdateTransferUseCase
-import com.example.yourfinance.domain.usecase.transaction.DeleteTransactionByIdAndTypeUseCase
+import com.example.yourfinance.domain.usecase.transaction.*
 import com.example.yourfinance.presentation.ui.util.AmountInputProcessor
 import com.example.yourfinance.util.SingleLiveEvent
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import java.time.LocalDate
-// import java.time.format.DateTimeParseException // Не используется напрямую
 import javax.inject.Inject
 
-// Добавим дата класс для запроса на показ BottomSheet, если его структура подразумевается контейнером
 data class ShowAccountSelectionSheetRequest(
     val accounts: List<MoneyAccount>,
     val selectedId: Long?,
     val isForExpenseIncome: Boolean,
-    val isForAccountFrom: Boolean? = null // Для указания, выбирается счет "Откуда" или "Куда" в переводах
+    val isForAccountFrom: Boolean? = null
 )
 
 @HiltViewModel
@@ -68,7 +60,7 @@ class TransactionManagerViewModel @Inject constructor(
     val loadedTransactionType: LiveData<TransactionType?> = _loadedTransactionType
 
     val accountsList: LiveData<List<MoneyAccount>> = fetchMoneyAccountsUseCase()
-    val allCategories: LiveData<List<Category>> = fetchFullCategoriesUseCase()
+    val allCategories: LiveData<List<com.example.yourfinance.domain.model.entity.category.Category>> = fetchFullCategoriesUseCase()
 
     private val _currentTransactionType = MutableLiveData(initialTransactionType ?: TransactionType.EXPENSE)
     val currentTransactionType: LiveData<TransactionType> = _currentTransactionType
@@ -85,11 +77,6 @@ class TransactionManagerViewModel @Inject constructor(
 
     private val _hasOperatorInAmount = MutableLiveData(amountProcessor.hasOperator())
     val hasOperatorInAmount: LiveData<Boolean> = _hasOperatorInAmount
-
-    private fun updateAmountLivedata() {
-        _amountString.value = amountProcessor.getAmountString()
-        _hasOperatorInAmount.value = amountProcessor.hasOperator()
-    }
 
     private val _note = MutableLiveData("")
     val note: LiveData<String> = _note
@@ -115,7 +102,7 @@ class TransactionManagerViewModel @Inject constructor(
             }
             if (value != requiredElementsSelected) {
                 value = requiredElementsSelected
-                Log.d("ViewModel", "showInputSection.update() called. IsEditing: $isEditing, Active Type: ${_currentTransactionType.value}, State: ${_activeTransactionState.value}. RequiredSelected: $requiredElementsSelected. Result: $value")
+                Log.d("ViewModel", "showInputSection.update() called. RequiredSelected: $requiredElementsSelected. Result: $value")
             }
         }
         addSource(_currentTransactionType) { update() }
@@ -132,7 +119,7 @@ class TransactionManagerViewModel @Inject constructor(
     private val _criticalErrorEvent = SingleLiveEvent<String>()
     val criticalErrorEvent: LiveData<String> = _criticalErrorEvent
 
-    // --- События для навигации и UI ---
+    // Навигационные события
     private val _navigateToAccountSettingsEvent = SingleLiveEvent<Unit>()
     val navigateToAccountSettingsEvent: LiveData<Unit> = _navigateToAccountSettingsEvent
 
@@ -141,7 +128,6 @@ class TransactionManagerViewModel @Inject constructor(
 
     private val _showAccountSelectionSheetEvent = SingleLiveEvent<ShowAccountSelectionSheetRequest>()
     val showAccountSelectionSheetEvent: LiveData<ShowAccountSelectionSheetRequest> = _showAccountSelectionSheetEvent
-    // --- Конец событий для навигации и UI ---
 
     init {
         Log.d("ViewModel", "ViewModel init. IsEditing: $isEditing, ID: $transactionId, Initial Type: $initialTransactionType")
@@ -162,6 +148,11 @@ class TransactionManagerViewModel @Inject constructor(
         }
     }
 
+    private fun updateAmountLivedata() {
+        _amountString.value = amountProcessor.getAmountString()
+        _hasOperatorInAmount.value = amountProcessor.hasOperator()
+    }
+
     private fun loadTransaction(id: Long, type: TransactionType) {
         viewModelScope.launch {
             _isLoading.value = true
@@ -175,7 +166,6 @@ class TransactionManagerViewModel @Inject constructor(
                         _currentTransactionType.value = payment.type
                         _loadedTransactionType.value = payment.type
                         _sharedPaymentAccount.value = payment.moneyAccount
-                        Log.d("ViewModel", "Shared account set from loaded Payment: ${payment.moneyAccount.title}")
                         _activeTransactionState.value = ActiveTransactionState.ExpenseIncomeState(
                             selectedCategory = payment.category,
                             selectedPaymentAccount = payment.moneyAccount
@@ -187,11 +177,7 @@ class TransactionManagerViewModel @Inject constructor(
                     transfer != null -> {
                         _currentTransactionType.value = TransactionType.REMITTANCE
                         _loadedTransactionType.value = TransactionType.REMITTANCE
-                        // Для перевода, _sharedPaymentAccount может быть счетом "Откуда"
-                        // но это поведение нужно будет уточнить при смене вкладок.
-                        // Пока что установим его, чтобы обеспечить консистентность, если пользователь начнет редактировать перевод, а потом переключится на Доход/Расход
                         _sharedPaymentAccount.value = transfer.moneyAccFrom
-                        Log.d("ViewModel", "Shared account set from loaded Transfer (From): ${transfer.moneyAccFrom.title}")
                         _activeTransactionState.value = ActiveTransactionState.RemittanceState(
                             selectedAccountFrom = transfer.moneyAccFrom,
                             selectedAccountTo = transfer.moneyAccTo
@@ -203,7 +189,7 @@ class TransactionManagerViewModel @Inject constructor(
                     else -> {
                         Log.e("ViewModel", "Failed to load transaction id=$id, type=$type. Neither payment nor transfer found.")
                         _criticalErrorEvent.postValue("Не удалось загрузить транзакцию для редактирования.")
-                        _isLoading.value = false // Ensure isLoading is reset before return
+                        _isLoading.value = false
                         return@launch
                     }
                 }
@@ -221,9 +207,8 @@ class TransactionManagerViewModel @Inject constructor(
     private fun formatDoubleToStringForLoad(value: Double): String {
         val roundedValue = (value * 100).toLong() / 100.0
         val stringRepresentation = if (roundedValue % 1.0 == 0.0) roundedValue.toLong().toString() else roundedValue.toString()
-        return stringRepresentation.replace('.', ',') // Используем запятую для ввода
+        return stringRepresentation.replace('.', ',')
     }
-
 
     fun handleKeypadInput(key: String) {
         amountProcessor.processKey(key)
@@ -248,7 +233,6 @@ class TransactionManagerViewModel @Inject constructor(
             resetActiveInputState(type)
             amountProcessor.reset("0")
             updateAmountLivedata()
-            // Примечание и дата не сбрасываются при смене типа, если только это не новая транзакция после сохранения.
         }
     }
 
@@ -261,7 +245,6 @@ class TransactionManagerViewModel @Inject constructor(
     }
 
     private fun resetActiveInputState(newType: TransactionType) {
-        Log.d("ViewModel", "Resetting active input state for type: $newType. Shared account is: ${_sharedPaymentAccount.value?.title}")
         when (newType) {
             TransactionType.EXPENSE, TransactionType.INCOME -> {
                 _activeTransactionState.value = ActiveTransactionState.ExpenseIncomeState(
@@ -286,9 +269,7 @@ class TransactionManagerViewModel @Inject constructor(
 
     private fun resetAllStateForNewTransaction() {
         val currentType = _currentTransactionType.value ?: TransactionType.EXPENSE
-        // _sharedPaymentAccount НЕ сбрасывается здесь, он должен сохраняться между транзакциями
-        resetActiveInputState(currentType) // Это обновит состояние на основе текущего _sharedPaymentAccount
-
+        resetActiveInputState(currentType)
         amountProcessor.reset("0")
         updateAmountLivedata()
         _note.value = ""
@@ -319,16 +300,16 @@ class TransactionManagerViewModel @Inject constructor(
                 else if (state.selectedAccountFrom.id == state.selectedAccountTo.id) errorMsg = "Счета должны отличаться"
             }
             ActiveTransactionState.InitialState, null -> {
-                errorMsg = when(_currentTransactionType.value) {
+                errorMsg = when (_currentTransactionType.value) {
                     TransactionType.EXPENSE, TransactionType.INCOME -> "Выберите категорию и счет"
                     TransactionType.REMITTANCE -> "Выберите счета"
-                    null -> "Не выбран тип транзакции"
+                    else -> "Не выбран тип транзакции"
                 }
             }
         }
 
         if (errorMsg != null) {
-            _errorMessageEvent.value = errorMsg
+            _errorMessageEvent.value = errorMsg!!
             return null
         }
         return evaluatedAmount
@@ -341,7 +322,7 @@ class TransactionManagerViewModel @Inject constructor(
                 updateAmountLivedata()
                 return
             }
-            updateAmountLivedata() // Отобразить вычисленную сумму
+            updateAmountLivedata()
         }
 
         val validAmount = validateTransactionInput(amountProcessor.getAmountString())
@@ -402,16 +383,13 @@ class TransactionManagerViewModel @Inject constructor(
         activeState: ActiveTransactionState, currentSelectedType: TransactionType
     ) {
         if (currentSelectedType != originalType) {
-            // Тип транзакции был изменен, удаляем старую и создаем новую
             val deleteSuccess = deleteTransactionUseCase(transactionId, originalType)
             if (!deleteSuccess) {
                 _errorMessageEvent.postValue("Ошибка при изменении типа транзакции (не удалось удалить старую).")
                 return
             }
-            // Теперь сохраняем как новую транзакцию с новым типом
             performSaveNewTransaction(validAmount, date, note, activeState, currentSelectedType)
         } else {
-            // Тип транзакции не изменился, просто обновляем
             when (currentSelectedType) {
                 TransactionType.EXPENSE, TransactionType.INCOME -> {
                     if (activeState is ActiveTransactionState.ExpenseIncomeState) {
@@ -421,7 +399,10 @@ class TransactionManagerViewModel @Inject constructor(
                             _note = Title(note), date = date
                         )
                         updatePaymentUseCase(payment)
-                    } else { _errorMessageEvent.postValue("Внутренняя ошибка состояния UI (E/I)."); return }
+                    } else {
+                        _errorMessageEvent.postValue("Внутренняя ошибка состояния UI (E/I).")
+                        return
+                    }
                 }
                 TransactionType.REMITTANCE -> {
                     if (activeState is ActiveTransactionState.RemittanceState) {
@@ -431,13 +412,13 @@ class TransactionManagerViewModel @Inject constructor(
                             _note = Title(note), date = date
                         )
                         updateTransferUseCase(transfer)
-                    } else { _errorMessageEvent.postValue("Внутренняя ошибка состояния UI (Remit)."); return }
+                    } else {
+                        _errorMessageEvent.postValue("Внутренняя ошибка состояния UI (Remit).")
+                        return
+                    }
                 }
             }
             _transactionSavedEvent.postValue(true)
-            // После редактирования и сохранения, также можно сбросить состояние, если мы остаемся на экране
-            // или если навигация назад не очищает ViewModel (но она обычно очищает или пересоздает).
-            // Для консистентности с новой транзакцией:
             resetAllStateForNewTransaction()
         }
     }
@@ -506,11 +487,9 @@ class TransactionManagerViewModel @Inject constructor(
                 selectedAccountFrom = currentFromAccount,
                 selectedAccountTo = account
             )
-            // _sharedPaymentAccount НЕ обновляется при выборе счета "Куда"
         }
     }
 
-    // --- Методы для запроса действий от UI (Контейнера) ---
     fun requestNavigateToAccountSettings() {
         _navigateToAccountSettingsEvent.call()
     }
@@ -551,5 +530,4 @@ class TransactionManagerViewModel @Inject constructor(
             isForAccountFrom = false
         )
     }
-    // --- Конец методов для запроса действий ---
 }

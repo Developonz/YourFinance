@@ -22,6 +22,7 @@ fragmentKtx = "1.8.1"
 preferenceKtx = "1.2.1"
 inject = "1" # Для javax.inject
 
+
 # Testing
 junit = "4.13.2"
 junitExt = "1.2.1" # Переименовал junitVersion для ясности

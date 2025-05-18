@@ -1,3 +1,4 @@
+// BaseTransactionInputFragment.kt
 package com.example.yourfinance.presentation.ui.fragment.manager.transaction_manager
 
 import android.app.AlertDialog
@@ -9,8 +10,8 @@ import android.widget.Toast
 import androidx.core.view.isVisible
 import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
+import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.fragment.findNavController
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.textfield.TextInputEditText
@@ -32,10 +33,9 @@ abstract class BaseTransactionInputFragment : Fragment() {
     protected abstract val amountTextView: android.widget.TextView
     protected abstract val selectedItemIcon: android.widget.ImageView
     protected abstract val noteEditText: TextInputEditText
-    protected abstract val keypadView: android.view.View
+    protected abstract val keypadView: View
 
     protected lateinit var confirmButton: MaterialButton
-
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -63,12 +63,10 @@ abstract class BaseTransactionInputFragment : Fragment() {
         keypadView.findViewById<View>(R.id.key_plus).setOnClickListener { viewModel.handleKeypadInput("+") }
         keypadView.findViewById<View>(R.id.key_minus).setOnClickListener { viewModel.handleKeypadInput("-") }
 
-        // Настраиваем слушатель для кнопки подтверждения
         if (::confirmButton.isInitialized) {
             confirmButton.setOnClickListener {
                 val hasOperator = viewModel.hasOperatorInAmount.value == true
                 Log.d("BaseFrag", "Confirm button clicked. Has operator: $hasOperator")
-
                 if (hasOperator) {
                     viewModel.evaluateAndDisplayAmount()
                 } else {
@@ -79,7 +77,6 @@ abstract class BaseTransactionInputFragment : Fragment() {
             Log.e("BaseFrag", "confirmButton not initialized when setting click listener.")
         }
 
-
         dateButton?.setOnClickListener { showDatePicker() }
         noteEditText.addTextChangedListener { editable -> viewModel.setNote(editable.toString()) }
         selectedItemIcon.setOnClickListener { onIconClick() }
@@ -89,15 +86,9 @@ abstract class BaseTransactionInputFragment : Fragment() {
         Log.d("BaseFrag", "Setting up common observers.")
 
         viewModel.showInputSection.observe(viewLifecycleOwner, Observer { shouldShowInput ->
-            Log.d("BaseFrag", "Observed showInputSection change in VM: $shouldShowInput")
-
             val isActiveFragmentAccordingToVM = viewModel.currentTransactionType.value == getFragmentTransactionType()
-            Log.d("BaseFrag", "Is THIS fragment instance active according to VM? $isActiveFragmentAccordingToVM")
-
             if (isActiveFragmentAccordingToVM) {
-                Log.d("BaseFrag", "Updating input section visibility to: $shouldShowInput")
                 commonInputRoot.isVisible = shouldShowInput
-
                 if (shouldShowInput) {
                     updateAmountDisplayLayout()
                     amountTextView.text = formatAmountForDisplay(viewModel.amountString.value ?: "0")
@@ -105,7 +96,6 @@ abstract class BaseTransactionInputFragment : Fragment() {
                 }
             } else {
                 if (commonInputRoot.isVisible) {
-                    Log.d("BaseFrag", "THIS fragment instance is INACTIVE according to VM, hiding input section.")
                     commonInputRoot.isVisible = false
                 }
             }
@@ -125,17 +115,18 @@ abstract class BaseTransactionInputFragment : Fragment() {
             }
         })
 
-
         viewModel.amountString.observe(viewLifecycleOwner, Observer { amountStr ->
             if (commonInputRoot.isVisible) {
                 amountTextView.text = formatAmountForDisplay(amountStr ?: "0")
             }
         })
+
         viewModel.date.observe(viewLifecycleOwner, Observer { date ->
             if (commonInputRoot.isVisible) {
                 date?.let { updateDateButtonText(it) }
             }
         })
+
         viewModel.note.observe(viewLifecycleOwner, Observer { note ->
             if (commonInputRoot.isVisible) {
                 if (noteEditText.text.toString() != note) {
@@ -145,15 +136,9 @@ abstract class BaseTransactionInputFragment : Fragment() {
         })
 
         viewModel.accountsList.observe(viewLifecycleOwner, Observer {
-            Log.d("BaseFrag", "Observed accountsList update: ${it?.size ?: 0} accounts. Dialogs will use this.")
+            Log.d("BaseFrag", "Observed accountsList update: ${it?.size ?: 0} accounts.")
         })
 
-
-        viewModel.transactionSavedEvent.observe(viewLifecycleOwner, Observer { saved ->
-            Log.i("BaseFrag", "Observed transactionSavedEvent. Navigating back.")
-            Toast.makeText(requireContext(), "Транзакция сохранена", Toast.LENGTH_SHORT).show()
-            findNavController().popBackStack()
-        })
         viewModel.errorMessageEvent.observe(viewLifecycleOwner, Observer { errorMessage ->
             Log.w("BaseFrag", "Observed errorMessageEvent: $errorMessage")
             Toast.makeText(requireContext(), errorMessage, Toast.LENGTH_LONG).show()
@@ -162,7 +147,7 @@ abstract class BaseTransactionInputFragment : Fragment() {
         viewModel.criticalErrorEvent.observe(viewLifecycleOwner, Observer { errorMessage ->
             Log.e("BaseFrag", "Observed criticalErrorEvent: $errorMessage")
             Toast.makeText(requireContext(), errorMessage, Toast.LENGTH_LONG).show()
-            findNavController().popBackStack()
+            findNavController().navigateUp()
         })
     }
 
@@ -224,5 +209,4 @@ abstract class BaseTransactionInputFragment : Fragment() {
             .setNegativeButton(R.string.cancel, null)
             .show()
     }
-
 }
