@@ -9,3 +9,4 @@ plugins {
     // ИСПРАВЛЕНО: Используем правильный псевдоним 'kotlin.jvm'
     alias(libs.plugins.kotlin.jvm) apply false
 }
+

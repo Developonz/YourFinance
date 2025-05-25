@@ -56,4 +56,11 @@
     <string name="title_edit_transaction">Редактировать транзакцию</string>
     <string name="title_add_transaction">Создать транзакцию</string>
     <string name="subcategories_count_format">Подкатегорий: %1$d</string>
+    <string name="expenses_tab_label">Расход</string>
+    <string name="incomes_tab_label">Доход</string>
+    <string name="end_balance_label">Конечный баланс</string>
+    <string name="start_balance_label">Начальный баланс</string>
+    <string name="no_data_for_display">Нет данных для отображения</string>
+    <string name="chart_title_expenses">Структура Расходов</string>
+    <string name="chart_title_incomes">Структура Доходов</string>
 </resources>

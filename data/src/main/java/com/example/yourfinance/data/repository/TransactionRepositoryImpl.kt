@@ -84,4 +84,17 @@ class TransactionRepositoryImpl @Inject constructor(private val dao: Transaction
             }
         }
     }
+
+    override suspend fun getBalanceBeforeDate(periodEndDate: LocalDate, excludedAccountIds: List<Long>) : Double {
+        return dao.getBalanceBeforeDate(periodEndDate, excludedAccountIds)
+    }
+
+    override suspend fun getNetChangeBetweenDates(
+        periodStartDate: LocalDate?,
+        periodEndDate: LocalDate?,
+        excludedAccountIds: List<Long>
+    ): Double {
+        return dao.getNetChangeBetweenDates(periodStartDate, periodEndDate, excludedAccountIds)
+    }
+
 }

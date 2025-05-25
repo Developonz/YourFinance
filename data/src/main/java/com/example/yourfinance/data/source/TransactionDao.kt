@@ -60,6 +60,33 @@ abstract class TransactionDao(private val dataBase: FinanceDataBase) {
     @Query("SELECT * FROM TransferEntity")
     abstract fun getAllTransfer() : LiveData<List<FullTransfer>>
 
+    @Query("""
+        SELECT COALESCE(SUM(
+            CASE type
+                WHEN 0 THEN balance
+                WHEN 1 THEN -balance
+                ELSE 0.0
+            END
+        ), 0.0)
+        FROM PaymentEntity
+        WHERE date < :exclusiveEndDate AND moneyAccID NOT IN (:excludedAccountIds)
+    """)
+    abstract suspend fun getBalanceBeforeDate(exclusiveEndDate: LocalDate, excludedAccountIds: List<Long>): Double
+
+    @Query("""
+        SELECT COALESCE(SUM(
+            CASE type
+                WHEN 0 THEN balance
+                WHEN 1 THEN -balance
+                ELSE 0.0
+            END
+        ), 0.0)
+        FROM PaymentEntity
+        WHERE (:startDate IS NULL OR date >= :startDate) AND (:endDate IS NULL OR date <= :endDate)
+        AND moneyAccID NOT IN (:excludedAccountIds)
+    """)
+    abstract suspend fun getNetChangeBetweenDates(startDate: LocalDate?, endDate: LocalDate?, excludedAccountIds: List<Long>): Double
+
     @Delete
     abstract fun deletePaymentInternal(payment: PaymentEntity)
 

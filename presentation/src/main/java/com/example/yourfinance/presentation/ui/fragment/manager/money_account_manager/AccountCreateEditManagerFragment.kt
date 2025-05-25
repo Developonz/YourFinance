@@ -183,7 +183,7 @@ class AccountCreateEditManagerFragment : Fragment() {
             accountToEdit = viewModel.loadAccountById(args.accountId)
             accountToEdit?.let { acc ->
                 binding.editTextAccountName.setText(acc.title)
-                binding.editTextAmount.setText(amountFormat.format(acc.startBalance))
+                binding.editTextAmount.setText(amountFormat.format(acc.balance))
                 binding.switchExclude.isChecked = acc.excluded
 
                 selectedIconKey = acc.iconResourceId
@@ -337,8 +337,8 @@ class AccountCreateEditManagerFragment : Fragment() {
         if (isEditMode && accountToEdit != null) {
             accountToEdit!!.apply {
                 title           = name
-                startBalance    = amount
-                balance         = startBalance + (amount - this.startBalance)
+                startBalance   += amount - this.balance
+                balance         = amount
                 excluded        = exclude
                 iconResourceId  = selectedIconKey
                 colorHex        = selectedColor

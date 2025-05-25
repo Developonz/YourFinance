@@ -23,4 +23,10 @@ interface TransactionRepository {
     suspend fun updateTransfer(transfer: Transfer)
 
     suspend fun deleteTransaction(transaction: Transaction)
+
+    suspend fun getBalanceBeforeDate(periodEndDate: LocalDate, excludedAccountIds: List<Long>) : Double
+
+    suspend fun getNetChangeBetweenDates(periodStartDate: LocalDate?,
+                                         periodEndDate: LocalDate?,
+                                         excludedAccountIds: List<Long>): Double
 }

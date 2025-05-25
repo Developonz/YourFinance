@@ -143,6 +143,7 @@ dependencies {
 
     // Прочие
     implementation(libs.circleimageview)
+    implementation(libs.mpandroidchart)
 
     // Тесты
     testImplementation(libs.junit)

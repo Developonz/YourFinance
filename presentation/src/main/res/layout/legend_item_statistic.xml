@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:paddingTop="6dp"
+    android:paddingBottom="6dp">
+
+    <ImageView
+        android:id="@+id/legend_item_color_marker"
+        android:layout_width="14dp"
+        android:layout_height="14dp"
+        android:layout_marginEnd="10dp"
+        android:src="@drawable/legend_marker_circle"
+        tools:tint="@color/purple_500"/>
+
+    <TextView
+        android:id="@+id/legend_item_category_name"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:textSize="15sp"
+        android:textColor="?android:attr/textColorPrimary"
+        android:maxLines="1"
+        android:ellipsize="end"
+        tools:text="Название категории"/>
+
+    <TextView
+        android:id="@+id/legend_item_category_percentage"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:minWidth="60dp"
+        android:gravity="end"
+        android:textSize="15sp"
+        android:textColor="?android:attr/textColorSecondary"
+        tools:text="(100,0%)"/>
+</LinearLayout>

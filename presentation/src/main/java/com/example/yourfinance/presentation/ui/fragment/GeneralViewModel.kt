@@ -1,8 +1,10 @@
 package com.example.yourfinance.presentation.ui.fragment
 
 import androidx.lifecycle.LiveData
+import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.asFlow
 import com.example.yourfinance.domain.model.Period
 import com.example.yourfinance.domain.model.Transaction
 import com.example.yourfinance.domain.model.entity.Budget
@@ -17,27 +19,101 @@ import java.time.temporal.WeekFields
 import java.util.Locale
 import androidx.lifecycle.switchMap
 import androidx.lifecycle.viewModelScope
+import com.example.yourfinance.domain.model.TransactionType
+import com.example.yourfinance.domain.usecase.CalculatePeriodBalancesUseCase
+import com.example.yourfinance.domain.usecase.PeriodBalances
+import com.example.yourfinance.domain.usecase.PieChartSliceData
+import com.example.yourfinance.domain.usecase.PreparePieChartDataUseCase
 import com.example.yourfinance.domain.usecase.transaction.DeleteTransactionUseCase
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+
+
 
 @HiltViewModel
 class GeneralViewModel @Inject constructor(
-    fetchTransactionsUseCase: FetchTransactionsUseCase,
+    private val fetchTransactionsUseCase: FetchTransactionsUseCase,
     fetchMoneyAccountsUseCase: FetchMoneyAccountsUseCase,
     fetchBudgetsUseCase: FetchBudgetsUseCase,
-    private val deleteTransactionUseCase: DeleteTransactionUseCase
-
+    private val deleteTransactionUseCase: DeleteTransactionUseCase,
+    private val calculatePeriodBalancesUseCase: CalculatePeriodBalancesUseCase,
+    private val preparePieChartDataUseCase: PreparePieChartDataUseCase
 ) : ViewModel() {
+
 
     private val _selectedPeriod = MutableLiveData<PeriodSelection>()
     val selectedPeriod: LiveData<PeriodSelection> get() = _selectedPeriod
 
+
     val transactionsList: LiveData<List<Transaction>> = _selectedPeriod.switchMap { selection ->
         fetchTransactionsUseCase(selection.startDate, selection.endDate)
     }
+
     val accountsList: LiveData<List<MoneyAccount>> = fetchMoneyAccountsUseCase()
     val budgetsList: LiveData<List<Budget>> = fetchBudgetsUseCase()
 
+    // Это поле оставляем как есть, если оно не конфликтовало
+    private val _currentChartDisplayTypeLiveData = MutableLiveData<TransactionType>(TransactionType.EXPENSE)
+    val currentChartDisplayTypeLiveData: LiveData<TransactionType> get() = _currentChartDisplayTypeLiveData
+
+    private val _pieChartData = MediatorLiveData<List<PieChartSliceData>>()
+    val pieChartData: LiveData<List<PieChartSliceData>> get() = _pieChartData
+
+    private val _periodBalances = MediatorLiveData<PeriodBalances>()
+    val periodBalances: LiveData<PeriodBalances> get() = _periodBalances
+
+    private var statisticsUpdateJob: Job? = null
+
+    init {
+        val initialPeriod = Period.WEEKLY
+        val (start, end) = calculateDatesForStandardPeriod(initialPeriod, LocalDate.now())
+        _selectedPeriod.value = PeriodSelection(initialPeriod, start, end) // Используем _selectedPeriod
+
+        _pieChartData.addSource(transactionsList) { transactions ->
+            updatePieChartDataInternal(transactions, _currentChartDisplayTypeLiveData.value)
+        }
+        _pieChartData.addSource(_currentChartDisplayTypeLiveData) { type ->
+            updatePieChartDataInternal(transactionsList.value, type)
+        }
+
+        // periodBalances теперь зависит от _selectedPeriod
+        _periodBalances.addSource(_selectedPeriod) { selection ->
+            updatePeriodBalancesInternal(selection, accountsList.value)
+        }
+        _periodBalances.addSource(accountsList) { accounts ->
+            updatePeriodBalancesInternal(_selectedPeriod.value, accounts)
+        }
+    }
+
+    private fun updatePieChartDataInternal(transactions: List<Transaction>?, type: TransactionType?) {
+        if (transactions == null || type == null) {
+            return
+        }
+        viewModelScope.launch {
+            _pieChartData.value = preparePieChartDataUseCase.execute(transactions, type, 5)
+        }
+    }
+
+    private fun updatePeriodBalancesInternal(selection: PeriodSelection?, accounts: List<MoneyAccount>?) {
+        if (selection == null || accounts == null) {
+            _periodBalances.value = PeriodBalances(0.0, 0.0, 0.0)
+            return
+        }
+        statisticsUpdateJob?.cancel()
+        statisticsUpdateJob = viewModelScope.launch {
+            val balances = calculatePeriodBalancesUseCase.execute(
+                selection.startDate,
+                selection.endDate,
+                accounts
+            )
+            _periodBalances.value = balances
+        }
+    }
 
     fun deleteTransaction(transactionToDelete: Transaction) {
         viewModelScope.launch {
@@ -45,54 +121,38 @@ class GeneralViewModel @Inject constructor(
         }
     }
 
-    // --- МЕТОДЫ ДЛЯ УСТАНОВКИ ПЕРИОДА ---
-
-    // Основной метод для установки периода извне (из BottomSheet или инициализации)
     fun setPeriod(period: Period, customStartDate: LocalDate? = null, customEndDate: LocalDate? = null) {
-        when (period) {
+        val newSelection = when (period) {
             Period.CUSTOM -> {
-                // Обработка пользовательского периода
-                handleCustomPeriodSelection(period, customStartDate, customEndDate)
+                if (customStartDate != null && customEndDate != null && customStartDate.isAfter(customEndDate)) {
+                    PeriodSelection(period, customEndDate, customStartDate)
+                } else {
+                    PeriodSelection(period, customStartDate, customEndDate)
+                }
             }
-            Period.ALL -> {
-                // Обработка выбора "Все время"
-                _selectedPeriod.value = PeriodSelection(period, null, null)
-            }
+            Period.ALL -> PeriodSelection(period, null, null)
             else -> {
-                // Для стандартных периодов (Daily, Weekly и т.д.)
-                // устанавливаем период относительно ТЕКУЩЕЙ ДАТЫ
-                setStandardPeriodBasedOnDate(period, LocalDate.now())
+                val (startDate, endDate) = calculateDatesForStandardPeriod(period, LocalDate.now())
+                PeriodSelection(period, startDate, endDate)
             }
         }
-    }
-
-    // Обработка выбора пользовательского периода
-    private fun handleCustomPeriodSelection(period: Period, startDate: LocalDate?, endDate: LocalDate?) {
-        if (startDate != null && endDate != null && startDate.isAfter(endDate)) {
-            // Если начальная дата после конечной, меняем их местами
-            _selectedPeriod.value = PeriodSelection(period, endDate, startDate)
-        } else {
-            _selectedPeriod.value = PeriodSelection(period, startDate, endDate)
+        if (_selectedPeriod.value != newSelection) { // Используем _selectedPeriod
+            _selectedPeriod.value = newSelection // Используем _selectedPeriod
         }
     }
 
-    // Установка стандартного периода относительно заданной даты (referenceDate)
-    // Используется как для setPeriod, так и для навигации next/previousPeriod
-    private fun setStandardPeriodBasedOnDate(period: Period, referenceDate: LocalDate) {
-        if (period == Period.ALL || period == Period.CUSTOM) return // Не обрабатываем здесь
-
+    private fun calculateDatesForStandardPeriod(period: Period, referenceDate: LocalDate): Pair<LocalDate?, LocalDate?> {
         var calculatedStartDate: LocalDate? = null
         var calculatedEndDate: LocalDate? = null
-
         when (period) {
             Period.DAILY -> {
                 calculatedStartDate = referenceDate
                 calculatedEndDate = referenceDate
             }
             Period.WEEKLY -> {
-                val weekFields = WeekFields.of(Locale.getDefault()) // Или ваш предпочтительный Locale
-                calculatedStartDate = referenceDate.with(weekFields.dayOfWeek(), 1) // Первый день недели
-                calculatedEndDate = calculatedStartDate.plusDays(6) // Последний день недели
+                val weekFields = WeekFields.of(Locale.getDefault())
+                calculatedStartDate = referenceDate.with(weekFields.dayOfWeek(), 1)
+                calculatedEndDate = calculatedStartDate.plusDays(6)
             }
             Period.MONTHLY -> {
                 calculatedStartDate = referenceDate.withDayOfMonth(1)
@@ -101,10 +161,8 @@ class GeneralViewModel @Inject constructor(
             Period.QUARTERLY -> {
                 val currentMonth = referenceDate.monthValue
                 val quarterStartMonth = when {
-                    currentMonth <= 3 -> 1
-                    currentMonth <= 6 -> 4
-                    currentMonth <= 9 -> 7
-                    else -> 10
+                    currentMonth <= 3 -> 1; currentMonth <= 6 -> 4
+                    currentMonth <= 9 -> 7; else -> 10
                 }
                 calculatedStartDate = LocalDate.of(referenceDate.year, quarterStartMonth, 1)
                 calculatedEndDate = calculatedStartDate.plusMonths(2).withDayOfMonth(calculatedStartDate.plusMonths(2).lengthOfMonth())
@@ -113,44 +171,31 @@ class GeneralViewModel @Inject constructor(
                 calculatedStartDate = referenceDate.withDayOfYear(1)
                 calculatedEndDate = referenceDate.withDayOfYear(referenceDate.lengthOfYear())
             }
-            // ALL и CUSTOM уже исключены
-            else -> {} // Добавлено для полноты when, хотя и не должно сюда попасть
+            else -> { }
         }
-        _selectedPeriod.value = PeriodSelection(period, calculatedStartDate, calculatedEndDate)
+        return Pair(calculatedStartDate, calculatedEndDate)
     }
 
-
-    // --- МЕТОДЫ ДЛЯ НАВИГАЦИИ ПО ПЕРИОДУ ---
-
-    // Функция для перехода к следующему периоду
     fun nextPeriod() {
-        val currentSelection = _selectedPeriod.value ?: return // Выходим, если нет текущего выбора
-        // Навигация не работает для ALL и CUSTOM
+        val currentSelection = _selectedPeriod.value ?: return // Используем _selectedPeriod
         if (currentSelection.periodType == Period.ALL || currentSelection.periodType == Period.CUSTOM) return
 
-        // Используем текущую начальную дату как точку отсчета
         val currentStartDate = currentSelection.startDate ?: LocalDate.now()
-        // Рассчитываем новую опорную дату
         val newReferenceDate = calculateShiftedDate(currentStartDate, currentSelection.periodType, 1)
-        // Пересчитываем стандартный период на основе новой опорной даты
-        setStandardPeriodBasedOnDate(currentSelection.periodType, newReferenceDate)
+        val (startDate, endDate) = calculateDatesForStandardPeriod(currentSelection.periodType, newReferenceDate)
+        _selectedPeriod.value = PeriodSelection(currentSelection.periodType, startDate, endDate) // Используем _selectedPeriod
     }
 
-    // Функция для перехода к предыдущему периоду
     fun previousPeriod() {
-        val currentSelection = _selectedPeriod.value ?: return // Выходим, если нет текущего выбора
-        // Навигация не работает для ALL и CUSTOM
+        val currentSelection = _selectedPeriod.value ?: return // Используем _selectedPeriod
         if (currentSelection.periodType == Period.ALL || currentSelection.periodType == Period.CUSTOM) return
 
-        // Используем текущую начальную дату как точку отсчета
         val currentStartDate = currentSelection.startDate ?: LocalDate.now()
-        // Рассчитываем новую опорную дату
         val newReferenceDate = calculateShiftedDate(currentStartDate, currentSelection.periodType, -1)
-        // Пересчитываем стандартный период на основе новой опорной даты
-        setStandardPeriodBasedOnDate(currentSelection.periodType, newReferenceDate)
+        val (startDate, endDate) = calculateDatesForStandardPeriod(currentSelection.periodType, newReferenceDate)
+        _selectedPeriod.value = PeriodSelection(currentSelection.periodType, startDate, endDate) // Используем _selectedPeriod
     }
 
-    // Вспомогательная функция для расчета смещенной даты для навигации
     private fun calculateShiftedDate(referenceDate: LocalDate, period: Period, amount: Long): LocalDate {
         return when (period) {
             Period.DAILY      -> referenceDate.plusDays(amount)
@@ -158,18 +203,14 @@ class GeneralViewModel @Inject constructor(
             Period.MONTHLY    -> referenceDate.plusMonths(amount)
             Period.QUARTERLY  -> referenceDate.plusMonths(amount * 3)
             Period.ANNUALLY   -> referenceDate.plusYears(amount)
-            else              -> referenceDate // Не должно произойти для ALL и CUSTOM
+            else              -> referenceDate
         }
     }
 
-
-
-
-    // Инициализация: по умолчанию, например, текущий месяц или "Все".
-    // На скриншоте у вас "еженедельно" (09-15 марта), так что можно установить его
-    init {
-        // Установим начальный период, например, текущая неделя.
-        setPeriod(Period.WEEKLY) // Вы можете изменить это на Period.MONTHLY или Period.ALL
+    fun setChartDisplayType(type: TransactionType) {
+        if (_currentChartDisplayTypeLiveData.value != type) {
+            _currentChartDisplayTypeLiveData.value = type
+        }
     }
 }
 
