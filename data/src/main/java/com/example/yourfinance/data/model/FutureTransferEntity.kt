@@ -8,12 +8,12 @@ import androidx.room.PrimaryKey
     ForeignKey(
         parentColumns = ["id"],
         childColumns = ["id"],
-        entity = PaymentEntity::class,
+        entity = TransferEntity::class,
         onDelete = ForeignKey.CASCADE,
         deferred = true
     )
 ])
-class FutureTransactionsEntity (
+data class FutureTransferEntity (
     @PrimaryKey
     val id: Long = 0
 )

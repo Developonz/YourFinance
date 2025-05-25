@@ -78,7 +78,7 @@ class TransactionRepositoryImpl @Inject constructor(private val dao: Transaction
     override suspend fun deleteTransaction(transaction: Transaction) {
         withContext(Dispatchers.IO) {
             if (transaction.type == TransactionType.REMITTANCE) {
-                dao.deleteTransferById(transaction.id)
+                dao.deleteTransfer((transaction as Transfer).toData())
             } else {
                 dao.deletePayment((transaction as Payment).toData())
             }

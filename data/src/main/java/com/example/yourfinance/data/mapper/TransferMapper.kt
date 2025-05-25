@@ -1,5 +1,6 @@
 package com.example.yourfinance.data.mapper
 
+import com.example.yourfinance.data.model.FutureTransferEntity
 import com.example.yourfinance.data.model.TransferEntity
 import com.example.yourfinance.data.model.pojo.FullTransfer
 import com.example.yourfinance.domain.model.Title
@@ -27,4 +28,8 @@ fun Transfer.toData(): TransferEntity {
         note = this.note,
         date = this.date,
     )
+}
+
+fun TransferEntity.toDataFutureTransfer(): FutureTransferEntity {
+    return FutureTransferEntity(id = this.id)
 }

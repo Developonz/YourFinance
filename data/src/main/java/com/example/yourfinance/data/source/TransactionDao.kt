@@ -10,6 +10,7 @@ import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Update
 import com.example.yourfinance.data.mapper.toDataFuture
+import com.example.yourfinance.data.mapper.toDataFutureTransfer
 import com.example.yourfinance.data.model.PaymentEntity
 import com.example.yourfinance.data.model.TransferEntity
 import com.example.yourfinance.data.model.pojo.FullPayment
@@ -42,7 +43,31 @@ abstract class TransactionDao(private val dataBase: FinanceDataBase) {
     }
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    abstract fun insertTransferTransaction(trans: TransferEntity)
+    abstract fun insertTransferTransactionInternal(trans: TransferEntity): Long
+
+    @Transaction
+    open suspend fun insertTransferTransaction(transfer: TransferEntity) {
+        val transferId = insertTransferTransactionInternal(transfer)
+
+        if (transfer.date <= LocalDate.now()) {
+            val accountFrom = dataBase.getMoneyAccountDao().getAccountById(transfer.moneyAccFromID)
+            val accountTo = dataBase.getMoneyAccountDao().getAccountById(transfer.moneyAccToID)
+
+            accountFrom?.let { from ->
+                accountTo?.let { to ->
+                    from.balance -= transfer.balance
+                    dataBase.getMoneyAccountDao().updateAccount(from)
+
+                    to.balance += transfer.balance
+                    dataBase.getMoneyAccountDao().updateAccount(to)
+                }
+            }
+
+        } else {
+            val transferWithGeneratedId = transfer.copy(id = transferId)
+            dataBase.getFutureTransactionDao().insertFutureTransferTransaction(transferWithGeneratedId.toDataFutureTransfer())
+        }
+    }
 
     @Transaction
     @Query("SELECT * FROM PaymentEntity where date >= :startDate and date <= :endDate")
@@ -107,7 +132,32 @@ abstract class TransactionDao(private val dataBase: FinanceDataBase) {
     }
 
     @Delete
-    abstract fun deleteTransfer(transfer: TransferEntity)
+    abstract fun deleteTransferInternal(transfer: TransferEntity)
+
+    @Transaction
+    open suspend fun deleteTransfer(transfer: TransferEntity) {
+        val isFuture = dataBase.getFutureTransactionDao().loadCountFutureTransferTransaction(transfer.id) > 0
+
+        if (!isFuture && transfer.date <= LocalDate.now()) {
+            val accountFrom = dataBase.getMoneyAccountDao().getAccountById(transfer.moneyAccFromID)
+            val accountTo = dataBase.getMoneyAccountDao().getAccountById(transfer.moneyAccToID)
+
+            accountFrom?.let { from ->
+                accountTo?.let { to ->
+                    to.balance -= transfer.balance
+                    dataBase.getMoneyAccountDao().updateAccount(to)
+
+                    from.balance += transfer.balance
+                    dataBase.getMoneyAccountDao().updateAccount(from)
+                }
+            }
+        }
+
+        if (isFuture) {
+            dataBase.getFutureTransactionDao().deleteFutureTransferTransaction(transfer.id)
+        }
+        deleteTransferInternal(transfer)
+    }
 
     @Query("DELETE FROM PaymentEntity WHERE id = :paymentId")
     abstract fun deletePaymentById(paymentId: Long)
@@ -161,5 +211,52 @@ abstract class TransactionDao(private val dataBase: FinanceDataBase) {
     }
 
     @Update
-    abstract fun updateTransfer(transfer: TransferEntity)
+    abstract fun updateTransferInternal(transfer: TransferEntity)
+
+    @Transaction
+    open suspend fun updateTransfer(newTransfer: TransferEntity) {
+        val oldTransferFull = loadTransferById(newTransfer.id) ?: return
+
+        val oldTransfer = oldTransferFull.transfer
+        val accountDao = dataBase.getMoneyAccountDao()
+        val futureDao = dataBase.getFutureTransactionDao()
+
+        val oldWasFuture = futureDao.loadCountFutureTransferTransaction(oldTransfer.id) > 0
+        val newIsFuture = newTransfer.date > LocalDate.now()
+
+        // 1. Откатить старый перевод, если он влиял на баланс
+        if (!oldWasFuture && oldTransfer.date <= LocalDate.now()) {
+            val oldAccFrom = accountDao.getAccountById(oldTransfer.moneyAccFromID)
+            val oldAccTo = accountDao.getAccountById(oldTransfer.moneyAccToID)
+
+            oldAccFrom?.let {
+                it.balance += oldTransfer.balance
+                accountDao.updateAccount(it)
+            }
+            oldAccTo?.let {
+                it.balance -= oldTransfer.balance
+                accountDao.updateAccount(it)
+            }
+        } else if (oldWasFuture) {
+            futureDao.deleteFutureTransferTransaction(oldTransfer.id)
+        }
+
+        if (!newIsFuture) {
+            val newAccFrom = accountDao.getAccountById(newTransfer.moneyAccFromID)
+            val newAccTo = accountDao.getAccountById(newTransfer.moneyAccToID)
+
+            newAccFrom?.let {
+                it.balance -= newTransfer.balance
+                accountDao.updateAccount(it)
+            }
+            newAccTo?.let {
+                it.balance += newTransfer.balance
+                accountDao.updateAccount(it)
+            }
+        } else {
+            futureDao.insertFutureTransferTransaction(newTransfer.toDataFutureTransfer())
+        }
+
+        updateTransferInternal(newTransfer)
+    }
 }
