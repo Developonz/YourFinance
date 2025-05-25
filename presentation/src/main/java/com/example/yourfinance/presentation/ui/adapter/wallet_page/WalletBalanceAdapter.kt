@@ -16,7 +16,9 @@ class WalletBalanceAdapter(
         fun bind(moneyAccounts: List<MoneyAccount>) {
             var sum = 0.0
             moneyAccounts.forEach({
-                sum += it.balance
+                if (!it.excluded) {
+                    sum += it.balance
+                }
             })
             binding.generalBalance.text = StringHelper.getMoneyStr(sum)
         }

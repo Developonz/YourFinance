@@ -8,6 +8,7 @@ import com.example.yourfinance.domain.usecase.moneyaccount.CreateMoneyAccountUse
 import com.example.yourfinance.domain.usecase.moneyaccount.DeleteMoneyAccountUseCase
 import com.example.yourfinance.domain.usecase.moneyaccount.FetchMoneyAccountsUseCase
 import com.example.yourfinance.domain.usecase.moneyaccount.LoadMoneyAccountByIdUseCase
+import com.example.yourfinance.domain.usecase.moneyaccount.SetMoneyAccountAsDefaultUseCase
 import com.example.yourfinance.domain.usecase.moneyaccount.UpdateMoneyAccountUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
@@ -20,7 +21,7 @@ class MoneyAccountManagerViewModel @Inject constructor(
     private val createMoneyAccountUseCase: CreateMoneyAccountUseCase,
     private val updateMoneyAccountUseCase: UpdateMoneyAccountUseCase,
     private val loadMoneyAccountByIdUseCase: LoadMoneyAccountByIdUseCase,
-
+    private val setMoneyAccountAsDefaultUseCase: SetMoneyAccountAsDefaultUseCase
     ) : ViewModel() {
 
     val accountsList: LiveData<List<MoneyAccount>> = fetchMoneyAccountsUseCase()
@@ -40,6 +41,12 @@ class MoneyAccountManagerViewModel @Inject constructor(
     fun updateAccount(account: MoneyAccount) {
         viewModelScope.launch {
             updateMoneyAccountUseCase(account)
+        }
+    }
+
+    fun setDefaultAccount(account: MoneyAccount) {
+        viewModelScope.launch {
+            setMoneyAccountAsDefaultUseCase(account.id)
         }
     }
 

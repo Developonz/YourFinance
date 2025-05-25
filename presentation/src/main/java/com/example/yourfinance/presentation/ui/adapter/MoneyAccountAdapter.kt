@@ -16,6 +16,7 @@ import com.example.yourfinance.domain.StringHelper
 
 class MoneyAccountAdapter(
     private val deleteClick: (acc: MoneyAccount) -> Unit,
+    private val defaultClick: (acc: MoneyAccount) -> Unit,
     private val editClick: (acc: MoneyAccount) -> Unit
 ) : ListAdapter<MoneyAccount, MoneyAccountAdapter.MoneyAccountViewHolder>(DIFF_CALLBACK) {
 
@@ -38,19 +39,16 @@ class MoneyAccountAdapter(
             deleteClick: (acc: MoneyAccount) -> Unit,
             editClick: (acc: MoneyAccount) -> Unit
         ) {
-            // 1) Резолвим строковый ключ в Int-ресурс
             val iconKey = item.iconResourceId
             val iconResId = iconKey
                 ?.let { IconMap.idOf(it) }
-                ?: R.drawable.ic_mobile_wallet // дефолтная иконка
+                ?: R.drawable.ic_mobile_wallet
             binding.accountImage.setImageResource(iconResId)
 
-            // 2) Цвет фона иконки
             item.colorHex?.let { colorInt ->
                 // задаём tint фона
                 binding.accountImage.backgroundTintList =
                     ColorStateList.valueOf(colorInt)
-                // контрастный цвет для самого drawable
                 val iconTint = if (ColorUtils.calculateLuminance(colorInt) > 0.5f)
                     Color.BLACK
                 else
@@ -58,7 +56,6 @@ class MoneyAccountAdapter(
                 binding.accountImage.imageTintList =
                     ColorStateList.valueOf(iconTint)
             } ?: run {
-                // цвет не задан — дефолтный фон + чёрный значок
                 binding.accountImage.backgroundTintList =
                     ColorStateList.valueOf(
                         binding.root.context.getColor(R.color.default_icon_background)
@@ -72,9 +69,17 @@ class MoneyAccountAdapter(
             binding.textAccountBalance.text =
                 StringHelper.getMoneyStr(item.balance)
 
+            if (item.default) {
+                binding.imagePin.imageTintList = ColorStateList.valueOf(Color.YELLOW)
+            }
+
             // 4) Клики
             binding.imageDelete.setOnClickListener { deleteClick(item) }
             binding.root.setOnClickListener { editClick(item) }
+            binding.imagePin.setOnClickListener {
+                defaultClick(item)
+                binding.imagePin.imageTintList = ColorStateList.valueOf(Color.YELLOW)
+            }
         }
     }
 

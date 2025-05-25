@@ -87,6 +87,9 @@ class TransactionManagerViewModel @Inject constructor(
     private val _isLoading = MutableLiveData(false)
     val isLoading: LiveData<Boolean> = _isLoading
 
+    private var initialAccountSetupDone = false
+    private var accountsObserver: Observer<List<MoneyAccount>>? = null
+
     val showInputSection: LiveData<Boolean> = MediatorLiveData<Boolean>().apply {
         value = false
         fun update() {
@@ -145,6 +148,24 @@ class TransactionManagerViewModel @Inject constructor(
             _currentTransactionType.value = TransactionType.EXPENSE
             resetActiveInputState(TransactionType.EXPENSE)
             updateAmountLivedata()
+
+            accountsObserver = Observer { accounts ->
+                if (!initialAccountSetupDone && accounts != null) {
+                    val defaultAccount = accounts.firstOrNull { it.default && it.used }
+                    if (defaultAccount != null) {
+                        _sharedPaymentAccount.value = defaultAccount
+                        Log.d("ViewModel", "Default account set: ${defaultAccount.title}")
+                        resetActiveInputState(_currentTransactionType.value!!)
+                    }
+                    initialAccountSetupDone = true
+                    accountsList.removeObserver(accountsObserver!!)
+                    accountsObserver = null
+                } else if (initialAccountSetupDone && accountsObserver != null) {
+                    accountsList.removeObserver(accountsObserver!!)
+                    accountsObserver = null
+                }
+            }
+            accountsList.observeForever(accountsObserver!!)
         }
     }
 

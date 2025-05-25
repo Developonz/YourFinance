@@ -13,4 +13,6 @@ interface MoneyAccountRepository {
     suspend fun getAccountById(id: Long): MoneyAccount?
 
     suspend fun updateAccount(account: MoneyAccount)
+
+    suspend fun setDefaultAccount(accountId: Long)
 }

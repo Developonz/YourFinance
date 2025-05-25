@@ -46,4 +46,8 @@ class MoneyAccountRepositoryImpl @Inject constructor(private val dao: MoneyAccou
             dao.updateAccount(account.toData())
         }
     }
+
+    override suspend fun setDefaultAccount(accountId: Long) {
+        dao.setDefaultAccount(accountId)
+    }
 }

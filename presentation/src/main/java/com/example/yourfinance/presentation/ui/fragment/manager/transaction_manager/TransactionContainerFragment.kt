@@ -26,13 +26,7 @@ class TransactionContainerFragment : Fragment() {
     private var _binding: FragmentTransactionContainerBinding? = null
     private val binding get() = _binding!!
 
-    // Args теперь используются ViewModel для начальной инициализации
-    // private val args: TransactionContainerFragmentArgs by navArgs()
-    // private val transactionId: Long by lazy { args.transactionId }
-    // private val initialTransactionTypeInt: Int by lazy { args.transactionTypeInt }
-    // private val isEditingModeFromArgs: Boolean by lazy { transactionId != -1L && initialTransactionTypeInt != -1 }
 
-    // ViewModel, общая для контейнера и его дочерних фрагментов
     private val viewModel: TransactionManagerViewModel by viewModels()
 
     private var tabLayoutMediator: TabLayoutMediator? = null

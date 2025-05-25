@@ -6,6 +6,7 @@ import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Transaction
 import androidx.room.Update
 import com.example.yourfinance.data.model.MoneyAccountEntity
 
@@ -28,4 +29,16 @@ abstract class MoneyAccountDao {
 
     @Update
     abstract fun updateAccount(account: MoneyAccountEntity)
+
+    @Transaction
+    open suspend fun setDefaultAccount(accountId: Long) {
+        clearDefaultFlags()
+        setDefaultForAccountInternal(accountId)
+    }
+
+    @Query("UPDATE MoneyAccountEntity SET `default` = 0")
+    abstract suspend fun clearDefaultFlags()
+
+    @Query("UPDATE MoneyAccountEntity SET `default` = 1 WHERE id = :accountId")
+    abstract suspend fun setDefaultForAccountInternal(accountId: Long)
 }

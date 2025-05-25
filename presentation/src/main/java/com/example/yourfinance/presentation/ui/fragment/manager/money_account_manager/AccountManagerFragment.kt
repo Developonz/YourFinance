@@ -22,11 +22,17 @@ class AccountManagerFragment : Fragment() {
         viewModel.deleteAccount(acc)
     }
 
+    private val defaultClick = { acc: MoneyAccount ->
+        viewModel.setDefaultAccount(acc)
+    }
+
     private val editClick = { acc: MoneyAccount ->
         val action = AccountManagerFragmentDirections.actionAccountManagerToAccountCreateManager(acc.id)
         findNavController().navigate(action)
     }
-    private val adapter: MoneyAccountAdapter = MoneyAccountAdapter(deleteClick, editClick)
+
+
+    private val adapter: MoneyAccountAdapter = MoneyAccountAdapter(deleteClick, defaultClick, editClick)
 
     override fun onCreateView(
         inflater: LayoutInflater,
