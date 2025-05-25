@@ -74,8 +74,7 @@ class TransactionContainerFragment : Fragment() {
                     if (binding.viewPager.currentItem != targetPosition) {
                         binding.viewPager.setCurrentItem(targetPosition, false) // false для немедленной смены без анимации
                     }
-                    // После установки вкладки, можно удалить этот одноразовый наблюдатель, если он больше не нужен
-                    // viewModel.loadedTransactionType.removeObservers(viewLifecycleOwner) // Осторожно, если View пересоздается
+                    updateTabsLockState(true, targetPosition)
                 }
             })
         } else {
@@ -89,13 +88,10 @@ class TransactionContainerFragment : Fragment() {
             if (binding.viewPager.currentItem != initialPosition) {
                 binding.viewPager.setCurrentItem(initialPosition, false)
             }
-            // Если ViewPager уже на нужной позиции, но тип в ViewModel мог быть не установлен (маловероятно с новой логикой ViewModel),
-            // то onPageSelected при setCurrentItem(..., true) или пользовательский свайп его установит.
-            // При setCurrentItem(..., false) onPageSelected может не вызваться, если позиция не изменилась.
-            // Убедимся, что ViewModel знает о типе, если позиция 0 и это не EXPENSE
             if (binding.viewPager.currentItem == 0 && viewModel.currentTransactionType.value != TransactionType.EXPENSE){
                 viewModel.setTransactionType(TransactionType.EXPENSE) // Сообщаем VM, если она еще не знает
             }
+            updateTabsLockState(false, null)
         }
     }
 
@@ -122,6 +118,38 @@ class TransactionContainerFragment : Fragment() {
         }
         tabLayoutMediator?.attach()
         binding.viewPager.registerOnPageChangeCallback(pageChangeCallback)
+    }
+
+    private fun updateTabsLockState(lock: Boolean, activePosition: Int?) {
+        binding.viewPager.isUserInputEnabled = !lock // Блокируем/разблокируем свайп
+
+        val tabLayout = binding.tabLayoutContainer
+        for (i in 0 until tabLayout.tabCount) {
+            val tabViewGroup = tabLayout.getChildAt(0) as? ViewGroup // LinearLayout внутри TabLayout
+            val tabView = tabViewGroup?.getChildAt(i) // Непосредственно View вкладки
+
+            if (lock && activePosition != null) { // Режим редактирования, блокируем неактивные
+                if (i != activePosition) {
+                    tabView?.apply {
+                        isClickable = false
+                        isEnabled = false // Также влияет на визуальное состояние (обычно делает тусклее)
+                        alpha = 0.5f      // Дополнительно делаем неактивные вкладки полупрозрачными
+                    }
+                } else {
+                    tabView?.apply { // Активная вкладка должна быть доступна (на случай, если до этого была заблокирована)
+                        isClickable = true
+                        isEnabled = true
+                        alpha = 1.0f
+                    }
+                }
+            } else { // Режим создания или нужно разблокировать все
+                tabView?.apply {
+                    isClickable = true
+                    isEnabled = true
+                    alpha = 1.0f
+                }
+            }
+        }
     }
 
     private fun observeViewModel() {
