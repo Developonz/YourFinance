@@ -27,7 +27,7 @@ abstract class TransactionDao(private val dataBase: FinanceDataBase) {
     abstract fun insertPaymentTransactionInternal(payment: PaymentEntity) : Long
 
     @Transaction
-    open suspend fun insertPaymentTransaction(payment: PaymentEntity) {
+    open suspend fun insertPaymentTransaction(payment: PaymentEntity) : Long {
         val paymentId = insertPaymentTransactionInternal(payment)
         val account = dataBase.getMoneyAccountDao().getAccountById(payment.moneyAccID)
         account?.let {
@@ -39,14 +39,14 @@ abstract class TransactionDao(private val dataBase: FinanceDataBase) {
                 dataBase.getFutureTransactionDao().insertFuturePaymentTransaction(paymentWithGeneratedId.toDataFuture())
             }
         }
-
+        return paymentId
     }
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     abstract fun insertTransferTransactionInternal(trans: TransferEntity): Long
 
     @Transaction
-    open suspend fun insertTransferTransaction(transfer: TransferEntity) {
+    open suspend fun insertTransferTransaction(transfer: TransferEntity) : Long {
         val transferId = insertTransferTransactionInternal(transfer)
 
         if (transfer.date <= LocalDate.now()) {
@@ -67,6 +67,7 @@ abstract class TransactionDao(private val dataBase: FinanceDataBase) {
             val transferWithGeneratedId = transfer.copy(id = transferId)
             dataBase.getFutureTransactionDao().insertFutureTransferTransaction(transferWithGeneratedId.toDataFutureTransfer())
         }
+        return transferId
     }
 
     @Transaction
@@ -191,7 +192,8 @@ abstract class TransactionDao(private val dataBase: FinanceDataBase) {
                     }
                 } else {
                     account?.let {
-                        val diff = newPayment.balance - oldPayment.payment.balance
+                        val diff = if (oldPayment.payment.type == newPayment.type)  newPayment.balance - oldPayment.payment.balance
+                                        else -(oldPayment.payment.balance + newPayment.balance)
                         it.balance += diff
                         dataBase.getMoneyAccountDao().updateAccount(it)
                     }
@@ -259,4 +261,16 @@ abstract class TransactionDao(private val dataBase: FinanceDataBase) {
 
         updateTransferInternal(newTransfer)
     }
+
+    @Query("SELECT * FROM PaymentEntity")
+    abstract suspend fun getAllPaymentsForExport(): List<FullPayment>
+
+    @Query("SELECT * FROM TransferEntity")
+    abstract suspend fun getAllTransfersForExport(): List<FullTransfer>
+
+    @Query("DELETE FROM PaymentEntity")
+    abstract suspend fun clearAllPayments()
+
+    @Query("DELETE FROM TransferEntity")
+    abstract suspend fun clearAllTransfers()
 }

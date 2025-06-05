@@ -1,84 +1,158 @@
 package com.example.yourfinance.presentation.ui.fragment
 
-
+import android.app.Activity
+import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Bundle
+import android.view.View
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.fragment.app.viewModels // Используем new 'androidx.fragment:fragment-ktx:X.Y.Z'
 import androidx.navigation.fragment.findNavController
 import androidx.preference.ListPreference
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import com.example.yourfinance.presentation.R
+import dagger.hilt.android.AndroidEntryPoint
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+// gson и адаптеры LocalDate/LocalTime теперь не нужны во фрагменте, они в ViewModel
 
-//TODO: сделать прослойку PreferenceDataStore
-
+@AndroidEntryPoint
 class SettingsFragment : PreferenceFragmentCompat() {
+
+    private val viewModel: SettingsViewModel by viewModels()
+
+    private val exportFileLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            result.data?.data?.also { uri ->
+                viewModel.exportData(uri, requireActivity().contentResolver)
+            }
+        }
+    }
+
+    private val importFileLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            result.data?.data?.also { uri ->
+                showImportConfirmationDialog(uri)
+            }
+        }
+    }
 
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
         setPreferencesFromResource(R.xml.preferences, rootKey)
 
-        // --- Обработчики нажатий для навигации ---
-
+        // Навигация
         findPreference<Preference>("pref_accounts")?.setOnPreferenceClickListener {
-            // Переход к управлению счетами
             findNavController().navigate(R.id.action_settingsFragment_to_accountManagerFragment)
-            true // true означает, что клик обработан
+            true
         }
-
         findPreference<Preference>("pref_categories")?.setOnPreferenceClickListener {
             findNavController().navigate(R.id.action_settingsFragment_to_categoriesFragment)
             true
         }
-
         findPreference<Preference>("pref_budgets")?.setOnPreferenceClickListener {
-            // Переход к управлению бюджетами
             findNavController().navigate(R.id.action_settingsFragment_to_budgetManagerFragment)
             true
         }
 
+        // Экспорт/Импорт
         findPreference<Preference>("pref_export")?.setOnPreferenceClickListener {
-            // TODO: Логика экспорта
-            Toast.makeText(context, "Функция Экспорта еще не реализована", Toast.LENGTH_SHORT).show()
+            initiateExport()
             true
         }
-
         findPreference<Preference>("pref_import")?.setOnPreferenceClickListener {
-            // TODO: Логика импорта
-            Toast.makeText(context, "Функция Импорта еще не реализована", Toast.LENGTH_SHORT).show()
+            initiateImport()
             true
         }
 
-        // --- Обработка изменений для ListPreference ---
-
-        findPreference<ListPreference>("pref_theme")?.setOnPreferenceChangeListener { preference, newValue ->
+        // Тема
+        findPreference<ListPreference>("pref_theme")?.setOnPreferenceChangeListener { _, newValue ->
             applyTheme(newValue.toString())
-            true // true означает, что изменение принято и будет сохранено
+            true
         }
 
-        // --- Установка динамических значений ---
-
-        // Установка версии приложения
+        // Версия
         try {
             val pInfo = requireContext().packageManager.getPackageInfo(requireContext().packageName, 0)
-            val version = pInfo.versionName
-            findPreference<Preference>("pref_version")?.summary = version
+            findPreference<Preference>("pref_version")?.summary = pInfo.versionName
         } catch (e: PackageManager.NameNotFoundException) {
-            e.printStackTrace()
             findPreference<Preference>("pref_version")?.summary = "N/A"
         }
 
-        // Можно добавить обработчик для pref_first_day_month, если нужно что-то делать сразу после выбора
-        findPreference<ListPreference>("pref_first_day_month")?.setOnPreferenceChangeListener { preference, newValue ->
-            // TODO: Сохранить или использовать новое значение первого дня месяца
-            // Например, обновить ViewModel или репозиторий
+        // Первый день месяца
+        findPreference<ListPreference>("pref_first_day_month")?.setOnPreferenceChangeListener { _, newValue ->
             Toast.makeText(context, "Выбран первый день месяца: $newValue", Toast.LENGTH_SHORT).show()
+            // TODO: Сохранить это значение (например, через ViewModel -> UseCase -> Repository -> SharedPreferences)
             true
         }
 
     }
 
-    // Функция для применения темы
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        observeViewModel() // Теперь viewLifecycleOwner доступен
+    }
+
+    private fun observeViewModel() {
+        viewModel.backupState.observe(viewLifecycleOwner) { state ->
+            when (state) {
+                is BackupState.Idle -> {
+                    // Ничего не делаем или скрываем прогресс-бар
+                }
+                is BackupState.InProgress -> {
+                    // Показываем прогресс-бар
+                    Toast.makeText(context, "Выполняется операция...", Toast.LENGTH_SHORT).show()
+                }
+                is BackupState.Success -> {
+                    // Скрываем прогресс-бар
+                    Toast.makeText(context, state.message, Toast.LENGTH_LONG).show()
+                    viewModel.resetBackupState() // Сброс состояния
+                }
+                is BackupState.Error -> {
+                    // Скрываем прогресс-бар
+                    Toast.makeText(context, state.message, Toast.LENGTH_LONG).show()
+                    viewModel.resetBackupState() // Сброс состояния
+                }
+            }
+        }
+    }
+
+    private fun initiateExport() {
+        val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
+        val fileName = "yourfinance_backup_$timestamp.json"
+        val intent = Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
+            addCategory(Intent.CATEGORY_OPENABLE)
+            type = "application/json"
+            putExtra(Intent.EXTRA_TITLE, fileName)
+        }
+        exportFileLauncher.launch(intent)
+    }
+
+    private fun initiateImport() {
+        val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
+            addCategory(Intent.CATEGORY_OPENABLE)
+            type = "application/json"
+        }
+        importFileLauncher.launch(intent)
+    }
+
+    private fun showImportConfirmationDialog(uri: Uri) {
+        AlertDialog.Builder(requireContext())
+            .setTitle("Импорт данных")
+            .setMessage("ВНИМАНИЕ! Все текущие данные будут удалены и заменены данными из файла. Это действие необратимо. Продолжить?")
+            .setPositiveButton("Импортировать") { dialog, _ ->
+                viewModel.importData(uri, requireActivity().contentResolver)
+                dialog.dismiss()
+            }
+            .setNegativeButton("Отмена", null)
+            .show()
+    }
+
     private fun applyTheme(themeValue: String) {
         when (themeValue) {
             "light" -> AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)

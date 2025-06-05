@@ -8,7 +8,7 @@ import javax.inject.Inject
 
 class CreatePaymentUseCase @Inject constructor(
     private val transactionRepository: TransactionRepository) {
-    suspend operator fun invoke(payment: Payment) {
-        transactionRepository.createPayment(payment)
+    suspend operator fun invoke(payment: Payment) : Long {
+        return transactionRepository.createPayment(payment)
     }
 }

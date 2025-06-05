@@ -33,40 +33,11 @@ abstract class CategoryDao {
     @Query("SELECT * FROM CategoryEntity WHERE parentId = :parentId")
     abstract fun fetchSubcategoriesByParent(parentId: Long) : LiveData<List<CategoryEntity>>
 
-//
-//    open fun fetchSubcategoriesByParent(parentId: Long): LiveData<List<CategoryEntity>> {
-//        val sourceSubcategoriesLiveData = fetchSubcategoriesByParentInternal(parentId)
-//
-//        return sourceSubcategoriesLiveData.map { subcategoryList ->
-//            val parentEntity = if (parentId != 0L) loadCategoryById(parentId) else null
-//            val parentDomain = parentEntity?.toDomainCategory()
-//
-//            subcategoryList.map { subEntity ->
-//                subEntity.copy(
-//                    colorHex = parentDomain?.colorHex ?: subEntity.colorHex,
-//                    iconResourceId = parentDomain?.iconResourceId ?: subEntity.iconResourceId
-//                )
-//            }
-//        }
-//    }
+
 
     @Query("SELECT * FROM CategoryEntity WHERE parentId IS null")
     abstract fun fetchCategories() : LiveData<List<CategoryWithSubcategories>>
 
-
-//    open fun fetchCategories(): LiveData<List<CategoryWithSubcategories>> {
-//        val sourceLiveData = fetchCategoriesInternal()
-//        return sourceLiveData.map { listOfCategoriesWithSubcategories ->
-//            listOfCategoriesWithSubcategories.map { categoryWithSubcategories ->
-//                val parentCategory = categoryWithSubcategories.category
-//                categoryWithSubcategories.subcategories.forEach { subcategory ->
-//                    subcategory.colorHex = parentCategory.colorHex
-//                    subcategory.iconResourceId = parentCategory.iconResourceId
-//                }
-//                categoryWithSubcategories
-//            }
-//        }
-//    }
 
 
     @Query("SELECT * FROM CategoryEntity WHERE id = :categoryId")
@@ -86,5 +57,11 @@ abstract class CategoryDao {
     // TODO: изменить запрос для мягкого удаления
     @Query("DELETE FROM CategoryEntity WHERE id = :categoryId")
     abstract fun deleteCategoryById(categoryId: Long)
+
+    @Query("SELECT * FROM CategoryEntity")
+    abstract suspend fun getAllCategoriesForExport(): List<CategoryEntity>
+
+    @Query("DELETE FROM CategoryEntity")
+    abstract suspend fun clearAll()
 
 }

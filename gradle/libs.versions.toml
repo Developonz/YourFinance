@@ -22,14 +22,21 @@ fragmentKtx = "1.8.1"
 preferenceKtx = "1.2.1"
 inject = "1" # Для javax.inject
 mpandroidchart = "v3.1.0"
+gson = "2.13.1"
 
 
 # Testing
+# Testing versions
 junit = "4.13.2"
-junitExt = "1.2.1" # Переименовал junitVersion для ясности
+junitExt = "1.2.1"
 espressoCore = "3.6.1"
 navigationFragmentKtx = "2.9.0"
 navigationUiKtx = "2.9.0"
+archCoreTesting = "2.2.0"
+testRunner = "1.6.2"
+testRules = "1.6.1"
+testTruth = "1.6.0"
+mockitoAndroid = "5.12.0"
 
 
 [libraries]
@@ -49,23 +56,28 @@ androidx-lifecycle-viewmodel-ktx = { group = "androidx.lifecycle", name = "lifec
 androidx-lifecycle-livedata-ktx = { group = "androidx.lifecycle", name = "lifecycle-livedata-ktx", version.ref = "lifecycle" }
 androidx-lifecycle-livedata-core = { group = "androidx.lifecycle", name = "lifecycle-livedata-core", version.ref = "lifecycle" }
 androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycle" }
+androidx-lifecycle-runtime-testing = { group = "androidx.lifecycle", name = "lifecycle-runtime-testing", version.ref = "lifecycle" }
 
 # Navigation
 androidx-navigation-fragment-ktx = { group = "androidx.navigation", name = "navigation-fragment-ktx", version.ref = "navigation" }
 androidx-navigation-ui-ktx = { group = "androidx.navigation", name = "navigation-ui-ktx", version.ref = "navigation" }
+androidx-navigation-testing = { group = "androidx.navigation", name = "navigation-testing", version.ref = "navigation" }
 
 # Room (Database)
 room-runtime = { module = "androidx.room:room-runtime", version.ref = "room" }
 room-ktx = { module = "androidx.room:room-ktx", version.ref = "room" }
 room-compiler = { module = "androidx.room:room-compiler", version.ref = "room" } # Для KSP
+room-testing = { module = "androidx.room:room-testing", version.ref = "room" }
 
 # Hilt (Dependency Injection)
 hilt-android = { module = "com.google.dagger:hilt-android", version.ref = "hilt" }
 hilt-compiler = { module = "com.google.dagger:hilt-compiler", version.ref = "hilt" } # Переименовано для ясности, используется для KSP
+hilt-android-testing = { group = "com.google.dagger", name = "hilt-android-testing", version.ref = "hilt" }
 
 # Kotlin Coroutines
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines"}
 kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "coroutines"}
+kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutines"}
 
 # Misc UI
 circleimageview = { module = "de.hdodenhof:circleimageview", version.ref = "circleimageview" }
@@ -75,15 +87,31 @@ mpandroidchart = { module = "com.github.PhilJay:MPAndroidChart", version.ref = "
 javax-inject = { group = "javax.inject", name = "javax.inject", version.ref = "inject" }
 
 # Testing
-junit = { group = "junit", name = "junit", version.ref = "junit" }
-androidx-test-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitExt" } # Переименовано
-androidx-test-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
-navigation-fragment-ktx = { group = "androidx.navigation", name = "navigation-fragment-ktx", version.ref = "navigationFragmentKtx" }
-navigation-ui-ktx = { group = "androidx.navigation", name = "navigation-ui-ktx", version.ref = "navigationUiKtx" } # Переименовано
 
-# Удалены неиспользуемые:
-# androidx-legacy-support-v4
-# preference (объединено)
+# Unit Testing
+junit = { group = "junit", name = "junit", version.ref = "junit" }
+
+# Android Testing
+androidx-test-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitExt" }
+androidx-test-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
+androidx-test-runner = { group = "androidx.test", name = "runner", version.ref = "testRunner" }
+androidx-test-rules = { group = "androidx.test", name = "rules", version.ref = "testRules" }
+androidx-test-truth = { group = "androidx.test.ext", name = "truth", version.ref = "testTruth" }
+
+# Architecture Components Testing
+androidx-arch-core-testing = { group = "androidx.arch.core", name = "core-testing", version.ref = "archCoreTesting" }
+
+# Mockito for Android
+mockito-android = { group = "org.mockito", name = "mockito-android", version.ref = "mockitoAndroid" }
+
+
+navigation-fragment-ktx = { group = "androidx.navigation", name = "navigation-fragment-ktx", version.ref = "navigationFragmentKtx" }
+navigation-ui-ktx = { group = "androidx.navigation", name = "navigation-ui-ktx", version.ref = "navigationUiKtx" }
+
+
+
+
+gson = { group = "com.google.code.gson", name = "gson", version.ref = "gson" }
 
 [plugins]
 # Core
@@ -96,7 +124,3 @@ kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" } # До�
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
 navigation-safeargs = { id = "androidx.navigation.safeargs.kotlin", version.ref = "navigationSafeargs" }
-#androidx-room = { id = "androidx.room", version.ref = "room" } # Плагин Room больше не нужен с KSP
-
-# Удалены неиспользуемые:
-# jetbrains-kotlin-jvm (используется kotlin-jvm)

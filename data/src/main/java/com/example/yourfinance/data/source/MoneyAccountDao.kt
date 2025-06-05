@@ -41,4 +41,10 @@ abstract class MoneyAccountDao {
 
     @Query("UPDATE MoneyAccountEntity SET `default` = 1 WHERE id = :accountId")
     abstract suspend fun setDefaultForAccountInternal(accountId: Long)
+
+    @Query("SELECT * FROM MoneyAccountEntity")
+    abstract suspend fun getAllAccountsForExport(): List<MoneyAccountEntity>
+
+    @Query("DELETE FROM MoneyAccountEntity")
+    abstract suspend fun clearAll()
 }

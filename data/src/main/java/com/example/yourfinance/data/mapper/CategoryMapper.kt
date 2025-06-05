@@ -24,6 +24,7 @@ fun CategoryEntity.toDomainSubcategory(): Subcategory {
         title = Title(this.title),
         categoryType = this.categoryType,
         parentId = this.parentId!!,
+        iconResourceId = this.iconResourceId,
         colorHex = this.colorHex
     )
 }

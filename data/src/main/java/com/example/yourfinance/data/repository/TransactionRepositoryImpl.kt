@@ -42,15 +42,15 @@ class TransactionRepositoryImpl @Inject constructor(private val dao: Transaction
         return mediator
     }
 
-    override suspend fun createPayment(payment: Payment) {
-        withContext(Dispatchers.IO) {
+    override suspend fun createPayment(payment: Payment) : Long {
+        return withContext(Dispatchers.IO) {
             Log.i("TESTDB", payment.moneyAccount.title + " ")
             dao.insertPaymentTransaction(payment.toData())
         }
     }
 
-    override suspend fun createTransfer(transfer: Transfer) {
-        withContext(Dispatchers.IO) {
+    override suspend fun createTransfer(transfer: Transfer) : Long {
+        return withContext(Dispatchers.IO) {
             dao.insertTransferTransaction(transfer.toData())
         }
     }

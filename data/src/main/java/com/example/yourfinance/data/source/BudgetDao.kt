@@ -16,7 +16,7 @@ abstract class BudgetDao() {
 
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    abstract fun insertBudget(budget: BudgetEntity)
+    abstract fun insertBudget(budget: BudgetEntity) : Long
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     abstract fun insertBudgetCategoriesCrossRef(entity: BudgetCategoriesCrossRef)
@@ -54,4 +54,16 @@ abstract class BudgetDao() {
         deleteAllBudgetCategoriesCrossRefForBudget(budgetId)
         deleteBudgetById(budgetId)
     }
+
+    @Query("SELECT * FROM BudgetEntity")
+    abstract suspend fun getAllBudgetsForExport(): List<BudgetWithCategories>
+
+    @Query("SELECT * FROM BudgetCategoriesCrossRef")
+    abstract suspend fun getAllBudgetCategoriesCrossRefForExport(): List<BudgetCategoriesCrossRef>
+
+    @Query("DELETE FROM BudgetEntity")
+    abstract suspend fun clearAllBudgets()
+
+    @Query("DELETE FROM BudgetCategoriesCrossRef")
+    abstract suspend fun clearAllBudgetCategoriesCrossRef()
 }

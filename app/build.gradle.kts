@@ -60,10 +60,10 @@ android {
 }
 
 dependencies {
-    // Подключаем модули presentation и data
-    // Domain подключится транзитивно через data и presentation
+    // Подключаем модули
     implementation(project(":presentation"))
     implementation(project(":data")) // Нужно для Hilt, чтобы найти реализации из data
+    implementation(project(":domain"))
 
     // Hilt (для Application класса и DI графа)
     implementation(libs.hilt.android)
@@ -81,14 +81,37 @@ dependencies {
     implementation(libs.androidx.appcompat)
     implementation(libs.material) // Часто нужен для тем и базовых стилей
 
-    // Тестирование
-    testImplementation(libs.junit)
-    androidTestImplementation(libs.androidx.test.junit)
-    androidTestImplementation(libs.androidx.test.espresso.core)
 
-    // Удалены зависимости, которые теперь находятся в presentation или data:
-    // libs.room.*, libs.circleimageview, libs.recyclerview, libs.androidx.preference,
-    // libs.androidx.lifecycle.*, libs.androidx.navigation.*, libs.androidx.fragment.ktx,
-    // libs.androidx.constraintlayout
-    // libs.androidx.legacy.support.v4 - удален как устаревший
+
+    // Unit тесты
+    testImplementation(libs.junit)
+
+    // Интеграционные тесты (используем версии из каталога)
+    androidTestImplementation(libs.androidx.test.junit) // 1.2.1 из каталога
+    androidTestImplementation(libs.androidx.test.espresso.core) // 3.6.1 из каталога
+
+    // Hilt для тестов
+    androidTestImplementation(libs.hilt.android.testing)
+
+    // Room тестирование - нужно добавить в каталог версий
+    androidTestImplementation(libs.room.testing)
+
+    // Architecture Components тестирование
+    androidTestImplementation(libs.androidx.arch.core.testing)
+
+    // Coroutines тестирование - используем версию из каталога
+    androidTestImplementation(libs.kotlinx.coroutines.test)
+
+    // Test Runner и Rules
+    androidTestImplementation(libs.androidx.test.runner)
+    androidTestImplementation(libs.androidx.test.rules)
+
+    // Дополнительные полезные тестовые зависимости
+    androidTestImplementation(libs.androidx.test.truth)  // Для более читаемых assertions
+    androidTestImplementation(libs.mockito.android) // Mockito для Android тестов
+
+
+
+
+    implementation(libs.gson)
 }

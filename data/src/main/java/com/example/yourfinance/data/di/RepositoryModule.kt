@@ -1,10 +1,12 @@
 package com.example.yourfinance.data.di
 
 
+import com.example.yourfinance.data.repository.BackupRepositoryImpl
 import com.example.yourfinance.data.repository.BudgetRepositoryImpl
 import com.example.yourfinance.data.repository.CategoryRepositoryImpl
 import com.example.yourfinance.data.repository.MoneyAccountRepositoryImpl
 import com.example.yourfinance.data.repository.TransactionRepositoryImpl
+import com.example.yourfinance.domain.repository.BackupRepository
 import com.example.yourfinance.domain.repository.BudgetRepository
 import com.example.yourfinance.domain.repository.CategoryRepository
 import com.example.yourfinance.domain.repository.MoneyAccountRepository
@@ -43,5 +45,9 @@ abstract class RepositoryModule {
         repository: BudgetRepositoryImpl
     ) : BudgetRepository
 
-
+    @Binds
+    @Singleton
+    abstract fun bindBackupRepository(
+        backupRepositoryImpl: BackupRepositoryImpl
+    ): BackupRepository
 }

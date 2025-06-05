@@ -6,7 +6,6 @@ plugins {
     alias(libs.plugins.ksp) apply false
     alias(libs.plugins.navigation.safeargs) apply false
     alias(libs.plugins.android.library) apply false
-    // ИСПРАВЛЕНО: Используем правильный псевдоним 'kotlin.jvm'
     alias(libs.plugins.kotlin.jvm) apply false
 }
 

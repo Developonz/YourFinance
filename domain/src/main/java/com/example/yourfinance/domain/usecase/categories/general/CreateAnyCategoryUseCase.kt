@@ -5,7 +5,7 @@ import com.example.yourfinance.domain.repository.CategoryRepository
 import javax.inject.Inject
 
 class CreateAnyCategoryUseCase @Inject constructor(private val categoryRepository: CategoryRepository) {
-    suspend operator fun invoke(category: ICategoryData) {
-        categoryRepository.insertCategory(category)
+    suspend operator fun invoke(category: ICategoryData) : Long {
+        return categoryRepository.insertCategory(category)
     }
 }

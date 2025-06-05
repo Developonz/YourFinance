@@ -144,6 +144,7 @@ dependencies {
     // Прочие
     implementation(libs.circleimageview)
     implementation(libs.mpandroidchart)
+    implementation(libs.gson)
 
     // Тесты
     testImplementation(libs.junit)

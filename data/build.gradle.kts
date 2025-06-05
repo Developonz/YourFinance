@@ -35,10 +35,6 @@ android {
     kotlinOptions {
         jvmTarget = "11"
     }
-    // buildFeatures {
-    // viewBinding = true // Не нужно в data слое
-    // compose = true // Не нужно в data слое
-    // }
 }
 
 dependencies {
@@ -64,10 +60,6 @@ dependencies {
     // Preferences DataStore или SharedPreferences (если работа с настройками идет здесь)
     implementation(libs.androidx.preference.ktx) // Если используется SharedPreferences через AndroidX Preference
 
-    // Сетевые библиотеки (если нужны)
-    // implementation(libs.retrofit)
-    // implementation(libs.okhttp)
-    // implementation(libs.moshi.kotlin) // или Gson
 
     // Тестирование
     testImplementation(libs.junit)

@@ -16,14 +16,14 @@ import javax.inject.Inject
 
 class CategoryRepositoryImpl @Inject constructor(private val dao: CategoryDao) : CategoryRepository{
 
-    override suspend fun insertCategory(category: ICategoryData)  {
+    override suspend fun insertCategory(category: ICategoryData) : Long {
         val entityToInsert = when (category) {
             is Category -> category.toData()
             is Subcategory -> category.toData()
-            else -> return
+            else -> return 0
         }
 
-        withContext(Dispatchers.IO) {
+        return withContext(Dispatchers.IO) {
             dao.insertCategory(entityToInsert)
         }
     }

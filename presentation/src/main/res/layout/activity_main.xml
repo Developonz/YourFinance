@@ -29,14 +29,14 @@
         android:background="@color/black"
         app:layout_anchor="@id/bottom_app_bar"
         android:src="@drawable/ic_plus"
-        app:layout_anchorGravity="center" />
+        app:layout_anchorGravity="bottom" />
 
     <com.google.android.material.bottomappbar.BottomAppBar
         android:id="@+id/bottom_app_bar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
-        app:fabAlignmentMode="center"
+        app:fabAlignmentMode="end"
         app:fabAnchorMode="cradle"
         app:fabCradleMargin="7dp"
         app:fabCradleRoundedCornerRadius="30dp"

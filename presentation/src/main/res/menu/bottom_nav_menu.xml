@@ -6,14 +6,11 @@
         android:icon="@drawable/ic_transactions_24dp"
         android:title="@string/title_transactions" />
 
-    <item
-        android:id="@+id/navigation_shopping_list"
-        android:icon="@drawable/ic_calendar"
-        android:title="@string/title_shopping_list" />
+<!--    <item-->
+<!--        android:id="@+id/navigation_shopping_list"-->
+<!--        android:icon="@drawable/ic_calendar"-->
+<!--        android:title="@string/title_shopping_list" />-->
 
-    <item
-        android:id="@+id/navigation_empty"
-        android:title="" />
 
     <item
         android:id="@+id/navigation_statistic"
@@ -24,5 +21,10 @@
         android:id="@+id/navigation_wallet"
         android:icon="@drawable/ic_wallet_24dp"
         android:title="@string/title_wallet" />
+
+    <item
+        android:id="@+id/navigation_empty1"
+        android:title="" />
+
 
 </menu>

@@ -10,9 +10,9 @@ import java.time.LocalDate
 interface TransactionRepository {
     fun fetchTransactions(startDate: LocalDate?, endDate: LocalDate?): LiveData<List<Transaction>>
 
-    suspend fun createPayment(payment: Payment)
+    suspend fun createPayment(payment: Payment) : Long
 
-    suspend fun createTransfer(transfer: Transfer)
+    suspend fun createTransfer(transfer: Transfer) : Long
 
     suspend fun loadPaymentById(id: Long): Payment?
 

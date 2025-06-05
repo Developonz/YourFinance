@@ -28,7 +28,7 @@ class MainActivity : AppCompatActivity() {
 
         val navView: BottomNavigationView = binding.navView.apply {
             background = null
-            menu.getItem(2).isEnabled = false
+            menu.getItem(3).isEnabled = false
         }
 
 

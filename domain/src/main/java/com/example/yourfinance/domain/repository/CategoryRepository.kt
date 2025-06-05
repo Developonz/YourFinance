@@ -6,7 +6,7 @@ import com.example.yourfinance.domain.model.entity.category.ICategoryData
 import com.example.yourfinance.domain.model.entity.category.Subcategory
 
 interface CategoryRepository {
-    suspend fun insertCategory(category: ICategoryData)
+    suspend fun insertCategory(category: ICategoryData) : Long
 
     suspend fun loadCategoryById(categoryId: Long): Category?
     suspend fun loadSubcategoryById(subcategoryId: Long): Subcategory?
