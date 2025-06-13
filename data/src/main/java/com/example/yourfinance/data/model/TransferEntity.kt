@@ -30,6 +30,7 @@ data class TransferEntity (
     var moneyAccToID: Long,
     var note: String = "",
     var date: LocalDate = LocalDate.now(),
+    var is_done: Boolean,
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0
 )

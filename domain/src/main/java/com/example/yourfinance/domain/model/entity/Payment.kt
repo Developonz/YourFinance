@@ -15,8 +15,9 @@ data class Payment(
     var category : ICategoryData,
     private var _note: Title,
     override var date: LocalDate = LocalDate.now(),
+    override var is_done: Boolean = true,
     override val id: Long = 0
-) : Transaction(id, type, balance, date, _note.value) {
+) : Transaction(id, type, balance, date, is_done, _note.value) {
     override var note: String
         get() = _note.value
         set(value) { _note = Title(value) }

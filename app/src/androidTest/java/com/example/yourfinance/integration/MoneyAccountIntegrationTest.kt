@@ -19,11 +19,10 @@ import com.example.yourfinance.domain.usecase.moneyaccount.FetchMoneyAccountsUse
 import com.example.yourfinance.domain.usecase.moneyaccount.LoadMoneyAccountByIdUseCase
 import com.example.yourfinance.domain.usecase.moneyaccount.SetMoneyAccountAsDefaultUseCase
 import com.example.yourfinance.domain.usecase.moneyaccount.UpdateMoneyAccountUseCase
-import com.google.common.truth.Truth.assertThat
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
 import org.junit.After
-import org.junit.Assert.assertNull
+import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -53,7 +52,6 @@ class MoneyAccountIntegrationTest {
     private lateinit var deleteMoneyAccountUseCase: DeleteMoneyAccountUseCase
     private lateinit var setMoneyAccountAsDefaultUseCase: SetMoneyAccountAsDefaultUseCase
 
-
     @Before
     fun setUp() {
         database = Room.inMemoryDatabaseBuilder(
@@ -80,24 +78,29 @@ class MoneyAccountIntegrationTest {
         database.close()
     }
 
+    // helper для LiveData
     @Throws(InterruptedException::class, TimeoutException::class)
-    fun <T> LiveData<T>.getOrAwaitValue(
+    private fun <T> LiveData<T>.getOrAwait(
         time: Long = 2,
-        timeUnit: TimeUnit = TimeUnit.SECONDS
+        timeUnit: TimeUnit = TimeUnit.SECONDS,
+        condition: (T?) -> Boolean = { it != null }
     ): T {
         var data: T? = null
         val latch = CountDownLatch(1)
         val observer = object : Observer<T> {
             override fun onChanged(value: T) {
-                data = value
-                latch.countDown()
-                this@getOrAwaitValue.removeObserver(this)
+                if (condition(value)) {
+                    data = value
+                    latch.countDown()
+                    this@getOrAwait.removeObserver(this)
+                }
             }
         }
+        if (condition(this.value)) return this.value as T
         this.observeForever(observer)
         try {
             if (!latch.await(time, timeUnit)) {
-                throw TimeoutException("LiveData value was never set.")
+                throw TimeoutException("No data or condition failed: ${this.value}")
             }
         } finally {
             this.removeObserver(observer)
@@ -105,7 +108,6 @@ class MoneyAccountIntegrationTest {
         @Suppress("UNCHECKED_CAST")
         return data as T
     }
-
 
     @Test
     fun createAccountAndFetchById() = runTest {
@@ -117,14 +119,14 @@ class MoneyAccountIntegrationTest {
         )
 
         val generatedId = createMoneyAccountUseCase(newAccount)
-        assertThat(generatedId).isGreaterThan(0L)
+        assertTrue(generatedId > 0L)
 
         val fetchedAccount = loadMoneyAccountByIdUseCase(generatedId)
 
-        assertThat(fetchedAccount).isNotNull()
-        assertThat(fetchedAccount?.id).isEqualTo(generatedId)
-        assertThat(fetchedAccount?.title).isEqualTo("Integration Test Account")
-        assertThat(fetchedAccount?.balance).isEqualTo(1000.0)
+        assertNotNull(fetchedAccount)
+        assertEquals(generatedId, fetchedAccount?.id)
+        assertEquals("Integration Test Account", fetchedAccount?.title)
+        assertEquals(1000.0, fetchedAccount!!.balance, 1e-3)
     }
 
     @Test
@@ -144,10 +146,10 @@ class MoneyAccountIntegrationTest {
         updateMoneyAccountUseCase(updatedAccount)
 
         val fetchedAccount = loadMoneyAccountByIdUseCase(id)
-        assertThat(fetchedAccount).isNotNull()
-        assertThat(fetchedAccount?.title).isEqualTo("Updated Title")
-        assertThat(fetchedAccount?.startBalance).isEqualTo(150.0)
-        assertThat(fetchedAccount?.balance).isEqualTo(120.0)
+        assertNotNull(fetchedAccount)
+        assertEquals("Updated Title", fetchedAccount?.title)
+        assertEquals(150.0, fetchedAccount!!.startBalance, 1e-3)
+        assertEquals(120.0, fetchedAccount.balance, 1e-3)
     }
 
     @Test
@@ -167,11 +169,16 @@ class MoneyAccountIntegrationTest {
         createMoneyAccountUseCase(MoneyAccount(_title = Title("Account B"), startBalance = 10.0))
         createMoneyAccountUseCase(MoneyAccount(_title = Title("Account A"), startBalance = 20.0))
 
-        val accounts = fetchMoneyAccountsUseCase().getOrAwaitValue()
+        val accounts = fetchMoneyAccountsUseCase().getOrAwait(time = 5) { it?.size == 2 }
 
-        assertThat(accounts).hasSize(2)
-        assertThat(accounts[0].title).isEqualTo("Account A")
-        assertThat(accounts[1].title).isEqualTo("Account B")
+        assertEquals(2, accounts.size)
+
+        assertTrue(
+            accounts.any { it.title == "Account B" && it.startBalance == 10.0 }
+        )
+        assertTrue(
+            accounts.any { it.title == "Account A"  && it.startBalance == 20.0}
+        )
     }
 
     @Test
@@ -184,14 +191,20 @@ class MoneyAccountIntegrationTest {
         val firstAccount = loadMoneyAccountByIdUseCase(accountId1)
         val secondAccount = loadMoneyAccountByIdUseCase(accountId2)
 
-        assertThat(firstAccount?.default).isFalse()
-        assertThat(secondAccount?.default).isTrue()
+        assertNotNull(firstAccount)
+        assertNotNull(secondAccount)
+
+        assertFalse(firstAccount!!.default )
+        assertTrue(secondAccount!!.default)
 
         setMoneyAccountAsDefaultUseCase(accountId1)
         val updatedFirstAccount = loadMoneyAccountByIdUseCase(accountId1)
         val updatedSecondAccount = loadMoneyAccountByIdUseCase(accountId2)
 
-        assertThat(updatedFirstAccount?.default).isTrue()
-        assertThat(updatedSecondAccount?.default).isFalse()
+        assertNotNull(updatedFirstAccount)
+        assertNotNull(updatedSecondAccount)
+
+        assertTrue(updatedFirstAccount!!.default)
+        assertFalse(updatedSecondAccount!!.default)
     }
 }

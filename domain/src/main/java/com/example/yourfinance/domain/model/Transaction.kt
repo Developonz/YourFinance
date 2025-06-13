@@ -8,5 +8,6 @@ abstract class Transaction(
     open var type: TransactionType,
     open var balance: Double,
     open var date: LocalDate = LocalDate.now(),
+    open var is_done: Boolean,
     open var note: String = ""
 )

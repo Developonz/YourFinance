@@ -384,7 +384,7 @@ class TransactionManagerViewModel @Inject constructor(
             }
             is ActiveTransactionState.RemittanceState -> {
                 val transfer = Transfer(
-                    type = TransactionType.REMITTANCE, balance = validAmount, moneyAccFrom = activeState.selectedAccountFrom!!,
+                    balance = validAmount, moneyAccFrom = activeState.selectedAccountFrom!!,
                     moneyAccTo = activeState.selectedAccountTo!!, _note = Title(note), date = date
                 )
                 createTransferUseCase(transfer)
@@ -428,7 +428,7 @@ class TransactionManagerViewModel @Inject constructor(
                 TransactionType.REMITTANCE -> {
                     if (activeState is ActiveTransactionState.RemittanceState) {
                         val transfer = Transfer(
-                            id = transactionId, type = TransactionType.REMITTANCE, balance = validAmount,
+                            id = transactionId, balance = validAmount,
                             moneyAccFrom = activeState.selectedAccountFrom!!, moneyAccTo = activeState.selectedAccountTo!!,
                             _note = Title(note), date = date
                         )

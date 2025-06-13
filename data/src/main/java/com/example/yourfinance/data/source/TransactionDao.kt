@@ -9,14 +9,11 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Update
-import com.example.yourfinance.data.mapper.toDataFuture
-import com.example.yourfinance.data.mapper.toDataFutureTransfer
 import com.example.yourfinance.data.model.PaymentEntity
 import com.example.yourfinance.data.model.TransferEntity
 import com.example.yourfinance.data.model.pojo.FullPayment
 import com.example.yourfinance.data.model.pojo.FullTransfer
 import com.example.yourfinance.domain.model.TransactionType
-import com.example.yourfinance.domain.model.entity.category.Subcategory
 import java.time.LocalDate
 
 @Dao
@@ -28,15 +25,13 @@ abstract class TransactionDao(private val dataBase: FinanceDataBase) {
 
     @Transaction
     open suspend fun insertPaymentTransaction(payment: PaymentEntity) : Long {
+        payment.is_done = payment.date <= LocalDate.now()
         val paymentId = insertPaymentTransactionInternal(payment)
-        val account = dataBase.getMoneyAccountDao().getAccountById(payment.moneyAccID)
-        account?.let {
-            if (payment.date <= LocalDate.now()) {
+        if (payment.is_done) {
+            val account = dataBase.getMoneyAccountDao().getAccountById(payment.moneyAccID)
+            account?.let {
                 it.balance += if (payment.type == TransactionType.INCOME) payment.balance else -payment.balance
                 dataBase.getMoneyAccountDao().updateAccount(it)
-            } else {
-                val paymentWithGeneratedId = payment.copy(id = paymentId)
-                dataBase.getFutureTransactionDao().insertFuturePaymentTransaction(paymentWithGeneratedId.toDataFuture())
             }
         }
         return paymentId
@@ -47,10 +42,11 @@ abstract class TransactionDao(private val dataBase: FinanceDataBase) {
 
     @Transaction
     open suspend fun insertTransferTransaction(transfer: TransferEntity) : Long {
+        transfer.is_done = transfer.date <= LocalDate.now()
         val transferId = insertTransferTransactionInternal(transfer)
-
-        if (transfer.date <= LocalDate.now()) {
-            val accountFrom = dataBase.getMoneyAccountDao().getAccountById(transfer.moneyAccFromID)
+        if (transfer.is_done) {
+            val accountFrom =
+                dataBase.getMoneyAccountDao().getAccountById(transfer.moneyAccFromID)
             val accountTo = dataBase.getMoneyAccountDao().getAccountById(transfer.moneyAccToID)
 
             accountFrom?.let { from ->
@@ -62,10 +58,6 @@ abstract class TransactionDao(private val dataBase: FinanceDataBase) {
                     dataBase.getMoneyAccountDao().updateAccount(to)
                 }
             }
-
-        } else {
-            val transferWithGeneratedId = transfer.copy(id = transferId)
-            dataBase.getFutureTransactionDao().insertFutureTransferTransaction(transferWithGeneratedId.toDataFutureTransfer())
         }
         return transferId
     }
@@ -118,18 +110,15 @@ abstract class TransactionDao(private val dataBase: FinanceDataBase) {
 
     @Transaction
     open suspend fun deletePayment(payment: PaymentEntity) {
-        val count = dataBase.getFutureTransactionDao().loadCountFuturePaymentTransaction(payment.id)
-        if (count == 0) {
-            val sum = if (payment.type == TransactionType.INCOME) payment.balance else -payment.balance
+        if (payment.is_done) {
             val account = dataBase.getMoneyAccountDao().getAccountById(payment.moneyAccID)
             account?.let {
+                val sum = if (payment.type == TransactionType.INCOME) payment.balance else -payment.balance
                 it.balance -= sum
                 dataBase.getMoneyAccountDao().updateAccount(it)
             }
-            deletePaymentInternal(payment)
-        } else {
-            deletePaymentInternal(payment)
         }
+        deletePaymentInternal(payment)
     }
 
     @Delete
@@ -137,9 +126,7 @@ abstract class TransactionDao(private val dataBase: FinanceDataBase) {
 
     @Transaction
     open suspend fun deleteTransfer(transfer: TransferEntity) {
-        val isFuture = dataBase.getFutureTransactionDao().loadCountFutureTransferTransaction(transfer.id) > 0
-
-        if (!isFuture && transfer.date <= LocalDate.now()) {
+        if (transfer.is_done) {
             val accountFrom = dataBase.getMoneyAccountDao().getAccountById(transfer.moneyAccFromID)
             val accountTo = dataBase.getMoneyAccountDao().getAccountById(transfer.moneyAccToID)
 
@@ -152,10 +139,6 @@ abstract class TransactionDao(private val dataBase: FinanceDataBase) {
                     dataBase.getMoneyAccountDao().updateAccount(from)
                 }
             }
-        }
-
-        if (isFuture) {
-            dataBase.getFutureTransactionDao().deleteFutureTransferTransaction(transfer.id)
         }
         deleteTransferInternal(transfer)
     }
@@ -177,96 +160,84 @@ abstract class TransactionDao(private val dataBase: FinanceDataBase) {
 
     @Transaction
     open suspend fun updatePayment(newPayment: PaymentEntity) {
-        val account = dataBase.getMoneyAccountDao().getAccountById(newPayment.moneyAccID)
-        val count = dataBase.getFutureTransactionDao().loadCountFuturePaymentTransaction(newPayment.id)
-        if (count == 0) {
-            val oldPayment = loadPaymentById(newPayment.id)
-            oldPayment?.let {
-                if (newPayment.date > LocalDate.now()) {
-                    account?.let {
-                        val sum =
-                            if (oldPayment.payment.type == TransactionType.INCOME) oldPayment.payment.balance else -oldPayment.payment.balance
-                        it.balance -= sum
-                        dataBase.getMoneyAccountDao().updateAccount(it)
-                        dataBase.getFutureTransactionDao().insertFuturePaymentTransaction(newPayment.toDataFuture())
-                    }
-                } else {
-                    account?.let {
-                        val diff = if (oldPayment.payment.type == newPayment.type)  newPayment.balance - oldPayment.payment.balance
-                                        else -(oldPayment.payment.balance + newPayment.balance)
-                        it.balance += diff
-                        dataBase.getMoneyAccountDao().updateAccount(it)
-                    }
-                }
-            }
-        } else {
-            if (newPayment.date <= LocalDate.now()) {
-                dataBase.getFutureTransactionDao().deleteFuturePaymentTransaction(newPayment.id)
-                account?.let {
-                    val sum = if (newPayment.type == TransactionType.INCOME) newPayment.balance else -newPayment.balance
-                    it.balance += sum
-                    dataBase.getMoneyAccountDao().updateAccount(it)
-                }
-            }
+        val dao = dataBase.getMoneyAccountDao()
+
+        // 1) Загрузить старую запись
+        val old = loadPaymentById(newPayment.id)?.payment ?: return
+
+        // 2) Загрузить старый счёт
+        val oldAccount = dao.getAccountById(old.moneyAccID) ?: return
+
+        // 3) Откатить старую операцию, если она была проведена
+        if (old.is_done) {
+            oldAccount.balance -= if (old.type == TransactionType.INCOME) old.balance else - old.balance
         }
+        dao.updateAccount(oldAccount)
+
+        // 4) Загрузить новый счёт
+        val newAccount = dao.getAccountById(newPayment.moneyAccID) ?: return
+
+        // 5) Обновить флаг is_done
+        newPayment.is_done = newPayment.date <= LocalDate.now()
+
+        // 6) Применить новую операцию, если она теперь проведена
+        if (newPayment.is_done) {
+            newAccount.balance += if (newPayment.type == TransactionType.INCOME) newPayment.balance else -newPayment.balance
+        }
+        dao.updateAccount(newAccount)
+
+        // 7) Обновить сам платёж
         updatePaymentInternal(newPayment)
     }
+
 
     @Update
     abstract fun updateTransferInternal(transfer: TransferEntity)
 
     @Transaction
     open suspend fun updateTransfer(newTransfer: TransferEntity) {
-        val oldTransferFull = loadTransferById(newTransfer.id) ?: return
+        val dao = dataBase.getMoneyAccountDao()
 
-        val oldTransfer = oldTransferFull.transfer
-        val accountDao = dataBase.getMoneyAccountDao()
-        val futureDao = dataBase.getFutureTransactionDao()
+        // 1) Загрузить старую запись
+        val old = loadTransferById(newTransfer.id)?.transfer ?: return
 
-        val oldWasFuture = futureDao.loadCountFutureTransferTransaction(oldTransfer.id) > 0
-        val newIsFuture = newTransfer.date > LocalDate.now()
+        // 2) Загрузить старые аккаунты
+        val oldFrom = dao.getAccountById(old.moneyAccFromID) ?: return
+        val oldTo   = dao.getAccountById(old.moneyAccToID)   ?: return
 
-        // 1. Откатить старый перевод, если он влиял на баланс
-        if (!oldWasFuture && oldTransfer.date <= LocalDate.now()) {
-            val oldAccFrom = accountDao.getAccountById(oldTransfer.moneyAccFromID)
-            val oldAccTo = accountDao.getAccountById(oldTransfer.moneyAccToID)
-
-            oldAccFrom?.let {
-                it.balance += oldTransfer.balance
-                accountDao.updateAccount(it)
-            }
-            oldAccTo?.let {
-                it.balance -= oldTransfer.balance
-                accountDao.updateAccount(it)
-            }
-        } else if (oldWasFuture) {
-            futureDao.deleteFutureTransferTransaction(oldTransfer.id)
+        // 3) Откатить старую операцию, если она была проведена
+        if (old.is_done) {
+            oldFrom.balance += old.balance      // возвращаем деньги на from
+            oldTo.balance   -= old.balance      // снимаем с to
         }
+        dao.updateAccount(oldFrom)
+        dao.updateAccount(oldTo)
 
-        if (!newIsFuture) {
-            val newAccFrom = accountDao.getAccountById(newTransfer.moneyAccFromID)
-            val newAccTo = accountDao.getAccountById(newTransfer.moneyAccToID)
+        // 4) Загрузить новые аккаунты
+        val newFrom = dao.getAccountById(newTransfer.moneyAccFromID) ?: return
+        val newTo   = dao.getAccountById(newTransfer.moneyAccToID)   ?: return
 
-            newAccFrom?.let {
-                it.balance -= newTransfer.balance
-                accountDao.updateAccount(it)
-            }
-            newAccTo?.let {
-                it.balance += newTransfer.balance
-                accountDao.updateAccount(it)
-            }
-        } else {
-            futureDao.insertFutureTransferTransaction(newTransfer.toDataFutureTransfer())
+        // 5) Обновить флаг is_done
+        newTransfer.is_done = newTransfer.date <= LocalDate.now()
+
+        // 6) Применить новую операцию, если она теперь проведена
+        if (newTransfer.is_done) {
+            newFrom.balance -= newTransfer.balance
+            newTo.balance   += newTransfer.balance
         }
+        dao.updateAccount(newFrom)
+        dao.updateAccount(newTo)
 
+        // 7) Обновить сам перевод
         updateTransferInternal(newTransfer)
     }
 
+
     @Query("SELECT * FROM PaymentEntity")
-    abstract suspend fun getAllPaymentsForExport(): List<FullPayment>
+    abstract suspend fun getAllPaymentsForExport(): List<PaymentEntity>
 
     @Query("SELECT * FROM TransferEntity")
-    abstract suspend fun getAllTransfersForExport(): List<FullTransfer>
+    abstract suspend fun getAllTransfersForExport(): List<TransferEntity>
 
     @Query("DELETE FROM PaymentEntity")
     abstract suspend fun clearAllPayments()

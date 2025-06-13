@@ -61,6 +61,8 @@ dependencies {
     implementation(libs.androidx.preference.ktx) // Если используется SharedPreferences через AndroidX Preference
 
 
+    implementation(libs.gson)
+
     // Тестирование
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.test.junit)

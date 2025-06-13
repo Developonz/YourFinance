@@ -28,6 +28,7 @@ class PaymentMappersTest {
             moneyAccID = 10L,
             categoryID = 20L,
             note = "Lunch",
+            is_done = true,
             date = testDate
         )
         val moneyAccountEntity = MoneyAccountEntity(
@@ -109,50 +110,4 @@ class PaymentMappersTest {
         assertEquals(domainPayment.date, paymentEntity.date)
     }
 
-    @Test
-    fun `toDataFuture should map Payment to FuturePaymentEntity correctly`() {
-        val moneyAccount = MoneyAccount(
-            _title = Title("DummyMA"),
-            startBalance = 0.0,
-            id = 1L,
-            iconResourceId = null,
-            colorHex = null
-        )
-        val category = BaseCategory(
-            _title = Title("DummyCat"),
-            categoryType = CategoryType.EXPENSE,
-            id = 1L,
-            iconResourceId = null,
-            colorHex = null
-        )
-        val domainPayment = Payment(
-            id = 3L,
-            type = TransactionType.INCOME,
-            balance = 100.0,
-            moneyAccount = moneyAccount,
-            category = category,
-            _note = Title("Salary")
-        )
-
-        val futurePaymentEntity = domainPayment.toDataFuture()
-
-        assertEquals(domainPayment.id, futurePaymentEntity.id)
-    }
-
-    @Test
-    fun `toDataFuture should map PaymentEntity to FuturePaymentEntity correctly`() {
-        val paymentEntity = PaymentEntity(
-            id = 4L,
-            type = TransactionType.EXPENSE,
-            balance = 20.0,
-            moneyAccID = 1L,
-            categoryID = 1L,
-            note = "Coffee",
-            date = testDate
-        )
-
-        val futurePaymentEntity = paymentEntity.toDataFuture()
-
-        assertEquals(paymentEntity.id, futurePaymentEntity.id)
-    }
 }

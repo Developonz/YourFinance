@@ -30,8 +30,6 @@ fun CategoryEntity.toDomainSubcategory(): Subcategory {
 }
 
 
-
-// Маппер для CategoryWithSubcategories в Domain Category
 fun CategoryWithSubcategories.toDomainCategory(): Category {
     val domainSubcategories = this.subcategories.map { subEntity ->
         subEntity.toDomainSubcategory()
@@ -47,7 +45,7 @@ fun CategoryWithSubcategories.toDomainCategory(): Category {
     )
 }
 
-// Маппер из Domain Category в Data CategoryEntity
+
 fun Category.toData(): CategoryEntity {
     return CategoryEntity(
         id = this.id,
@@ -59,7 +57,7 @@ fun Category.toData(): CategoryEntity {
     )
 }
 
-// Маппер из Domain Subcategory в Data CategoryEntity
+
 fun Subcategory.toData(): CategoryEntity {
     return CategoryEntity(
         id = this.id,

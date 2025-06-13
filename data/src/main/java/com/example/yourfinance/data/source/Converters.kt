@@ -16,12 +16,6 @@ class Converters {
     fun toLocalDate(date: Long): LocalDate = LocalDate.ofEpochDay(date)
 
     @TypeConverter
-    fun fromLocalTime(time: LocalTime): Long = time.toSecondOfDay().toLong()
-
-    @TypeConverter
-    fun toLocalTime(value: Long): LocalTime = LocalTime.ofSecondOfDay(value)
-
-    @TypeConverter
     fun fromCategoryType(type: CategoryType): Int = type.ordinal
 
     @TypeConverter

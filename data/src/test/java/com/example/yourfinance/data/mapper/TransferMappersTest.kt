@@ -24,6 +24,7 @@ class TransferMappersTest {
             moneyAccFromID = 10L,
             moneyAccToID = 11L,
             note = "Monthly savings",
+            is_done = true,
             date = testDate
         )
         val moneyAccFromEntity = MoneyAccountEntity(
@@ -85,7 +86,6 @@ class TransferMappersTest {
         )
         val domainTransfer = Transfer(
             id = 2L,
-            type = TransactionType.REMITTANCE,
             balance = 50.0,
             moneyAccFrom = moneyAccFrom,
             moneyAccTo = moneyAccTo,
@@ -104,20 +104,4 @@ class TransferMappersTest {
         assertEquals(domainTransfer.date, transferEntity.date)
     }
 
-//    @Test
-//    fun `toDataFutureTransfer should map TransferEntity to FutureTransferEntity correctly`() {
-//        val transferEntity = TransferEntity(
-//            id = 3L,
-//            type = TransactionType.REMITTANCE,
-//            balance = 200.0,
-//            moneyAccFromID = 1L,
-//            moneyAccToID = 2L,
-//            note = "Future Transfer",
-//            date = testDate.plusDays(10)
-//        )
-//
-//        val futureTransferEntity = transferEntity.toDataFutureTransfer()
-//
-//        assertEquals(transferEntity.id, futureTransferEntity.id)
-//    }
 }

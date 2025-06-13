@@ -19,9 +19,7 @@ import com.example.yourfinance.data.model.TransferEntity
     MoneyAccountEntity::class,
     CategoryEntity::class,
     BudgetEntity::class,
-    BudgetCategoriesCrossRef::class,
-    FuturePaymentEntity::class,
-    FutureTransferEntity::class
+    BudgetCategoriesCrossRef::class
                      ], version = 1)
 @TypeConverters(Converters::class)
 abstract class FinanceDataBase : RoomDatabase() {
@@ -37,5 +35,4 @@ abstract class FinanceDataBase : RoomDatabase() {
 
     abstract fun getBudgetDao() : BudgetDao
 
-    abstract fun getFutureTransactionDao() : FutureTransactionDao
 }

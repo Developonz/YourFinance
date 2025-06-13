@@ -28,7 +28,6 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-import java.io.IOException
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
@@ -42,233 +41,226 @@ class CategoryIntegrationTest {
     @get:Rule(order = 0)
     var instantTaskExecutorRule = InstantTaskExecutorRule()
 
-    private lateinit var database: FinanceDataBase
+    private lateinit var db: FinanceDataBase
     private lateinit var categoryDao: CategoryDao
-    private lateinit var categoryRepository: CategoryRepository
+    private lateinit var categoryRepo: CategoryRepository
 
     private lateinit var createCategoryUseCase: CreateAnyCategoryUseCase
     private lateinit var fetchCategoriesUseCase: FetchCategoriesUseCase
-    private lateinit var loadCategoryByIdUseCase: LoadCategoryByIdUseCase
-    private lateinit var loadSubcategoryByIdUseCase: LoadSubcategoryByIdUseCase
+    private lateinit var loadCategoryUseCase: LoadCategoryByIdUseCase
+    private lateinit var loadSubcategoryUseCase: LoadSubcategoryByIdUseCase
     private lateinit var updateCategoryUseCase: UpdateAnyCategoryUseCase
     private lateinit var deleteCategoryUseCase: DeleteAnyCategoryUseCase
 
     @Before
     fun setup() {
-        database = Room.inMemoryDatabaseBuilder(
+        db = Room.inMemoryDatabaseBuilder(
             ApplicationProvider.getApplicationContext(),
             FinanceDataBase::class.java
-        )
-            .allowMainThreadQueries()
-            .build()
+        ).allowMainThreadQueries().build()
 
-        categoryDao = database.getCategoryDao()
-        categoryRepository = CategoryRepositoryImpl(categoryDao)
+        categoryDao = db.getCategoryDao()
+        categoryRepo = CategoryRepositoryImpl(categoryDao)
 
-        createCategoryUseCase = CreateAnyCategoryUseCase(categoryRepository)
-        fetchCategoriesUseCase = FetchCategoriesUseCase(categoryRepository)
-        loadCategoryByIdUseCase = LoadCategoryByIdUseCase(categoryRepository)
-        loadSubcategoryByIdUseCase = LoadSubcategoryByIdUseCase(categoryRepository)
-        updateCategoryUseCase = UpdateAnyCategoryUseCase(categoryRepository)
-        deleteCategoryUseCase = DeleteAnyCategoryUseCase(categoryRepository)
+        createCategoryUseCase = CreateAnyCategoryUseCase(categoryRepo)
+        fetchCategoriesUseCase = FetchCategoriesUseCase(categoryRepo)
+        loadCategoryUseCase = LoadCategoryByIdUseCase(categoryRepo)
+        loadSubcategoryUseCase = LoadSubcategoryByIdUseCase(categoryRepo)
+        updateCategoryUseCase = UpdateAnyCategoryUseCase(categoryRepo)
+        deleteCategoryUseCase = DeleteAnyCategoryUseCase(categoryRepo)
     }
 
     @After
-    @Throws(IOException::class)
-    fun tearDown() {
-        database.close()
-    }
+    fun tearDown() { db.close() }
 
+    // helper для LiveData
     @Throws(InterruptedException::class, TimeoutException::class)
-    private fun <T> LiveData<T>.getOrAwaitValue(
-        time: Long = 2,
-        timeUnit: TimeUnit = TimeUnit.SECONDS
+    private fun <T> LiveData<T>.getOrAwait(
+        time: Long = 2, unit: TimeUnit = TimeUnit.SECONDS,
+        condition: (T?) -> Boolean = { it != null }
     ): T {
         var data: T? = null
         val latch = CountDownLatch(1)
-        val observer = object : Observer<T> {
-            override fun onChanged(value: T) {
-                data = value
-                latch.countDown()
-                this@getOrAwaitValue.removeObserver(this)
+        val obs = object : Observer<T> {
+            override fun onChanged(v: T) {
+                if (condition(v)) {
+                    data = v; latch.countDown(); this@getOrAwait.removeObserver(this)
+                }
             }
         }
-        this.observeForever(observer)
-        try {
-            if (!latch.await(time, timeUnit)) {
-                throw TimeoutException("LiveData value was never set.")
-            }
-        } finally {
-            this.removeObserver(observer)
-        }
-        @Suppress("UNCHECKED_CAST")
+        if (condition(this.value)) return this.value as T
+        this.observeForever(obs)
+        if (!latch.await(time, unit))
+            throw TimeoutException("No data or condition failed: ${this.value}")
         return data as T
     }
 
+    // --- Create Operations ---
+
     @Test
-    fun createCategory() = runTest {
-        val foodCategory = Category (
+    fun createCategory_savesCorrectly() = runTest {
+        val cat = Category(
             title = Title("Еда"),
             categoryType = CategoryType.EXPENSE,
-            iconResourceId = "ic_food_icon",
+            iconResourceId = "ic_food",
             colorHex = 0xFFCC00
         )
 
-        val generatedId = createCategoryUseCase(foodCategory)
-        assertTrue("Generated ID should be positive",generatedId > 0L)
+        val id = createCategoryUseCase(cat)
+        val saved = loadCategoryUseCase(id)!!
 
-        val fetchedCategory: Category? = loadCategoryByIdUseCase(generatedId)
-
-        assertNotNull("Fetched category should not be null", fetchedCategory)
-        assertEquals("ID should match", generatedId, fetchedCategory?.id)
-        assertEquals("Title should match", "Еда", fetchedCategory?.title)
-        assertEquals("CategoryType should match", CategoryType.EXPENSE, fetchedCategory?.categoryType)
-        assertEquals("IconResourceId should match", "ic_food_icon", fetchedCategory?.iconResourceId)
-        assertEquals("ColorHex should match", 0xFFCC00.toInt(), fetchedCategory?.colorHex)
+        assertTrue(id > 0L)
+        assertEquals("Еда", saved.title)
+        assertEquals(CategoryType.EXPENSE, saved.categoryType)
+        assertEquals("ic_food", saved.iconResourceId)
+        assertEquals(0xFFCC00, saved.colorHex)
     }
 
     @Test
-    fun createSubcategory_inheritsParentPropertiesOnCreation() = runTest {
+    fun createSubcategory_inheritsParentProperties() = runTest {
         val parentColor = 0x123456
-        val parentIcon = "ic_parent_transport"
-        val transportCategory = Category(
+        val parentIcon = "ic_transport"
+
+        val parent = Category(
             title = Title("Транспорт"),
             categoryType = CategoryType.EXPENSE,
             iconResourceId = parentIcon,
             colorHex = parentColor
         )
-        val parentId = createCategoryUseCase(transportCategory)
-        assertTrue(parentId > 0L)
+        val parentId = createCategoryUseCase(parent)
 
-        val taxiSubcategory = Subcategory(
+        val sub = Subcategory(
             title = Title("Такси"),
             categoryType = CategoryType.EXPENSE,
             parentId = parentId,
-            iconResourceId = null, // Explicitly null to check inheritance
-            colorHex = null       // Explicitly null to check inheritance
+            iconResourceId = null, // наследуется
+            colorHex = null        // наследуется
         )
-        val subcategoryId = createCategoryUseCase(taxiSubcategory)
-        assertTrue(subcategoryId > 0L)
+        val subId = createCategoryUseCase(sub)
+        val saved = loadSubcategoryUseCase(subId)!!
 
-        val fetchedSubcategory: Subcategory? = loadSubcategoryByIdUseCase(subcategoryId)
-
-        assertNotNull("Fetched subcategory should not be null", fetchedSubcategory)
-        assertEquals("Icon should be inherited from parent", parentIcon, fetchedSubcategory?.iconResourceId)
-        assertEquals("Color should be inherited from parent", parentColor, fetchedSubcategory?.colorHex)
-        assertEquals("ParentId should be correct", parentId, fetchedSubcategory?.parentId)
-        assertEquals("Title should be correct", "Такси", fetchedSubcategory?.title)
+        assertEquals("Такси", saved.title)
+        assertEquals(parentIcon, saved.iconResourceId)
+        assertEquals(parentColor, saved.colorHex)
+        assertEquals(parentId, saved.parentId)
     }
 
+    // --- Read Operations ---
 
     @Test
-    fun fetchAllCategories_includesSubcategoriesWithInheritedProperties() = runTest {
-        val incomeCategory = Category(
-            title = Title("Зарплата"),
+    fun fetchCategories_includesSubcategoriesWithInheritance() = runTest {
+        val incomeTitle = "Зарплата"
+        val bonusTitle = "Бонус"
+        val expenseTitle = "Развлечения"
+
+        // создаём родительскую категорию доходов
+        val income = Category(
+            title = Title(incomeTitle),
             categoryType = CategoryType.INCOME,
             iconResourceId = "ic_salary",
             colorHex = 0x00FF00
         )
-        val incomeCategoryId = createCategoryUseCase(incomeCategory)
-        assertTrue(incomeCategoryId > 0L)
+        val incomeId = createCategoryUseCase(income)
 
-        val bonusSubcategory = Subcategory(
-            title = Title("Бонус"),
+        // создаём подкатегорию бонуса
+        val bonus = Subcategory(
+            title = Title(bonusTitle),
             categoryType = CategoryType.INCOME,
-            parentId = incomeCategoryId
+            parentId = incomeId
         )
-        val bonusSubcategoryId = createCategoryUseCase(bonusSubcategory)
-        assertTrue(bonusSubcategoryId > 0L)
+        val bonusId = createCategoryUseCase(bonus)
 
-        val expenseCategory = Category(
-            title = Title("Развлечения"),
+        // создаём категорию расходов без подкатегорий
+        val expense = Category(
+            title = Title(expenseTitle),
             iconResourceId = "ic_entertainment",
             colorHex = 0xFF00FF,
             categoryType = CategoryType.EXPENSE
         )
-        val expenseCategoryId = createCategoryUseCase(expenseCategory)
-        assertTrue(expenseCategoryId > 0L)
+        val expenseId = createCategoryUseCase(expense)
 
-        val categoriesWithSubcategories = fetchCategoriesUseCase().getOrAwaitValue()
+        val categories = fetchCategoriesUseCase().getOrAwait { it?.size == 2 }
 
-        assertEquals("Should be 2 parent categories",2, categoriesWithSubcategories.size)
+        assertEquals("Должно быть 2 родительские категории", 2, categories.size)
 
-        val fetchedIncomeCategory = categoriesWithSubcategories.find { it.id == incomeCategoryId }
-        assertNotNull("Income category should be found", fetchedIncomeCategory)
-        assertEquals("Income category title mismatch", "Зарплата", fetchedIncomeCategory?.title)
-        assertNotNull("Income category children should not be null", fetchedIncomeCategory?.children)
-        assertEquals("Income category should have 1 child",1, fetchedIncomeCategory?.children?.size)
+        val fetchedIncome = categories.find { it.id == incomeId }!!
+        assertEquals(incomeTitle, fetchedIncome.title)
+        assertEquals(1, fetchedIncome.children.size)
 
-        val fetchedBonusSubcategory = fetchedIncomeCategory?.children?.get(0)
-        assertNotNull("Bonus subcategory should exist", fetchedBonusSubcategory)
-        assertEquals("Bonus subcategory title mismatch", "Бонус", fetchedBonusSubcategory?.title)
-        assertEquals("Bonus subcategory icon should be inherited", "ic_salary", fetchedBonusSubcategory?.iconResourceId)
-        assertEquals("Bonus subcategory color should be inherited", 0x00FF00.toInt(), fetchedBonusSubcategory?.colorHex)
-        assertEquals("Bonus subcategory parent ID should match", incomeCategoryId, fetchedBonusSubcategory?.parentId)
+        val fetchedBonus = fetchedIncome.children[0]
+        assertEquals(bonusTitle, fetchedBonus.title)
+        assertEquals("ic_salary", fetchedBonus.iconResourceId) // наследуется
+        assertEquals(0x00FF00, fetchedBonus.colorHex)         // наследуется
+        assertEquals(incomeId, fetchedBonus.parentId)
 
-
-        val fetchedExpenseCategory = categoriesWithSubcategories.find { it.id == expenseCategoryId }
-        assertNotNull("Expense category should be found", fetchedExpenseCategory)
-        assertEquals("Expense category title mismatch", "Развлечения", fetchedExpenseCategory?.title)
-        assertNotNull("Expense category children should not be null", fetchedExpenseCategory?.children)
-        assertTrue("Expense category should have no children", fetchedExpenseCategory?.children?.isEmpty() == true)
+        val fetchedExpense = categories.find { it.id == expenseId }!!
+        assertEquals(expenseTitle, fetchedExpense.title)
+        assertTrue(fetchedExpense.children.isEmpty())
     }
 
+    // --- Update Operations ---
+
     @Test
-    fun updateCategory() = runTest {
-        val initialHomeCategory = Category(
-            title = Title("Старый Дом"),
+    fun updateCategory_changesAllProperties() = runTest {
+        val oldTitle = "Старый Дом"
+        val newTitle = "Новый Дом"
+
+        val initial = Category(
+            title = Title(oldTitle),
             categoryType = CategoryType.EXPENSE,
             iconResourceId = "ic_old_home",
-            colorHex = 0xAAAAAA.toInt()
+            colorHex = 0xAAAAAA
         )
-        val categoryId = createCategoryUseCase(initialHomeCategory)
-        assertTrue(categoryId > 0L)
+        val id = createCategoryUseCase(initial)
 
-        val updatedHomeCategory = Category(
-            id = categoryId,
-            title = Title("Новый Дом"),
-            categoryType = CategoryType.INCOME, // Changed type
+        val updated = Category(
+            id = id,
+            title = Title(newTitle),
+            categoryType = CategoryType.INCOME, // меняем тип
             iconResourceId = "ic_new_home",
-            colorHex = 0xBBBBBB.toInt()
+            colorHex = 0xBBBBBB
         )
 
-        updateCategoryUseCase(updatedHomeCategory)
+        updateCategoryUseCase(updated)
+        val saved = loadCategoryUseCase(id)!!
 
-        val fetchedCategory: Category? = loadCategoryByIdUseCase(categoryId)
-        assertNotNull("Fetched category after update should not be null", fetchedCategory)
-        assertEquals("Title should be updated", "Новый Дом", fetchedCategory?.title)
-        assertEquals("CategoryType should be updated", CategoryType.INCOME, fetchedCategory?.categoryType)
-        assertEquals("IconResourceId should be updated", "ic_new_home", fetchedCategory?.iconResourceId)
-        assertEquals("ColorHex should be updated", 0xBBBBBB.toInt(), fetchedCategory?.colorHex)
+        assertEquals(newTitle, saved.title)
+        assertEquals(CategoryType.INCOME, saved.categoryType)
+        assertEquals("ic_new_home", saved.iconResourceId)
+        assertEquals(0xBBBBBB, saved.colorHex)
     }
 
+    // --- Delete Operations ---
 
     @Test
-    fun deleteParentCategory_cascadesDeletionToSubcategories() = runTest {
-        val parentCategoryForDeletion = Category(
-            title = Title("Удалить Родителя"),
+    fun deleteParentCategory_cascadesDeleteToChildren() = runTest {
+        val parentTitle = "Родительская категория"
+        val childTitle = "Дочерняя подкатегория"
+
+        val parent = Category(
+            title = Title(parentTitle),
             categoryType = CategoryType.EXPENSE,
             iconResourceId = null,
             colorHex = null
         )
-        val parentId = createCategoryUseCase(parentCategoryForDeletion)
-        assertTrue(parentId > 0L)
+        val parentId = createCategoryUseCase(parent)
 
-        val childCategoryForDeletion = Subcategory(
-            title = Title("Удалить Ребенка"),
+        val child = Subcategory(
+            title = Title(childTitle),
             categoryType = CategoryType.EXPENSE,
             parentId = parentId
         )
-        val childId = createCategoryUseCase(childCategoryForDeletion)
-        assertTrue(childId > 0L)
+        val childId = createCategoryUseCase(child)
 
+        // проверяем что обе категории созданы
+        assertNotNull(loadCategoryUseCase(parentId))
+        assertNotNull(loadSubcategoryUseCase(childId))
 
-        assertNotNull("Parent category should exist before deletion", loadCategoryByIdUseCase(parentId))
-        assertNotNull("Child subcategory should exist before deletion", loadSubcategoryByIdUseCase(childId))
-
+        // удаляем родительскую
         deleteCategoryUseCase(parentId)
 
-        assertNull("Parent category should be null after deletion", loadCategoryByIdUseCase(parentId))
-        assertNull("Child subcategory should be null after parent deletion (cascade)", loadSubcategoryByIdUseCase(childId))
+        // проверяем каскадное удаление
+        assertNull("Родительская категория должна быть удалена", loadCategoryUseCase(parentId))
+        assertNull("Дочерняя категория должна быть удалена каскадно", loadSubcategoryUseCase(childId))
     }
 }

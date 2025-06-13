@@ -15,7 +15,6 @@ import com.example.yourfinance.data.source.CategoryDao
 import com.example.yourfinance.data.source.FinanceDataBase
 import com.example.yourfinance.data.source.MoneyAccountDao
 import com.example.yourfinance.data.source.TransactionDao
-import com.example.yourfinance.data.source.FutureTransactionDao
 import com.example.yourfinance.domain.model.CategoryType
 import com.example.yourfinance.domain.model.Title
 import com.example.yourfinance.domain.model.TransactionType
@@ -81,7 +80,6 @@ class ApplicationLoadTest {
     private lateinit var moneyAccountDao: MoneyAccountDao
     private lateinit var categoryDao: CategoryDao
     private lateinit var transactionDao: TransactionDao
-    private lateinit var futureTransactionDao: FutureTransactionDao
 
     private lateinit var moneyAccountRepository: MoneyAccountRepository
     private lateinit var categoryRepository: CategoryRepository
@@ -138,7 +136,6 @@ class ApplicationLoadTest {
         moneyAccountDao = database.getMoneyAccountDao()
         categoryDao = database.getCategoryDao()
         transactionDao = database.getTransactionDao()
-        futureTransactionDao = database.getFutureTransactionDao()
 
         moneyAccountRepository = MoneyAccountRepositoryImpl(moneyAccountDao)
         categoryRepository = CategoryRepositoryImpl(categoryDao)
@@ -328,7 +325,6 @@ class ApplicationLoadTest {
             val date = LocalDate.ofEpochDay(Random.nextLong(startDate.toEpochDay(), endDate.toEpochDay()))
 
             val transfer = Transfer(
-                type = TransactionType.REMITTANCE,
                 balance = amount,
                 moneyAccFrom = accFrom,
                 moneyAccTo = accTo,

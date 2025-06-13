@@ -14,7 +14,7 @@ import com.example.yourfinance.domain.model.TransactionType
         deferred = true
     )
 ])
-class FuturePaymentEntity (
+data class FuturePaymentEntity (
     @PrimaryKey
     val id: Long = 0
 )
