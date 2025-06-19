@@ -1,0 +1,93 @@
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#212121"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <com.google.android.material.textfield.TextInputLayout
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Имя"
+            android:textColorHint="#4242B4"
+            app:boxStrokeColor="#FFEB3B"
+            app:hintTextColor="#FFEB3B">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/tiet_budget_name"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="textCapSentences"
+                android:textColor="@android:color/white" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:hint="Сумма"
+            android:textColorHint="#AEAEB2"
+            app:boxStrokeColor="#FFEB3B"
+            app:hintTextColor="#FFEB3B">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/tiet_budget_amount"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="numberDecimal"
+                android:textColor="@android:color/white" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:text="Категории"
+            android:textColor="#AEAEB2"/>
+
+        <LinearLayout
+            android:id="@+id/categories_layout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+
+            android:padding="16dp">
+
+            <TextView
+                android:id="@+id/categories_value"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Все категории"
+                android:textColor="@android:color/white"
+                android:textSize="16sp"/>
+
+
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:text="Период"
+            android:textColor="#AEAEB2"/>
+
+        <Spinner
+            android:id="@+id/period_spinner"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:padding="8dp"/>
+
+    </LinearLayout>
+</ScrollView>

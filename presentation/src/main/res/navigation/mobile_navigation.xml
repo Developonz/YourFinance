@@ -44,6 +44,10 @@
         <action
             android:id="@+id/action_wallet_to_settingsFragment"
             app:destination="@id/settingsFragment" />
+
+        <action
+            android:id="@+id/action_wallet_to_budgetCreateEditFragment"
+            app:destination="@id/budgetCreateEditFragment" />
     </fragment>
 
     <fragment
@@ -60,7 +64,22 @@
         android:id="@+id/budgetManagerFragment"
         android:name="com.example.yourfinance.presentation.ui.fragment.manager.budget_manager.BudgetManagerFragment"
         android:label="Управление бюджетами"
-        tools:layout="@layout/fragment_budget_manager" />
+        tools:layout="@layout/fragment_budget_manager" >
+        <action
+            android:id="@+id/action_budgetManagerFragment_to_budgetCreateEditFragment"
+            app:destination="@id/budgetCreateEditFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/budgetCreateEditFragment"
+        android:name="com.example.yourfinance.presentation.ui.fragment.manager.budget_manager.BudgetCreateEditFragment"
+        android:label="Бюджет"
+        tools:layout="@layout/fragment_budget_create_edit">
+        <argument
+            android:name="budgetId"
+            app:argType="long"
+            android:defaultValue="-1L" />
+    </fragment>
 
     <fragment
         android:id="@+id/accountCreateEditManager"

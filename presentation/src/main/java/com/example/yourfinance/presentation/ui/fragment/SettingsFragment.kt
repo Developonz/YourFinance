@@ -84,7 +84,6 @@ class SettingsFragment : PreferenceFragmentCompat() {
         }
 
 
-
         // Версия
         try {
             val pInfo = requireContext().packageManager.getPackageInfo(requireContext().packageName, 0)
@@ -93,12 +92,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
             findPreference<Preference>("pref_version")?.summary = "N/A"
         }
 
-        // Первый день месяца
-        findPreference<ListPreference>("pref_first_day_month")?.setOnPreferenceChangeListener { _, newValue ->
-            Toast.makeText(context, "Выбран первый день месяца: $newValue", Toast.LENGTH_SHORT).show()
-            // TODO: Сохранить это значение (например, через ViewModel -> UseCase -> Repository -> SharedPreferences)
-            true
-        }
+
 
     }
 

@@ -33,6 +33,7 @@ import com.example.yourfinance.domain.model.entity.Payment
 import com.example.yourfinance.domain.model.Transaction // Убедитесь, что Transaction импортирован
 import com.example.yourfinance.presentation.R
 import com.example.yourfinance.util.StringHelper.Companion.getMoneyStr
+import java.math.BigDecimal
 // Импорты для дат и форматирования
 import java.time.LocalDate
 import java.time.Month
@@ -99,8 +100,8 @@ class TransactionsFragment : Fragment() {
             Log.i("TESTDB", "TransactionsFragment: transactionsList observer triggered")
 
             // Обновление сумм дохода и расхода
-            var income = 0.0
-            var expense = 0.0
+            var income = BigDecimal.ZERO
+            var expense = BigDecimal.ZERO
             transactionsList.filterIsInstance<Payment>().forEach { payment ->
                 if (payment.type == TransactionType.INCOME) {
                     income += payment.balance

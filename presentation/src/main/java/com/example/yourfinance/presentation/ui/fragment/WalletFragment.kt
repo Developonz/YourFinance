@@ -34,7 +34,18 @@ class WalletFragment : Fragment() {
     private val binding get() = _binding!!
     private val viewModel: GeneralViewModel by activityViewModels()
     private val balanceAdapter = WalletBalanceAdapter()
-    private val budgetsAdapter = WalletBudgetAdapter()
+    private val budgetsAdapter = WalletBudgetAdapter(
+        onBudgetClick = { budgetId ->
+            // Клик на бюджет -> переходим на экран редактирования с ID
+            val action = WalletFragmentDirections.actionWalletToBudgetCreateEditFragment(budgetId = budgetId)
+            findNavController().navigate(action)
+        },
+        onAddClick = {
+            // Клик на "Добавить" -> переходим на экран создания (ID по умолчанию -1L)
+            val action = WalletFragmentDirections.actionWalletToBudgetCreateEditFragment()
+            findNavController().navigate(action)
+        }
+    )
     private lateinit var concatAdapter: ConcatAdapter
     private val newAccountClick = {
         val action = WalletFragmentDirections.actionWalletToAccountCreateManager()
@@ -95,16 +106,13 @@ class WalletFragment : Fragment() {
             accountsAdapter.submitList(list)
         }
 
-        viewModel.budgetsList.observe(viewLifecycleOwner) {budgets ->
-            Log.i("TESTDB", "wallet fragment observer ${budgets.size}")
-            val list: MutableList<BudgetListItem> = mutableListOf()
-            if (budgets.isNotEmpty()) {
-                budgets.forEach {
-                    list.add(BudgetListItem.BudgetItem(it))
-                }
-                list.add(BudgetListItem.CreateBudget)
-            } else {
+        viewModel.budgetsWithDetails.observe(viewLifecycleOwner) { budgets ->
+            val list = mutableListOf<BudgetListItem>()
+            if (budgets.isEmpty()) {
                 list.add(BudgetListItem.EmptyList)
+            } else {
+                budgets.forEach { list.add(BudgetListItem.BudgetItem(it)) }
+                list.add(BudgetListItem.CreateBudget)
             }
             budgetsAdapter.submitList(list)
         }
@@ -121,8 +129,7 @@ class WalletFragment : Fragment() {
             SectionHeaderAdapter("СЧЕТА", onHeaderClick),
             accountsAdapter,
             SectionHeaderAdapter("БЮДЖЕТЫ", onHeaderClick),
-            budgetsAdapter,
-            EmptyAdapter()
+            budgetsAdapter
         )
     }
 
@@ -156,6 +163,7 @@ class WalletFragment : Fragment() {
         }
         binding.walletList.layoutManager = layoutManager
         binding.walletList.adapter = concatAdapter
+
     }
 
     override fun onDestroyView() {

@@ -66,6 +66,7 @@ import java.util.concurrent.TimeoutException
 import kotlin.random.Random
 import kotlin.system.measureTimeMillis
 import com.example.yourfinance.data.mapper.toData
+import java.math.BigDecimal
 import kotlin.time.Duration.Companion.minutes
 
 @ExperimentalCoroutinesApi
@@ -234,8 +235,8 @@ class ApplicationLoadTest {
             val balance = Random.nextDouble(100.0, 10000.0)
             val account = MoneyAccount(
                 _title = Title("Account $i"),
-                startBalance = balance,
-                balance = balance,
+                startBalance = BigDecimal(balance),
+                balance = BigDecimal(balance),
                 dateCreation = LocalDate.now().minusDays(Random.nextLong(0, 365))
             )
             val id = createMoneyAccountUseCase(account)

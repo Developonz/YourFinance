@@ -17,6 +17,7 @@ import com.example.yourfinance.presentation.ui.util.AmountInputProcessor
 import com.example.yourfinance.util.SingleLiveEvent
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
+import java.math.BigDecimal
 import java.time.LocalDate
 import javax.inject.Inject
 
@@ -191,7 +192,7 @@ class TransactionManagerViewModel @Inject constructor(
                             selectedCategory = payment.category,
                             selectedPaymentAccount = payment.moneyAccount
                         )
-                        loadedAmountString = if (payment.balance != 0.0) formatDoubleToStringForLoad(payment.balance) else "0"
+                        loadedAmountString = if (payment.balance != BigDecimal.ZERO) formatDoubleToStringForLoad(payment.balance) else "0"
                         _note.value = payment.note
                         _date.value = payment.date
                     }
@@ -203,7 +204,7 @@ class TransactionManagerViewModel @Inject constructor(
                             selectedAccountFrom = transfer.moneyAccFrom,
                             selectedAccountTo = transfer.moneyAccTo
                         )
-                        loadedAmountString = if (transfer.balance != 0.0) formatDoubleToStringForLoad(transfer.balance) else "0"
+                        loadedAmountString = if (transfer.balance != BigDecimal.ZERO) formatDoubleToStringForLoad(transfer.balance) else "0"
                         _note.value = transfer.note
                         _date.value = transfer.date
                     }
@@ -225,8 +226,8 @@ class TransactionManagerViewModel @Inject constructor(
         }
     }
 
-    private fun formatDoubleToStringForLoad(value: Double): String {
-        val roundedValue = (value * 100).toLong() / 100.0
+    private fun formatDoubleToStringForLoad(value: BigDecimal): String {
+        val roundedValue = (value * BigDecimal(100)).toLong() / 100.0
         val stringRepresentation = if (roundedValue % 1.0 == 0.0) roundedValue.toLong().toString() else roundedValue.toString()
         return stringRepresentation.replace('.', ',')
     }
@@ -361,7 +362,7 @@ class TransactionManagerViewModel @Inject constructor(
                 if (isEditing) {
                     performSaveExistingTransaction(transactionId, initialTransactionType!!, validAmount, transactionDate, transactionNote, currentActiveState, currentActiveType)
                 } else {
-                    performSaveNewTransaction(validAmount, transactionDate, transactionNote, currentActiveState, currentActiveType)
+                    performSaveNewTransaction(BigDecimal(validAmount), transactionDate, transactionNote, currentActiveState, currentActiveType)
                 }
             } catch (e: Exception) {
                 Log.e("ViewModel", "Error in saveTransaction coroutine", e)
@@ -371,7 +372,7 @@ class TransactionManagerViewModel @Inject constructor(
     }
 
     private suspend fun performSaveNewTransaction(
-        validAmount: Double, date: LocalDate, note: String,
+        validAmount: BigDecimal, date: LocalDate, note: String,
         activeState: ActiveTransactionState, type: TransactionType
     ) {
         when (activeState) {
@@ -409,13 +410,13 @@ class TransactionManagerViewModel @Inject constructor(
                 _errorMessageEvent.postValue("Ошибка при изменении типа транзакции (не удалось удалить старую).")
                 return
             }
-            performSaveNewTransaction(validAmount, date, note, activeState, currentSelectedType)
+            performSaveNewTransaction(BigDecimal(validAmount), date, note, activeState, currentSelectedType)
         } else {
             when (currentSelectedType) {
                 TransactionType.EXPENSE, TransactionType.INCOME -> {
                     if (activeState is ActiveTransactionState.ExpenseIncomeState) {
                         val payment = Payment(
-                            id = transactionId, type = currentSelectedType, balance = validAmount,
+                            id = transactionId, type = currentSelectedType, balance = BigDecimal(validAmount),
                             moneyAccount = activeState.selectedPaymentAccount!!, category = activeState.selectedCategory!!,
                             _note = Title(note), date = date
                         )
@@ -428,7 +429,7 @@ class TransactionManagerViewModel @Inject constructor(
                 TransactionType.REMITTANCE -> {
                     if (activeState is ActiveTransactionState.RemittanceState) {
                         val transfer = Transfer(
-                            id = transactionId, balance = validAmount,
+                            id = transactionId, balance = BigDecimal(validAmount),
                             moneyAccFrom = activeState.selectedAccountFrom!!, moneyAccTo = activeState.selectedAccountTo!!,
                             _note = Title(note), date = date
                         )

@@ -3,12 +3,13 @@ package com.example.yourfinance.domain.model.entity
 import com.example.yourfinance.domain.model.Transaction
 import com.example.yourfinance.domain.model.TransactionType
 import com.example.yourfinance.domain.model.Title
+import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.LocalTime
 
 
 data class Transfer (
-    override var balance: Double,
+    override var balance: BigDecimal,
     var moneyAccFrom: MoneyAccount,
     var moneyAccTo: MoneyAccount,
     private var _note: Title,

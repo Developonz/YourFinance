@@ -33,15 +33,6 @@
 
         <ListPreference
             app:iconSpaceReserved="false"
-            app:key="pref_first_day_month"
-            app:title="Первый день месяца"
-            app:summary="%s"
-            app:defaultValue="1"
-            app:entries="@array/first_day_month_entries"
-            app:entryValues="@array/first_day_month_values"/>
-
-        <ListPreference
-            app:iconSpaceReserved="false"
             app:key="pref_theme"
             app:title="Тема"
             app:summary="%s"

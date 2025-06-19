@@ -1,16 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string-array name="first_day_month_entries">
-        <item>1-е число</item>
-        <item>15-е число</item>
-        <!-- Добавь другие варианты при необходимости -->
-    </string-array>
-
-    <string-array name="first_day_month_values">
-        <item>1</item>
-        <item>15</item>
-        <!-- Соответствующие значения -->
-    </string-array>
 
     <string-array name="theme_entries">
         <item>Как в системе</item>
@@ -50,14 +39,17 @@
 
     <!-- Группа "Развлечения" -->
     <string-array name="category_icons_entertainment">
-        <item>ic_movie</item>
-        <item>ic_music</item>
-        <item>ic_game</item>
+        <item>ic_entertainment_1</item>
+        <item>ic_entertainment_2</item>
+        <item>ic_entertainment_3</item>
     </string-array>
 
     <!-- Группа "Развлечения" -->
     <array name="account_icons">
         <item>@drawable/transfer_money</item>
+        <item>@drawable/ic_cash</item>
+        <item>@drawable/ic_card</item>
+        <item>@drawable/ic_money</item>
     </array>
 
 </resources>

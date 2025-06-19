@@ -4,6 +4,7 @@ import androidx.lifecycle.LiveData
 import com.example.yourfinance.domain.model.Transaction
 import com.example.yourfinance.domain.model.entity.Payment
 import com.example.yourfinance.domain.model.entity.Transfer
+import java.math.BigDecimal
 import java.time.LocalDate
 
 
@@ -24,9 +25,11 @@ interface TransactionRepository {
 
     suspend fun deleteTransaction(transaction: Transaction)
 
-    suspend fun getBalanceBeforeDate(periodEndDate: LocalDate, excludedAccountIds: List<Long>) : Double
+    suspend fun getBalanceBeforeDate(periodEndDate: LocalDate, excludedAccountIds: List<Long>) : BigDecimal
 
     suspend fun getNetChangeBetweenDates(periodStartDate: LocalDate?,
                                          periodEndDate: LocalDate?,
-                                         excludedAccountIds: List<Long>): Double
+                                         excludedAccountIds: List<Long>): BigDecimal
+
+    suspend fun getSpentAmountForCategories(categoryIds: List<Long>, startDate: LocalDate, endDate: LocalDate): BigDecimal
 }

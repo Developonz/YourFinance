@@ -64,4 +64,12 @@ abstract class CategoryDao {
     @Query("DELETE FROM CategoryEntity")
     abstract suspend fun clearAll()
 
+    @Transaction
+    @Query("SELECT * FROM CategoryEntity WHERE parentId IS NULL AND categoryType = 1")
+    abstract suspend fun fetchAllExpenseCategoriesWithSubcategories(): List<CategoryWithSubcategories>
+
+
+    @Query("SELECT * FROM CategoryEntity WHERE categoryType = 1")
+    abstract suspend fun getAllExpenseEntities(): List<CategoryEntity>
+
 }

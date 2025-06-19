@@ -57,7 +57,8 @@ class MainActivity : AppCompatActivity() {
                 R.id.subcategoriesFragment,
                 R.id.subcategoryCreateEditFragment,
                 R.id.categoryCreateEditFragment,
-                R.id.accountCreateEditManager -> {
+                R.id.accountCreateEditManager,
+                R.id.budgetCreateEditFragment-> {
                     binding.bottomAppBar.visibility = View.GONE
                     binding.fab.visibility = View.GONE
                 }

@@ -3,12 +3,13 @@ package com.example.yourfinance.domain.model.entity
 import com.example.yourfinance.domain.StringHelper.Companion.getUpperFirstChar
 import java.time.LocalDate
 import com.example.yourfinance.domain.model.Title
+import java.math.BigDecimal
 
 //TODO: switch Double to BigDecimal
 data class MoneyAccount(
     private var _title: Title,
-    var startBalance: Double,
-    var balance: Double = startBalance,
+    var startBalance: BigDecimal,
+    var balance: BigDecimal = startBalance,
     var excluded: Boolean = false,
     var default: Boolean = false,
     var used: Boolean = true,

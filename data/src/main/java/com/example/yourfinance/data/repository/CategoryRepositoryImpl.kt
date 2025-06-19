@@ -3,9 +3,11 @@ package com.example.yourfinance.data.repository
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.map
 import com.example.yourfinance.data.mapper.toData
+import com.example.yourfinance.data.mapper.toDomain
 import com.example.yourfinance.data.mapper.toDomainCategory
 import com.example.yourfinance.data.mapper.toDomainSubcategory
 import com.example.yourfinance.data.source.CategoryDao
+import com.example.yourfinance.domain.model.entity.category.BaseCategory
 import com.example.yourfinance.domain.model.entity.category.Category
 import com.example.yourfinance.domain.model.entity.category.ICategoryData
 import com.example.yourfinance.domain.model.entity.category.Subcategory
@@ -65,6 +67,19 @@ class CategoryRepositoryImpl @Inject constructor(private val dao: CategoryDao) :
 
     override suspend fun deleteCategory(id: Long) {
         dao.deleteCategoryById(id)
+    }
+
+    override suspend fun getAllExpenseCategories(): List<Category> {
+        return withContext(Dispatchers.IO) {
+            dao.fetchAllExpenseCategoriesWithSubcategories().map { it.toDomainCategory() }
+        }
+    }
+
+    override suspend fun getAllExpenseBaseCategories(): List<BaseCategory> {
+        return withContext(Dispatchers.IO) {
+            // Вызываем новый метод DAO и маппим каждую сущность в BaseCategory
+            dao.getAllExpenseEntities().map { it.toDomain() }
+        }
     }
 
 }

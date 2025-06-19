@@ -14,6 +14,7 @@ import com.example.yourfinance.data.model.TransferEntity
 import com.example.yourfinance.data.model.pojo.FullPayment
 import com.example.yourfinance.data.model.pojo.FullTransfer
 import com.example.yourfinance.domain.model.TransactionType
+import java.math.BigDecimal
 import java.time.LocalDate
 
 @Dao
@@ -89,7 +90,7 @@ abstract class TransactionDao(private val dataBase: FinanceDataBase) {
         FROM PaymentEntity
         WHERE date < :exclusiveEndDate AND moneyAccID NOT IN (:excludedAccountIds)
     """)
-    abstract suspend fun getBalanceBeforeDate(exclusiveEndDate: LocalDate, excludedAccountIds: List<Long>): Double
+    abstract suspend fun getBalanceBeforeDate(exclusiveEndDate: LocalDate, excludedAccountIds: List<Long>): BigDecimal
 
     @Query("""
         SELECT COALESCE(SUM(
@@ -103,7 +104,7 @@ abstract class TransactionDao(private val dataBase: FinanceDataBase) {
         WHERE (:startDate IS NULL OR date >= :startDate) AND (:endDate IS NULL OR date <= :endDate)
         AND moneyAccID NOT IN (:excludedAccountIds)
     """)
-    abstract suspend fun getNetChangeBetweenDates(startDate: LocalDate?, endDate: LocalDate?, excludedAccountIds: List<Long>): Double
+    abstract suspend fun getNetChangeBetweenDates(startDate: LocalDate?, endDate: LocalDate?, excludedAccountIds: List<Long>): BigDecimal
 
     @Delete
     abstract fun deletePaymentInternal(payment: PaymentEntity)
@@ -244,4 +245,16 @@ abstract class TransactionDao(private val dataBase: FinanceDataBase) {
 
     @Query("DELETE FROM TransferEntity")
     abstract suspend fun clearAllTransfers()
+
+
+
+    @Query("""
+        SELECT COALESCE(SUM(balance), 0.0)
+        FROM PaymentEntity
+        WHERE type = 1 -- EXPENSE
+        AND date >= :startDate AND date <= :endDate
+        AND categoryID IN (:categoryIds)
+    """)
+    abstract suspend fun getSpentAmountForCategories(categoryIds: List<Long>, startDate: LocalDate, endDate: LocalDate): BigDecimal
+
 }

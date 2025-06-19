@@ -4,6 +4,7 @@ import androidx.room.TypeConverter
 import com.example.yourfinance.domain.model.CategoryType
 import com.example.yourfinance.domain.model.PeriodLite
 import com.example.yourfinance.domain.model.TransactionType
+import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.LocalTime
 
@@ -32,5 +33,15 @@ class Converters {
 
     @TypeConverter
     fun toTransactionType(value: Int): TransactionType = TransactionType.entries[value]
+
+    @TypeConverter
+    fun fromBigDecimal(value: BigDecimal?): String? {
+        return value?.toPlainString()
+    }
+
+    @TypeConverter
+    fun toBigDecimal(value: String?): BigDecimal? {
+        return value?.let { BigDecimal(it) }
+    }
 
 }

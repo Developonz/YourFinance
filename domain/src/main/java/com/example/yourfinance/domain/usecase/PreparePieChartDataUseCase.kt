@@ -3,13 +3,15 @@ package com.example.yourfinance.domain.usecase
 import com.example.yourfinance.domain.model.Transaction
 import com.example.yourfinance.domain.model.TransactionType
 import com.example.yourfinance.domain.model.entity.Payment
+import java.math.BigDecimal
+import java.math.RoundingMode
 import javax.inject.Inject
 
 data class PieChartSliceData(
     val categoryName: String,
-    val amount: Double,
-    val percentage: Double,
-    val totalAmountForPeriod: Double
+    val amount: BigDecimal,
+    val percentage: BigDecimal,
+    val totalAmountForPeriod: BigDecimal
 )
 
 
@@ -36,7 +38,7 @@ class PreparePieChartDataUseCase @Inject constructor() {
         val pieSlices = mutableListOf<PieChartSliceData>()
         val totalAmountForTypeAndPeriod = relevantPayments.sumOf { it.balance }
 
-        if (totalAmountForTypeAndPeriod == 0.0) {
+        if (totalAmountForTypeAndPeriod == BigDecimal.ZERO) {
             return emptyList()
         }
 
@@ -46,7 +48,7 @@ class PreparePieChartDataUseCase @Inject constructor() {
                 PieChartSliceData(
                     categoryName = categoryName,
                     amount = sum,
-                    percentage = (sum / totalAmountForTypeAndPeriod) * 100.0,
+                    percentage = (sum / totalAmountForTypeAndPeriod) * BigDecimal("100.00"),
                     totalAmountForPeriod = totalAmountForTypeAndPeriod
                 )
             )
@@ -54,12 +56,12 @@ class PreparePieChartDataUseCase @Inject constructor() {
 
         if (sortedCategories.size > topN) {
             val otherSum = sortedCategories.drop(topN).sumOf { it.second }
-            if (otherSum > 0.001) { // Небольшой порог для суммы "Другое"
+            if (otherSum > BigDecimal.ZERO) { // Небольшой порог для суммы "Другое"
                 pieSlices.add(
                     PieChartSliceData(
                         categoryName = "Другое",
                         amount = otherSum,
-                        percentage = (otherSum / totalAmountForTypeAndPeriod) * 100.0,
+                        percentage = (otherSum.divide(totalAmountForTypeAndPeriod, 2, RoundingMode.HALF_UP)) * BigDecimal("100.00"),
                         totalAmountForPeriod = totalAmountForTypeAndPeriod
                     )
                 )

@@ -2,13 +2,14 @@ package com.example.yourfinance.domain.usecase
 
 import com.example.yourfinance.domain.model.entity.MoneyAccount
 import com.example.yourfinance.domain.repository.TransactionRepository
+import java.math.BigDecimal
 import java.time.LocalDate
 import javax.inject.Inject
 
 data class PeriodBalances(
-    val startBalance: Double,
-    val endBalance: Double,
-    val netChange: Double
+    val startBalance: BigDecimal,
+    val endBalance: BigDecimal,
+    val netChange: BigDecimal
 )
 
 class CalculatePeriodBalancesUseCase @Inject constructor(
@@ -20,12 +21,12 @@ class CalculatePeriodBalancesUseCase @Inject constructor(
         val includedAccounts = allAccounts.filter { !it.excluded }
         val excludedAccountIds = allAccounts.filter { it.excluded }.map { it.id }
 
-        var sumOfInitialBalancesOfIncludedAccounts = 0.0
-        var balanceChangesBeforePeriodStart = 0.0
+        var sumOfInitialBalancesOfIncludedAccounts = BigDecimal.ZERO
+        var balanceChangesBeforePeriodStart = BigDecimal.ZERO
 
         if (periodStartDate == null) { // Период "Всего времени"
             sumOfInitialBalancesOfIncludedAccounts = includedAccounts.sumOf { it.startBalance }
-            balanceChangesBeforePeriodStart = 0.0
+            balanceChangesBeforePeriodStart = BigDecimal.ZERO
         } else {
             sumOfInitialBalancesOfIncludedAccounts = includedAccounts
                 .filter { it.dateCreation < periodStartDate }

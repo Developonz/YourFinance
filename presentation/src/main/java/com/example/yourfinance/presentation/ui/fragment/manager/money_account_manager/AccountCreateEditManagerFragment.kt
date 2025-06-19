@@ -35,6 +35,7 @@ import com.example.yourfinance.presentation.ui.adapter.SingleIconListAdapter
 import com.google.android.material.card.MaterialCardView
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
+import java.math.BigDecimal
 import java.text.DecimalFormat
 import java.text.DecimalFormatSymbols
 import java.util.Locale
@@ -337,8 +338,8 @@ class AccountCreateEditManagerFragment : Fragment() {
         if (isEditMode && accountToEdit != null) {
             accountToEdit!!.apply {
                 title           = name
-                startBalance   += amount - this.balance
-                balance         = amount
+                startBalance   += BigDecimal(amount) - this.balance
+                balance         = BigDecimal(amount)
                 excluded        = exclude
                 iconResourceId  = selectedIconKey
                 colorHex        = selectedColor
@@ -347,8 +348,8 @@ class AccountCreateEditManagerFragment : Fragment() {
         } else {
             MoneyAccount(
                 _title           = Title(name),
-                startBalance    = amount,
-                balance         = amount,
+                startBalance    = BigDecimal(amount),
+                balance         = BigDecimal(amount),
                 excluded        = exclude,
                 iconResourceId  = selectedIconKey,
                 colorHex        = selectedColor

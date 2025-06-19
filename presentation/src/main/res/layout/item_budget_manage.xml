@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginHorizontal="16dp"
+    android:layout_marginVertical="6dp"
+    app:cardBackgroundColor="#2C2C2E"
+    app:cardCornerRadius="12dp"
+    app:strokeWidth="0dp">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="16dp">
+
+        <TextView
+            android:id="@+id/text_title"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textColor="@android:color/white"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toStartOf="@+id/button_edit"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:text="Бюджет на еду и напитки" />
+
+        <TextView
+            android:id="@+id/text_period"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:textColor="#AEAEB2"
+            android:textSize="12sp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/text_title"
+            tools:text="01 июн - 30 июн" />
+
+        <ProgressBar
+            android:id="@+id/progress_bar"
+            style="@style/Widget.AppCompat.ProgressBar.Horizontal"
+            android:layout_width="0dp"
+            android:layout_height="6dp"
+            android:layout_marginTop="12dp"
+            android:max="100"
+            android:progressDrawable="@drawable/progress_bar_remaining"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/text_period"
+            tools:progress="80" />
+
+        <!-- Блок "Остаток" -->
+        <TextView
+            android:id="@+id/text_remaining_label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="Остаток"
+            android:textColor="#AEAEB2"
+            android:textSize="12sp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/progress_bar" />
+
+        <TextView
+            android:id="@+id/text_remaining_value"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="4dp"
+            android:textColor="@android:color/white"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            app:layout_constraintBaseline_toBaselineOf="@id/text_remaining_label"
+            app:layout_constraintStart_toEndOf="@id/text_remaining_label"
+            tools:text="4 000 ₽" />
+
+        <!-- ИЗМЕНЕННЫЙ БЛОК: "из X ₽" -->
+        <TextView
+            android:id="@+id/text_total_value"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:textColor="#AEAEB2"
+            android:textSize="14sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/progress_bar"
+            tools:text="из 5 000 ₽" />
+
+        <ImageButton
+            android:id="@+id/button_edit"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:background="?selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_edit"
+            app:layout_constraintBottom_toBottomOf="@id/text_title"
+            app:layout_constraintEnd_toStartOf="@id/button_delete"
+            app:layout_constraintTop_toTopOf="@id/text_title"
+            app:tint="@android:color/white" />
+
+        <ImageButton
+            android:id="@+id/button_delete"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:background="?selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_delete"
+            app:layout_constraintBottom_toBottomOf="@id/button_edit"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="@id/button_edit"
+            app:tint="#FF453A" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</com.google.android.material.card.MaterialCardView>

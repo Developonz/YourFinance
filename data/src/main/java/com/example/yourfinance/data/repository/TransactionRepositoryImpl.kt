@@ -13,6 +13,7 @@ import com.example.yourfinance.domain.model.entity.Transfer
 import com.example.yourfinance.domain.repository.TransactionRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.math.BigDecimal
 import java.time.LocalDate
 import javax.inject.Inject
 
@@ -85,7 +86,7 @@ class TransactionRepositoryImpl @Inject constructor(private val dao: Transaction
         }
     }
 
-    override suspend fun getBalanceBeforeDate(periodEndDate: LocalDate, excludedAccountIds: List<Long>) : Double {
+    override suspend fun getBalanceBeforeDate(periodEndDate: LocalDate, excludedAccountIds: List<Long>) : BigDecimal {
         return dao.getBalanceBeforeDate(periodEndDate, excludedAccountIds)
     }
 
@@ -93,8 +94,19 @@ class TransactionRepositoryImpl @Inject constructor(private val dao: Transaction
         periodStartDate: LocalDate?,
         periodEndDate: LocalDate?,
         excludedAccountIds: List<Long>
-    ): Double {
+    ): BigDecimal {
         return dao.getNetChangeBetweenDates(periodStartDate, periodEndDate, excludedAccountIds)
+    }
+
+    override suspend fun getSpentAmountForCategories(
+        categoryIds: List<Long>,
+        startDate: LocalDate,
+        endDate: LocalDate
+    ): BigDecimal {
+        if (categoryIds.isEmpty()) {
+            return BigDecimal.ZERO
+        }
+        return dao.getSpentAmountForCategories(categoryIds, startDate, endDate)
     }
 
 }

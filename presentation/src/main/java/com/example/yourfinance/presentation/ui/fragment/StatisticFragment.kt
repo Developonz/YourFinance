@@ -43,6 +43,7 @@ import com.github.mikephil.charting.utils.ColorTemplate
 import com.github.mikephil.charting.utils.MPPointF
 import com.google.android.material.tabs.TabLayout
 import dagger.hilt.android.AndroidEntryPoint
+import java.math.BigDecimal
 import java.text.NumberFormat
 import java.time.LocalDate
 import java.time.Month
@@ -240,8 +241,8 @@ class StatisticFragment : Fragment() {
         }
 
         viewModel.transactionsList.observe(viewLifecycleOwner) { transactions ->
-            var incomeSum = 0.0
-            var expenseSum = 0.0
+            var incomeSum = BigDecimal.ZERO
+            var expenseSum = BigDecimal.ZERO
             transactions.filterIsInstance<Payment>().forEach { payment ->
                 if (payment.type == TransactionType.INCOME) {
                     incomeSum += payment.balance
@@ -273,8 +274,8 @@ class StatisticFragment : Fragment() {
         }
     }
 
-    private fun calculateTotalForTypeWhenNoSlices(type: TransactionType): Double {
-        val transactions = viewModel.transactionsList.value ?: return 0.0
+    private fun calculateTotalForTypeWhenNoSlices(type: TransactionType): BigDecimal {
+        val transactions = viewModel.transactionsList.value ?: return BigDecimal.ZERO
         return transactions
             .filterIsInstance<Payment>()
             .filter { it.type == type }

@@ -5,6 +5,7 @@ import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.asFlow
+import androidx.lifecycle.liveData
 import com.example.yourfinance.domain.model.Period
 import com.example.yourfinance.domain.model.Transaction
 import com.example.yourfinance.domain.model.entity.Budget
@@ -24,6 +25,8 @@ import com.example.yourfinance.domain.usecase.CalculatePeriodBalancesUseCase
 import com.example.yourfinance.domain.usecase.PeriodBalances
 import com.example.yourfinance.domain.usecase.PieChartSliceData
 import com.example.yourfinance.domain.usecase.PreparePieChartDataUseCase
+import com.example.yourfinance.domain.usecase.budget.CalculateBudgetDetailsUseCase
+import com.example.yourfinance.domain.usecase.categories.category.FetchCategoriesUseCase
 import com.example.yourfinance.domain.usecase.transaction.DeleteTransactionUseCase
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -32,7 +35,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
-
+import java.math.BigDecimal
 
 
 @HiltViewModel
@@ -40,6 +43,7 @@ class GeneralViewModel @Inject constructor(
     private val fetchTransactionsUseCase: FetchTransactionsUseCase,
     fetchMoneyAccountsUseCase: FetchMoneyAccountsUseCase,
     fetchBudgetsUseCase: FetchBudgetsUseCase,
+    private val calculateBudgetDetailsUseCase: CalculateBudgetDetailsUseCase,
     private val deleteTransactionUseCase: DeleteTransactionUseCase,
     private val calculatePeriodBalancesUseCase: CalculatePeriodBalancesUseCase,
     private val preparePieChartDataUseCase: PreparePieChartDataUseCase
@@ -55,7 +59,11 @@ class GeneralViewModel @Inject constructor(
     }
 
     val accountsList: LiveData<List<MoneyAccount>> = fetchMoneyAccountsUseCase()
-    val budgetsList: LiveData<List<Budget>> = fetchBudgetsUseCase()
+    val rawBudgetsList: LiveData<List<Budget>> = fetchBudgetsUseCase()
+
+
+
+    val budgetsWithDetails = MediatorLiveData<List<Budget>>()
 
     // Это поле оставляем как есть, если оно не конфликтовало
     private val _currentChartDisplayTypeLiveData = MutableLiveData<TransactionType>(TransactionType.EXPENSE)
@@ -70,7 +78,7 @@ class GeneralViewModel @Inject constructor(
     private var statisticsUpdateJob: Job? = null
 
     init {
-        val initialPeriod = Period.WEEKLY
+        val initialPeriod = Period.MONTHLY
         val (start, end) = calculateDatesForStandardPeriod(initialPeriod, LocalDate.now())
         _selectedPeriod.value = PeriodSelection(initialPeriod, start, end) // Используем _selectedPeriod
 
@@ -88,6 +96,24 @@ class GeneralViewModel @Inject constructor(
         _periodBalances.addSource(accountsList) { accounts ->
             updatePeriodBalancesInternal(_selectedPeriod.value, accounts)
         }
+
+
+        fun updateBudgets() {
+            val budgets = rawBudgetsList.value
+            // Мы используем transactionsList как триггер, так как он зависит от периода
+            if (budgets == null) return
+
+            viewModelScope.launch {
+                // Вызываем правильный UseCase без лишних параметров
+                val detailedBudgets = budgets.map { budget ->
+                    calculateBudgetDetailsUseCase.invoke(budget)
+                }
+                budgetsWithDetails.value = detailedBudgets
+            }
+        }
+
+        budgetsWithDetails.addSource(rawBudgetsList) { updateBudgets() }
+        budgetsWithDetails.addSource(transactionsList) { updateBudgets() }
     }
 
     private fun updatePieChartDataInternal(transactions: List<Transaction>?, type: TransactionType?) {
@@ -101,7 +127,7 @@ class GeneralViewModel @Inject constructor(
 
     private fun updatePeriodBalancesInternal(selection: PeriodSelection?, accounts: List<MoneyAccount>?) {
         if (selection == null || accounts == null) {
-            _periodBalances.value = PeriodBalances(0.0, 0.0, 0.0)
+            _periodBalances.value = PeriodBalances(BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO)
             return
         }
         statisticsUpdateJob?.cancel()

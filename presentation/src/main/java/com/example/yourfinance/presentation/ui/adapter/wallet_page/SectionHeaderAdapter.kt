@@ -17,7 +17,7 @@ class SectionHeaderAdapter(
     ) : RecyclerView.ViewHolder(binding.root) {
         fun bind(title: String) {
             binding.sectionHeader.text = title
-            binding.sectionHeader.setOnClickListener({
+            binding.root.setOnClickListener({
                 onHeaderClick(title)
             })
 

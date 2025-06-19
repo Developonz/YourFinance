@@ -81,5 +81,9 @@
     <color name="ripple_material_light">#1f000000</color>
     <color name="ripple_material_dark">#33ffffff</color>
 
+    <color name="green_positive">#3357D928</color>
+    <color name="yellow_warning">#33F6FB27</color>
+    <color name="red_negative">#33C51414</color>
+
     <color name="default_icon_background">#333333</color>
 </resources>

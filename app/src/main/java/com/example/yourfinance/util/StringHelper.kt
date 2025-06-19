@@ -1,5 +1,6 @@
 package com.example.yourfinance.util
 
+import java.math.BigDecimal
 import java.text.NumberFormat
 import java.time.LocalDate
 import java.time.LocalTime
@@ -13,7 +14,7 @@ class StringHelper {
             return str.trim().lowercase().replaceFirstChar { it.uppercase() }
         }
 
-        fun getMoneyStr(balance: Double): String {
+        fun getMoneyStr(balance: BigDecimal): String {
             val formatter = NumberFormat.getCurrencyInstance(Locale.getDefault())
             return formatter.format(balance)
         }

@@ -1,6 +1,7 @@
 package com.example.yourfinance.domain.repository
 
 import androidx.lifecycle.LiveData
+import com.example.yourfinance.domain.model.entity.category.BaseCategory
 import com.example.yourfinance.domain.model.entity.category.Category
 import com.example.yourfinance.domain.model.entity.category.ICategoryData
 import com.example.yourfinance.domain.model.entity.category.Subcategory
@@ -17,4 +18,8 @@ interface CategoryRepository {
     suspend fun updateCategory(category: ICategoryData)
 
     suspend fun deleteCategory(id: Long)
+
+    suspend fun getAllExpenseCategories(): List<Category>
+
+    suspend fun getAllExpenseBaseCategories(): List<BaseCategory>
 }

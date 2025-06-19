@@ -6,6 +6,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.yourfinance.presentation.databinding.ItemBalanceBinding
 import com.example.yourfinance.domain.model.entity.MoneyAccount
 import com.example.yourfinance.domain.StringHelper
+import java.math.BigDecimal
 
 class WalletBalanceAdapter(
     var moneyAccounts: List<MoneyAccount> = emptyList()
@@ -14,7 +15,7 @@ class WalletBalanceAdapter(
 
     class WalletBalanceViewHolder(private val binding: ItemBalanceBinding) : RecyclerView.ViewHolder(binding.root){
         fun bind(moneyAccounts: List<MoneyAccount>) {
-            var sum = 0.0
+            var sum = BigDecimal.ZERO
             moneyAccounts.forEach({
                 if (!it.excluded) {
                     sum += it.balance

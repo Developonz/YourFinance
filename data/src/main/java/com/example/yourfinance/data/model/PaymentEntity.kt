@@ -4,6 +4,7 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.PrimaryKey
 import com.example.yourfinance.domain.model.TransactionType
+import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.LocalTime
 
@@ -25,7 +26,7 @@ import java.time.LocalTime
 )
 data class PaymentEntity(
     var type: TransactionType,
-    var balance: Double,
+    var balance: BigDecimal,
     var moneyAccID: Long,
     var categoryID: Long,
     var note: String = "",
