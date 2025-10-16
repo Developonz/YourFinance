@@ -1,6 +1,6 @@
 package com.example.yourfinance.presentation.ui.activity
 
-//import12323333s
+//import12323333ss
 import android.os.Bundle
 import android.view.View
 import com.google.android.material.bottomnavigation.BottomNavigationView
