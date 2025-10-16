@@ -298,7 +298,7 @@ class ApplicationLoadTest {
 
             val payment = Payment(
                 type = type,
-                balance = amount,
+                balance = BigDecimal(amount),
                 moneyAccount = account,
                 category = category,
                 _note = Title("Payment $i on $date"),
@@ -326,7 +326,7 @@ class ApplicationLoadTest {
             val date = LocalDate.ofEpochDay(Random.nextLong(startDate.toEpochDay(), endDate.toEpochDay()))
 
             val transfer = Transfer(
-                balance = amount,
+                balance = BigDecimal(amount),
                 moneyAccFrom = accFrom,
                 moneyAccTo = accTo,
                 _note = Title("Transfer $i on $date"),
@@ -363,12 +363,12 @@ class ApplicationLoadTest {
             repeat(NUM_OPERATIONS_UNDER_LOAD.coerceAtMost(createdPayments.size)) {
                 val paymentToUpdate = createdPayments.random()
                 val newAmount = Random.nextDouble(1.0, 600.0)
-                val updatedPayment = paymentToUpdate.copy(balance = newAmount, _note = Title("Updated ${paymentToUpdate.note}"))
+                val updatedPayment = paymentToUpdate.copy(balance = BigDecimal(newAmount), _note = Title("Updated ${paymentToUpdate.note}"))
                 val time = measureTimeMillis { updatePaymentUseCase(updatedPayment) }
                 totalUpdateTime += time
                 val reloaded = loadPaymentByIdUseCase(paymentToUpdate.id)
                 assertNotNull(reloaded)
-                assertEquals(newAmount, reloaded!!.balance, 0.01)
+                assertEquals(newAmount, reloaded!!.balance.toDouble(), 0.01)
             }
             Log.d(TAG, "Updating $NUM_OPERATIONS_UNDER_LOAD payments took avg ${totalUpdateTime / NUM_OPERATIONS_UNDER_LOAD.coerceAtMost(createdPayments.size)} ms.")
         }
@@ -378,12 +378,12 @@ class ApplicationLoadTest {
             repeat(NUM_OPERATIONS_UNDER_LOAD.coerceAtMost(createdTransfers.size)) {
                 val transferToUpdate = createdTransfers.random()
                 val newAmount = Random.nextDouble(1.0, 1200.0)
-                val updatedTransfer = transferToUpdate.copy(balance = newAmount, _note = Title("Updated ${transferToUpdate.note}"))
+                val updatedTransfer = transferToUpdate.copy(balance = BigDecimal(newAmount), _note = Title("Updated ${transferToUpdate.note}"))
                 val time = measureTimeMillis { updateTransferUseCase(updatedTransfer) }
                 totalUpdateTime += time
                 val reloaded = loadTransferByIdUseCase(transferToUpdate.id)
                 assertNotNull(reloaded)
-                assertEquals(newAmount, reloaded!!.balance, 0.01)
+                assertEquals(newAmount, reloaded!!.balance.toDouble(), 0.01)
             }
             Log.d(TAG, "Updating $NUM_OPERATIONS_UNDER_LOAD transfers took avg ${totalUpdateTime / NUM_OPERATIONS_UNDER_LOAD.coerceAtMost(createdTransfers.size)} ms.")
         }

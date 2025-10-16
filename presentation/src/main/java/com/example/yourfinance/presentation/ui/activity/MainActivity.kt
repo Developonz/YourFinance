@@ -1,5 +1,6 @@
 package com.example.yourfinance.presentation.ui.activity
 
+//imports
 import android.os.Bundle
 import android.view.View
 import com.google.android.material.bottomnavigation.BottomNavigationView
