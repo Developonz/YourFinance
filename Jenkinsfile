@@ -1,129 +1,161 @@
-
+// Декларативный пайплайн для мобильного приложения на базе Gradle в среде Windows
 pipeline {
     agent any
 
+    // Устанавливаем переменные окружения, чтобы Jenkins знал,
+    // где найти SDK и AVD файлы.
     environment {
-        // Используем переменную окружения для большей переносимости
-        ANDROID_SDK_ROOT = "${System.env.USERPROFILE}\\AppData\\Local\\Android\\Sdk"
-        ANDROID_AVD_HOME = "${System.env.USERPROFILE}\\.android\\avd"
+        // Путь к SDK
+        ANDROID_SDK_ROOT = 'C:\\Users\\zapru\\AppData\\Local\\Android\\Sdk' // Используем двойной слэш для путей в Groovy
+        // Путь к директории, где хранятся INI-файлы AVD
+        ANDROID_AVD_HOME = 'C:\\Users\\zapru\\.android\\avd'
     }
 
     stages {
         stage('Checkout') {
             steps {
                 echo 'Исходный код получен.'
-                // Шаг checkout SCM добавляется Jenkins автоматически, если Job настроен на получение из Git
             }
         }
 
         stage('Run Unit Tests') {
             steps {
                 echo 'Запуск модульных (unit) тестов...'
-                bat '.\\gradlew.bat clean testDebugUnitTest'
+                // ИСПРАВЛЕНИЕ: Добавлена смена кодировки для корректного вывода кириллицы.
+                // РЕКОМЕНДАЦИЯ: Команда clean удалена, чтобы не замедлять последующие шаги.
+                bat 'chcp 65001 && .\\gradlew.bat testDebugUnitTest'
             }
         }
 
         stage('Build Application') {
             steps {
                 echo 'Сборка отладочной (debug) версии приложения...'
-                bat '.\\gradlew.bat assembleDebug'
+                bat 'chcp 65001 && .\\gradlew.bat assembleDebug'
             }
         }
 
         stage('Run Integration Tests') {
             steps {
                 script {
-                    def adbPath = "\"${env.ANDROID_SDK_ROOT}\\platform-tools\\adb.exe\""
-                    def emulatorPath = "\"${env.ANDROID_SDK_ROOT}\\emulator\\emulator.exe\""
+                    // УЛУЧШЕНИЕ: Используем объект env Jenkins для доступа к переменным окружения.
+                    // Это более надежный и "Groovy-way" подход.
+                    def adbPath = "${env.ANDROID_SDK_ROOT}\\platform-tools\\adb.exe"
+                    def emulatorPath = "${env.ANDROID_SDK_ROOT}\\emulator\\emulator.exe"
+                    
                     def avdName = 'Medium_Phone_API_36.1'
                     def emulatorSerial = 'emulator-5554'
 
                     echo "Настройка и запуск эмулятора: ${avdName}"
                     
-                    // --- 1. Перезапуск ADB сервера ---
-                    bat "${adbPath} kill-server"
-                    bat "${adbPath} start-server"
+                    // --- 1. Остановка ADB сервера на всякий случай ---
+                    bat "\"${adbPath}\" kill-server"
 
-                    // --- 2. Запуск эмулятора ---
-                    echo "Запуск эмулятора ${avdName} в фоновом режиме..."
-                    bat "start /b \"\" ${emulatorPath} -avd ${avdName} -no-audio -no-window -no-snapshot-load"
+                    // --- 2. Запуск эмулятора в фоновом режиме ---
+                    echo "Запуск эмулятора ${avdName}..."
+                    // start /b запускает процесс в фоновом режиме, не блокируя пайплайн
+                    bat "start /b \"\" \"${emulatorPath}\" -avd ${avdName} -no-audio -no-window -no-snapshot-load"
 
-                    // --- 3. Ожидание полной загрузки эмулятора ---
+                    // --- 3. Ожидание полной загрузки эмулятора (до 5 минут) ---
                     timeout(time: 5, unit: 'MINUTES') {
                         echo "Ожидание появления устройства ${emulatorSerial} в ADB..."
-                        bat "${adbPath} -s ${emulatorSerial} wait-for-device"
+                        bat "\"${adbPath}\" -s ${emulatorSerial} wait-for-device"
                         
                         echo "Ожидание полной загрузки Android OS..."
-                        def bootCompleted = false
-                        while (!bootCompleted) {
-                            def bootStatus = bat(
-                                script: "${adbPath} -s ${emulatorSerial} shell getprop sys.boot_completed", 
-                                returnStdout: true
-                            ).trim()
-
-                            if (bootStatus == '1') {
-                                bootCompleted = true
-                                echo "ОС полностью загружена."
-                            } else {
-                                echo "Устройство еще не готово. Статус: ${bootStatus ?: 'не определен'}. Ожидание 5 секунд..."
+                        
+                        // УЛУЧШЕНИЕ: Использование `waitUntil` делает код более читаемым и идиоматичным
+                        waitUntil {
+                            try {
+                                def bootStatus = bat(
+                                    script: "\"${adbPath}\" -s ${emulatorSerial} shell getprop sys.boot_completed",
+                                    returnStdout: true
+                                ).trim()
+                                
+                                if (bootStatus == '1') {
+                                    echo "ОС полностью загружена."
+                                    return true // Выход из цикла waitUntil
+                                } else {
+                                    echo "Устройство еще не готово. Статус: ${bootStatus}. Ожидание 5 секунд..."
+                                    sleep(time: 5, unit: 'SECONDS')
+                                    return false // Продолжение цикла
+                                }
+                            } catch (e) {
+                                echo "Ошибка при проверке статуса загрузки: ${e.getMessage()}. Повторная попытка через 5 секунд..."
                                 sleep(time: 5, unit: 'SECONDS')
+                                return false // Продолжение цикла
                             }
                         }
 
-                        // --- 4. Разблокировка экрана и дополнительная пауза ---
-                        bat "${adbPath} -s ${emulatorSerial} shell input keyevent 82"
-                        echo "Эмулятор разблокирован. Дополнительная пауза 15 секунд для стабилизации."
+                        // Разблокируем экран
+                        bat "\"${adbPath}\" -s ${emulatorSerial} shell input keyevent 82"
+                        echo "Эмулятор готов к работе."
+                        
+                        // Дополнительная пауза для стабилизации
+                        echo "Дополнительная пауза 15 секунд для стабилизации ОС..."
                         sleep(time: 15, unit: 'SECONDS')
                     }
 
-                    // --- 5. Запуск тестов ---
+                    // --- 4. Запуск тестов ---
                     echo 'Запуск инструментальных (androidTest) тестов...'
-                    bat ".\\gradlew.bat :app:connectedDebugAndroidTest --stacktrace -Dconnected.device.serial=${emulatorSerial}"
+                    // РЕКОМЕНДАЦИЯ: --rerun-tasks полезен для отладки, но для CI его лучше убрать, чтобы использовать кэш Gradle.
+                    bat "chcp 65001 && .\\gradlew.bat :app:connectedDebugAndroidTest --stacktrace --info -Dconnected.device.serial=${emulatorSerial}"
                 }
             }
         }
 
         stage('Publish Results & Artifacts') {
-            // Этот шаг выполняется всегда после тестов, даже если они упали, чтобы собрать отчеты
+            // always() гарантирует, что этот шаг будет выполнен, даже если тесты провалятся,
+            // что позволит нам увидеть отчеты о неудачных тестах.
             post {
                 always {
                     echo 'Публикация отчетов о тестах и архивирование артефактов...'
+                    // ИСПРАВЛЕНИЕ: Используем glob-шаблоны (**/) для поиска XML-отчетов во всех подмодулях.
+                    junit '**/build/test-results/testDebugUnitTest/*.xml'
                     
-                    // Публикация отчетов unit-тестов
-                    junit '**/build/test-results/testDebugUnitTest/**/*.xml'
-                    
-                    // Публикация отчетов инструментальных тестов
+                    // ИСПРАВЛЕНИЕ: Указан корректный путь и шаблон для файлов отчетов.
                     junit 'app/build/outputs/androidTest-results/connected/debug/*.xml'
                     
-                    // Архивация APK только в случае успеха
+                    // Архивация собранного APK
                     archiveArtifacts artifacts: 'app/build/outputs/apk/debug/app-debug.apk', fingerprint: true, onlyIfSuccessful: true
                 }
             }
         }
     }
     
+    // Действия после завершения пайплайна
     post {
         always {
-            echo 'Пайплайн завершен. Остановка эмулятора...'
+            echo 'Пайплайн завершен. Запуск очистки...'
             script {
-                // Надежно останавливаем все процессы эмулятора.
-                // returnStatus: true предотвращает ошибку, если процесс уже завершен.
+                echo 'Остановка эмулятора...'
+                def adbPath = "${env.ANDROID_SDK_ROOT}\\platform-tools\\adb.exe"
+                def emulatorSerial = 'emulator-5554'
+
+                // УЛУЧШЕНИЕ: Сначала "вежливо" просим эмулятор выключиться через ADB.
                 bat(
-                    script: 'taskkill /F /IM emulator.exe',
+                    script: "\"${adbPath}\" -s ${emulatorSerial} emu kill",
+                    returnStatus: true
+                )
+                
+                // Пауза, чтобы дать процессу завершиться
+                sleep(time: 5, unit: 'SECONDS')
+
+                // УЛУЧШЕНИЕ: Силовой метод через taskkill оставлен как запасной вариант.
+                bat(
+                    script: 'taskkill /F /IM qemu-system-x86_64.exe',
                     returnStatus: true
                 )
                 bat(
-                    script: '"%ANDROID_SDK_ROOT%\\platform-tools\\adb.exe" kill-server',
+                    script: 'taskkill /F /IM emulator.exe',
                     returnStatus: true
                 )
                 echo 'Очистка завершена.'
             }
         }
-        success {
-            echo 'Сборка и тесты успешно завершены!'
-        }
         failure {
             echo 'Сборка не удалась! Проверьте логи.'
+        }
+        success {
+            echo 'Сборка и тесты успешно завершены!'
         }
     }
 }
