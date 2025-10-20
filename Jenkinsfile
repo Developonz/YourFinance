@@ -21,8 +21,6 @@ pipeline {
         stage('Run Unit Tests') {
             steps {
                 echo 'Запуск модульных (unit) тестов...'
-                // Если у вас мультимодульный проект (как указано data\src\test\...), 
-                // лучше использовать команду для всех модулей:
                 bat '.\\gradlew.bat clean testDebugUnitTest'
             }
         }
@@ -67,22 +65,29 @@ pipeline {
                         echo "Ожидание загрузки Android OS (sys.boot_completed == 1) с помощью Groovy-цикла..."
                         def bootCompleted = false
                         while (!bootCompleted) {
+                            def bootStatus = '0'
                             try {
                                 // Используем bat с returnStdout: true, чтобы получить вывод команды
-                                def output = bat(
+                                def rawOutput = bat(
                                     script: "\"${adbPath}\" -s ${emulatorSerial} shell getprop sys.boot_completed", 
-                                    returnStdout: true // Получаем вывод
-                                ).trim()
+                                    returnStdout: true 
+                                )
                                 
-                                if (output == '1') {
+                                // КЛЮЧЕВОЕ ИСПРАВЛЕНИЕ: 
+                                // Разделяем вывод по строкам, берем последнюю непустую строку (где и находится '1')
+                                // и удаляем все, кроме цифр '0' или '1'.
+                                def outputLines = rawOutput.split('\n').collect{ it.trim() }.findAll{ !it.isEmpty() }
+                                bootStatus = outputLines.isEmpty() ? '0' : outputLines.last().replaceAll(/[^0-1]/, '').trim()
+                                
+                                if (bootStatus == '1') {
                                     bootCompleted = true
                                     echo "OS fully booted."
                                 } else {
-                                    echo "Устройство еще не готово. Статус: ${output ?: 'null/empty'}. Ожидание 5 секунд..."
+                                    echo "Устройство еще не готово. Статус: ${bootStatus ?: 'null/empty'}. Ожидание 5 секунд..."
                                     sleep(time: 5, unit: 'SECONDS')
                                 }
                             } catch (e) {
-                                // Обработка возможной временной ошибки ADB, если команда getprop не сработала
+                                // Обработка возможной временной ошибки ADB
                                 echo "Ошибка при проверке загрузки: ${e.getMessage()}. Ожидание 5 секунд..."
                                 sleep(time: 5, unit: 'SECONDS')
                             }
@@ -99,12 +104,10 @@ pipeline {
 
                     // --- 4. Запуск тестов ---
                     echo 'Запуск инструментальных (интеграционных/androidTest) тестов...'
-                    // ИСПРАВЛЕНИЕ: Добавлены --stacktrace, --info и --rerun-tasks для детальной диагностики
                     bat ".\\gradlew.bat :app:connectedDebugAndroidTest --stacktrace --info --rerun-tasks -Dconnected.device.serial=${emulatorSerial}"
 
                     // --- 5. Остановка эмулятора ---
                     echo 'Остановка эмулятора...'
-                    // Выполняем 'adb emu kill' для чистого завершения
                     bat "\"${adbPath}\" -s ${emulatorSerial} emu kill"
 
                     sleep(time: 10, unit: 'SECONDS')
