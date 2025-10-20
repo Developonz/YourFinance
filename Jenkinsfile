@@ -84,7 +84,8 @@ pipeline {
 
                     // --- 4. Запуск тестов ---
                     echo 'Запуск инструментальных (интеграционных/androidTest) тестов...'
-                    bat ".\\gradlew.bat connectedDebugAndroidTest -Dconnected.device.serial=${emulatorSerial}"
+                    // ИСПРАВЛЕНИЕ: Добавлен --stacktrace для детального вывода ошибки Gradle.
+                    bat ".\\gradlew.bat connectedDebugAndroidTest --stacktrace -Dconnected.device.serial=${emulatorSerial}"
 
                     // --- 5. Остановка эмулятора ---
                     echo 'Остановка эмулятора...'
