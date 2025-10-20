@@ -38,7 +38,14 @@ pipeline {
 
                     echo "Настройка и запуск эмулятора: ${avdName}"
                     
+                    // --- ИЗМЕНЕНИЕ: Явный и более надежный запуск ADB-сервера ---
+                    echo "Перезапуск ADB сервера для стабильности..."
                     bat "\"${adbPath}\" kill-server"
+                    bat "\"${adbPath}\" start-server"
+                    // Даем серверу секунду на полную инициализацию
+                    sleep(time: 2, unit: 'SECONDS')
+                    // --- КОНЕЦ ИЗМЕНЕНИЯ ---
+
                     echo "Запуск эмулятора ${avdName}..."
                     bat "start /b \"\" \"${emulatorPath}\" -avd ${avdName} -no-audio -no-window -no-snapshot-load"
 
@@ -83,21 +90,14 @@ pipeline {
         }
     }
     
-    // ИСПРАВЛЕНИЕ: Все действия после сборки и тестов перенесены сюда.
     post {
         always {
-            // --- 1. Публикация результатов ---
             echo 'Публикация отчетов о тестах и архивирование артефактов...'
-            // Используем glob-шаблоны (**/) для поиска XML-отчетов во всех подмодулях.
             junit '**/build/test-results/testDebugUnitTest/*.xml'
             junit 'app/build/outputs/androidTest-results/connected/debug/*.xml'
             
-            // --- 2. Архивация артефактов (только при успехе) ---
-            // Этот шаг будет выполнен только если пайплайн дошел до конца без ошибок 'failure'.
-            // Если тесты упадут, пайплайн будет 'unstable', и артефакт сохранится.
             archiveArtifacts artifacts: 'app/build/outputs/apk/debug/app-debug.apk', fingerprint: true, allowEmptyArchive: true
 
-            // --- 3. Очистка ---
             echo 'Пайплайн завершен. Запуск очистки...'
             script {
                 echo 'Остановка эмулятора...'
