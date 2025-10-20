@@ -128,10 +128,15 @@ pipeline {
             // Идеальное место для остановки эмулятора.
             script {
                 echo 'Остановка эмулятора...'
-                // Пытаемся остановить оба возможных процесса эмулятора.
-                // "|| echo" предотвращает ошибку, если процесс не найден.
-                bat 'taskkill /F /IM qemu-system-x86_64.exe || echo "Процесс qemu не найден."'
-                bat 'taskkill /F /IM emulator.exe || echo "Процесс emulator не найден."'
+                // Используем returnStatus: true, чтобы предотвратить сбой скрипта, если процесс не найден.
+                bat(
+                    script: 'taskkill /F /IM qemu-system-x86_64.exe',
+                    returnStatus: true
+                )
+                bat(
+                    script: 'taskkill /F /IM emulator.exe',
+                    returnStatus: true
+                )
                 echo 'Очистка завершена.'
             }
         }
@@ -143,4 +148,3 @@ pipeline {
         }
     }
 }
-
