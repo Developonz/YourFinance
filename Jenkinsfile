@@ -6,7 +6,7 @@ pipeline {
     // Устанавливаем переменную окружения ANDROID_SDK_ROOT, 
     // чтобы Gradle знал, где найти SDK.
     environment {
-         // !!! ПУТЬ К SDK !!!
+         // !!! ПУТЬ К SDK, который уже был корректен в предыдущих логах !!!
          ANDROID_SDK_ROOT = 'C:\\Users\\zapru\\AppData\\Local\\Android\\Sdk' 
     }
     
@@ -33,12 +33,17 @@ pipeline {
         }
 
         stage('Run Integration Tests (Требуется эмулятор/устройство!)') {
-            // Использование эмулятора - наиболее стабильный способ для CI.
             steps {
                 script {
                     def adbPath = "%ANDROID_SDK_ROOT%\\platform-tools\\adb.exe"
                     def emulatorPath = "%ANDROID_SDK_ROOT%\\emulator\\emulator.exe"
-                    def avdName = 'Medium_Phone_API_36.1' // !!! ЗАМЕНИТЕ НА ИМЯ ВАШЕГО AVD (например, Pixel_3_API_29) !!!
+                    
+                    // !!! ВАЖНО: ЗАМЕНИТЕ ЭТОТ PLACEHOLDER НА ТОЧНОЕ ИМЯ ВАШЕГО AVD (Действие 1) !!!
+                    def avdName = 'Medium_Phone_API_36.1' 
+                    
+                    // Серийный номер, который будет использовать ADB для таргетирования.
+                    // Для первого запущенного эмулятора это почти всегда emulator-5554.
+                    def emulatorSerial = 'emulator-5554'
 
                     echo "Настройка и запуск эмулятора: ${avdName}"
                     
@@ -47,39 +52,36 @@ pipeline {
                     bat "\"${adbPath}\" devices" // Просто для диагностики
 
                     // --- 2. Запуск эмулятора в фоновом режиме (поток) ---
-                    // 'start /b' запускает команду и сразу возвращает управление, чтобы пайплайн не завис.
-                    // -no-audio -no-window уменьшают нагрузку
                     echo "Запуск эмулятора ${avdName}..."
-                    // Используем try/catch на случай, если adb/emulator не найдены
                     try {
+                        // Используем start /b "" для стабильного запуска в фоновом режиме на Windows
                         bat "start /b \"\" \"${emulatorPath}\" -avd ${avdName} -no-audio -no-window"
                     } catch (e) {
-                        echo "Не удалось запустить эмулятор. Убедитесь, что AVD с именем '${avdName}' существует, и путь к SDK правильный."
+                        echo "Не удалось запустить эмулятор. Убедитесь, что AVD с именем '${avdName}' существует."
                         error "Сбой при запуске эмулятора."
                     }
 
 
                     // --- 3. Ожидание полной загрузки эмулятора (до 5 минут) ---
-                    echo "Ожидание полной загрузки устройства..."
-                    // Ожидаем, пока ADB не увидит активное устройство
-                    // Используем таймаут в 300 секунд (5 минут)
+                    echo "Ожидание полной загрузки устройства: ${emulatorSerial}..."
                     timeout(time: 5, unit: 'MINUTES') {
-                        bat "\"${adbPath}\" wait-for-device"
-                        // Проверяем готовность ОС Android
-                        bat "\"${adbPath}\" shell input keyevent 82" // Разблокируем экран
+                        // Явно ждем только нужный нам серийный номер
+                        bat "\"${adbPath}\" -s ${emulatorSerial} wait-for-device"
+                        // Разблокируем экран
+                        bat "\"${adbPath}\" -s ${emulatorSerial} shell input keyevent 82" 
                         echo "Эмулятор готов к работе."
                     }
 
-                    // --- 4. Запуск тестов ---
+                    // --- 4. Запуск тестов, явно указывая серийный номер для избежания "more than one device" ---
                     echo 'Запуск инструментальных (интеграционных/androidTest) тестов...'
-                    bat '.\\gradlew.bat connectedDebugAndroidTest'
+                    // -Dconnected.device.serial=${emulatorSerial} заставляет Gradle таргетировать только этот эмулятор.
+                    bat ".\\gradlew.bat connectedDebugAndroidTest -Dconnected.device.serial=${emulatorSerial}"
 
                     // --- 5. Остановка эмулятора ---
                     echo 'Остановка эмулятора...'
                     // Отправляем команду на завершение работы эмулятора
-                    bat "\"${adbPath}\" emu kill"
+                    bat "\"${adbPath}\" -s ${emulatorSerial} emu kill"
 
-                    // Добавляем паузу для завершения процесса, хотя 'emu kill' должен быть быстрым
                     sleep(time: 10, unit: 'SECONDS')
                 }
             }
