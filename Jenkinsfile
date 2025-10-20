@@ -8,6 +8,7 @@ pipeline {
     environment {
          // !!! ПУТЬ К SDK, который уже был корректен в предыдущих логах !!!
          ANDROID_SDK_ROOT = 'C:\\Users\\zapru\\AppData\\Local\\Android\\Sdk' 
+         ANDROID_AVD_HOME = 'C:\\Users\\zapru\\.android\\avd'
     }
     
     stages {
