@@ -102,12 +102,7 @@ pipeline {
                     echo 'Запуск инструментальных (интеграционных/androidTest) тестов...'
                     bat ".\\gradlew.bat :app:connectedDebugAndroidTest --stacktrace --info --rerun-tasks -Dconnected.device.serial=${emulatorSerial}"
 
-                    // --- 5. Остановка эмулятора (ИСПРАВЛЕНО) ---
-                    echo "Остановка эмулятора: ${emulatorSerial}..."
-                    // Используем 'adb emu kill' — это более надежный способ, чем 'taskkill',
-                    // так как он напрямую обращается к эмулятору через ADB.
-                    bat "\"${adbPath}\" -s ${emulatorSerial} emu kill"
-                    echo "Команда на остановку эмулятора отправлена."
+                    // --- 5. Остановка эмулятора перенесена в блок 'post' для надежности ---
                 }
             }
         }
@@ -117,8 +112,8 @@ pipeline {
                 echo 'Публикация отчетов о тестах и архивирование артефактов...'
                 // 1. Публикация отчетов модульных тестов
                 junit '**/build/test-results/testDebugUnitTest/**/*.xml'
-                // 2. Публикация отчетов инструментальных тестов
-                junit '**/build/outputs/androidTest-results/connected/*.xml'
+                // 2. Публикация отчетов инструментальных тестов (ИСПРАВЛЕН ПУТЬ)
+                junit 'app/build/outputs/androidTest-results/connected/debug/*.xml'
                 // 3. Архивация собранного APK
                 archiveArtifacts artifacts: 'app/build/outputs/apk/debug/app-debug.apk', fingerprint: true, onlyIfSuccessful: true
             }
@@ -128,7 +123,17 @@ pipeline {
     // Действия после завершения пайплайна
     post {
         always {
-            echo 'Пайплайн завершен.'
+            echo 'Пайплайн завершен. Запуск очистки...'
+            // Этот блок выполнится всегда, вне зависимости от успеха или провала сборки.
+            // Идеальное место для остановки эмулятора.
+            script {
+                echo 'Остановка эмулятора...'
+                // Пытаемся остановить оба возможных процесса эмулятора.
+                // "|| echo" предотвращает ошибку, если процесс не найден.
+                bat 'taskkill /F /IM qemu-system-x86_64.exe || echo "Процесс qemu не найден."'
+                bat 'taskkill /F /IM emulator.exe || echo "Процесс emulator не найден."'
+                echo 'Очистка завершена.'
+            }
         }
         failure {
             echo 'Сборка не удалась! Проверьте логи.'
@@ -138,3 +143,4 @@ pipeline {
         }
     }
 }
+
