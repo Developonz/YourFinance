@@ -21,6 +21,8 @@ pipeline {
         stage('Run Unit Tests') {
             steps {
                 echo 'Запуск модульных (unit) тестов...'
+                // Если у вас мультимодульный проект (как указано data\src\test\...), 
+                // лучше использовать команду для всех модулей:
                 bat '.\\gradlew.bat clean testDebugUnitTest'
             }
         }
@@ -56,22 +58,36 @@ pipeline {
                     // --- 3. Ожидание полной загрузки эмулятора (до 5 минут) ---
                     echo "Ожидание полной загрузки устройства: ${emulatorSerial}..."
                     timeout(time: 5, unit: 'MINUTES') {
+                        
                         // 1. Ждем, пока устройство появится в ADB
+                        echo "Ожидание появления устройства в ADB..."
                         bat "\"${adbPath}\" -s ${emulatorSerial} wait-for-device"
                         
                         // 2. Ждем, пока ОС Android полностью загрузится (sys.boot_completed == 1)
-                        echo "Ожидание загрузки Android OS..."
-                        bat '@echo off\n' +
-                            ':WAIT_LOOP\n' +
-                            'set "BOOT_STATUS=" \n' + 
-                            "for /f \"delims=\" %%i in ('\"${adbPath}\" -s ${emulatorSerial} shell getprop sys.boot_completed') do set BOOT_STATUS=%%i\n" +
-                            'if "%BOOT_STATUS%"=="1" goto BOOT_COMPLETE\n' +
-                            'echo Device not ready. Waiting 5 seconds...\n' +
-                            'timeout /T 5 /NOBREAK >NUL\n' +
-                            'goto WAIT_LOOP\n' +
-                            ':BOOT_COMPLETE\n' +
-                            'echo OS fully booted.' 
-                        
+                        echo "Ожидание загрузки Android OS (sys.boot_completed == 1) с помощью Groovy-цикла..."
+                        def bootCompleted = false
+                        while (!bootCompleted) {
+                            try {
+                                // Используем bat с returnStdout: true, чтобы получить вывод команды
+                                def output = bat(
+                                    script: "\"${adbPath}\" -s ${emulatorSerial} shell getprop sys.boot_completed", 
+                                    returnStdout: true // Получаем вывод
+                                ).trim()
+                                
+                                if (output == '1') {
+                                    bootCompleted = true
+                                    echo "OS fully booted."
+                                } else {
+                                    echo "Устройство еще не готово. Статус: ${output ?: 'null/empty'}. Ожидание 5 секунд..."
+                                    sleep(time: 5, unit: 'SECONDS')
+                                }
+                            } catch (e) {
+                                // Обработка возможной временной ошибки ADB, если команда getprop не сработала
+                                echo "Ошибка при проверке загрузки: ${e.getMessage()}. Ожидание 5 секунд..."
+                                sleep(time: 5, unit: 'SECONDS')
+                            }
+                        }
+
                         // 3. Разблокируем экран
                         bat "\"${adbPath}\" -s ${emulatorSerial} shell input keyevent 82" 
                         echo "Эмулятор готов к работе."
@@ -88,6 +104,7 @@ pipeline {
 
                     // --- 5. Остановка эмулятора ---
                     echo 'Остановка эмулятора...'
+                    // Выполняем 'adb emu kill' для чистого завершения
                     bat "\"${adbPath}\" -s ${emulatorSerial} emu kill"
 
                     sleep(time: 10, unit: 'SECONDS')
