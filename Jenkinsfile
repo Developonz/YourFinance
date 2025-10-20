@@ -103,12 +103,11 @@ pipeline {
                     bat ".\\gradlew.bat :app:connectedDebugAndroidTest --stacktrace --info --rerun-tasks -Dconnected.device.serial=${emulatorSerial}"
 
                     // --- 5. Остановка эмулятора (ИСПРАВЛЕНО) ---
-                    echo 'Остановка эмулятора с помощью taskkill...'
-                    // Используем taskkill, чтобы гарантировать завершение процесса emulator.exe в фоновом режиме
-                    bat "taskkill /F /IM emulator.exe" 
-                    echo 'Процесс emulator.exe завершен.'
-
-                    sleep(time: 10, unit: 'SECONDS') 
+                    echo "Остановка эмулятора: ${emulatorSerial}..."
+                    // Используем 'adb emu kill' — это более надежный способ, чем 'taskkill',
+                    // так как он напрямую обращается к эмулятору через ADB.
+                    bat "\"${adbPath}\" -s ${emulatorSerial} emu kill"
+                    echo "Команда на остановку эмулятора отправлена."
                 }
             }
         }
