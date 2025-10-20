@@ -21,6 +21,7 @@ pipeline {
         stage('Run Unit Tests') {
             steps {
                 echo 'Запуск модульных (unit) тестов...'
+                // Запускает тесты во всех модулях, в которых они есть (e.g., :data:testDebugUnitTest)
                 bat '.\\gradlew.bat clean testDebugUnitTest'
             }
         }
@@ -67,15 +68,11 @@ pipeline {
                         while (!bootCompleted) {
                             def bootStatus = '0'
                             try {
-                                // Используем bat с returnStdout: true, чтобы получить вывод команды
                                 def rawOutput = bat(
                                     script: "\"${adbPath}\" -s ${emulatorSerial} shell getprop sys.boot_completed", 
                                     returnStdout: true 
                                 )
                                 
-                                // КЛЮЧЕВОЕ ИСПРАВЛЕНИЕ: 
-                                // Разделяем вывод по строкам, берем последнюю непустую строку (где и находится '1')
-                                // и удаляем все, кроме цифр '0' или '1'.
                                 def outputLines = rawOutput.split('\n').collect{ it.trim() }.findAll{ !it.isEmpty() }
                                 bootStatus = outputLines.isEmpty() ? '0' : outputLines.last().replaceAll(/[^0-1]/, '').trim()
                                 
@@ -87,7 +84,6 @@ pipeline {
                                     sleep(time: 5, unit: 'SECONDS')
                                 }
                             } catch (e) {
-                                // Обработка возможной временной ошибки ADB
                                 echo "Ошибка при проверке загрузки: ${e.getMessage()}. Ожидание 5 секунд..."
                                 sleep(time: 5, unit: 'SECONDS')
                             }
@@ -106,11 +102,13 @@ pipeline {
                     echo 'Запуск инструментальных (интеграционных/androidTest) тестов...'
                     bat ".\\gradlew.bat :app:connectedDebugAndroidTest --stacktrace --info --rerun-tasks -Dconnected.device.serial=${emulatorSerial}"
 
-                    // --- 5. Остановка эмулятора ---
-                    echo 'Остановка эмулятора...'
-                    bat "\"${adbPath}\" -s ${emulatorSerial} emu kill"
+                    // --- 5. Остановка эмулятора (ИСПРАВЛЕНО) ---
+                    echo 'Остановка эмулятора с помощью taskkill...'
+                    // Используем taskkill, чтобы гарантировать завершение процесса emulator.exe в фоновом режиме
+                    bat "taskkill /F /IM emulator.exe" 
+                    echo 'Процесс emulator.exe завершен.'
 
-                    sleep(time: 10, unit: 'SECONDS')
+                    sleep(time: 10, unit: 'SECONDS') 
                 }
             }
         }
