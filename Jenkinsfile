@@ -1,85 +1,82 @@
+// Декларативный пайплайн для мобильного приложения на базе Gradle в среде Windows
 pipeline {
+    // Используем любой доступный агент, но команды должны быть адаптированы для Windows
     agent any
 
+    // Настройка переменных среды (если необходимо, например, для SDK)
+    // РАСКОММЕНТИРУЙТЕ И ИЗМЕНИТЕ ПУТЬ, если Gradle не может найти Android SDK
+    // environment {
+    //     ANDROID_SDK_ROOT = 'C:\\Users\\jenkins\\AppData\\Local\\Android\\sdk'
+    // }
+
     stages {
-
-        // --- CI STAGES ---
-
-        stage('Static Analysis (Lint)') {
+        stage('Checkout') {
             steps {
-                echo 'Запуск статического анализа кода...'
-                // Запускается на любой ветке
-                bat 'gradlew lintDebug'
+                // Предполагается, что код проекта уже загружен с GitHub конфигурацией Job
+                echo 'Исходный код получен.'
+                // На Windows для вызова пакетного файла Gradle используем 'bat'
             }
         }
 
-        stage('Unit Tests') {
+        stage('Run Unit Tests') {
             steps {
-                echo 'Запуск ЮНИТ-тестов...'
-                // testDebugUnitTest запускает тесты в папке test
-                bat 'gradlew testDebugUnitTest'
+                echo 'Запуск модульных (unit) тестов...'
+                // Команда Gradle для запуска только модульных тестов.
+                // Мы используем 'clean' для чистоты, 'testDebugUnitTest' для запуска тестов.
+                // Убедитесь, что Java и gradlew.bat доступны в PATH агента.
+                bat '.\\gradlew.bat clean testDebugUnitTest'
             }
         }
 
-        stage('Build Debug APK') {
-            // Условие: Запускать, если ветка 'dev'
-            when {
-                branch 'dev'
-            }
+        stage('Build Application') {
             steps {
-                echo 'Сборка отладочного APK...'
-                bat 'gradlew assembleDebug'
+                echo 'Сборка отладочной (debug) версии приложения...'
+                // Создаем отладочный APK или AAB.
+                bat '.\\gradlew.bat assembleDebug'
             }
         }
 
-        // --- CD STAGES ---
-
-        stage('Integration Tests (Espresso)') {
-            // Условие: Запускать, если ветка 'master' ИЛИ 'main'
-            when {
-                anyOf {
-                    branch 'master'
-                    branch 'main'
-                }
-            }
+        stage('Run Integration Tests (Требуется эмулятор/устройство!)') {
+            // !!! ВАЖНО: Если вы не настроили эмулятор или устройство на агенте Jenkins, 
+            // !!! закомментируйте этот этап, чтобы избежать сбоев.
+            // when { expression { return false } } // <-- Раскомментируйте, чтобы пропустить этап
             steps {
-                echo 'Запуск ИНТЕГРАЦИОННЫХ тестов (требует эмулятора)...'
-                // connectedCheck запускает тесты в папке androidTest
-                bat 'gradlew connectedCheck'
+                echo 'Запуск инструментальных (интеграционных/androidTest) тестов...'
+                // Команда, которая запускает тесты на подключенных устройствах.
+                bat '.\\gradlew.bat connectedDebugAndroidTest'
             }
         }
 
-        stage('Build Release Artifact') {
-            // Условие: Запускать, если ветка 'master' ИЛИ 'main'
-            when {
-                anyOf {
-                    branch 'master'
-                    branch 'main'
-                }
-            }
+        stage('Publish Results & Artifacts') {
             steps {
-                echo 'Сборка подписанного AAB/APK...'
-                // bundleRelease для AAB (рекомендуется), assembleRelease для APK
-                bat 'gradlew bundleRelease'
+                echo 'Публикация отчетов о тестах и архивирование артефактов...'
+
+                // 1. Публикация отчетов модульных тестов
+                // Jenkins будет искать JUnit XML файлы, созданные Gradle.
+                junit '**/build/test-results/testDebugUnitTest/**/*.xml'
+
+                // 2. Публикация отчетов инструментальных тестов (если запускались)
+                // Результаты Android Instrumented Tests
+                junit '**/build/outputs/androidTest-results/connected/*.xml'
+
+                // 3. Архивация собранного APK (для скачивания)
+                archiveArtifacts artifacts: 'app/build/outputs/apk/debug/app-debug.apk', fingerprint: true, onlyIfSuccessful: true
             }
         }
-
-        stage('Archive & Deploy') {
-            // Условие: Запускать, если ветка 'master' ИЛИ 'main'
-            when {
-                anyOf {
-                    branch 'master'
-                    branch 'main'
-                }
-            }
-            steps {
-                echo 'Архивирование артефакта и имитация доставки...'
-                // 1. Сохранение артефакта в Jenkins (Artifacts)
-                archiveArtifacts artifacts: '**/app-release.aab', onlyIfSuccessful: true
-
-                // 2. Имитация доставки: копирование в "публичную" папку (нужно создать ее!)
-                bat 'xcopy /y build\\outputs\\bundle\\release\\app-release.aab C:\\Jenkins_CD_Artifacts_Final\\'
-            }
+    }
+    
+    // Действия после завершения пайплайна
+    post {
+        always {
+            echo 'Пайплайн завершен.'
+        }
+        failure {
+            // Отправка уведомлений в случае сбоя
+            echo 'Сборка не удалась! Проверьте логи.'
+        }
+        success {
+            // Действия для успешного выполнения (например, деплой для CD)
+            echo 'Сборка и тесты успешно завершены!'
         }
     }
 }
