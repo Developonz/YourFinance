@@ -1,150 +1,152 @@
-// Декларативный пайплайн для мобильного приложения на базе Gradle в среде Windows
 pipeline {
-    agent any
+    agent { label 'windows' } // или тот label, который у тебя для Windows-агентов
 
-    // Устанавливаем переменные окружения, чтобы Jenkins знал, 
-    // где найти SDK и AVD файлы.
     environment {
-        // Путь к SDK
-        ANDROID_SDK_ROOT = 'C:\\Users\\zapru\\AppData\\Local\\Android\\Sdk' 
-        // Путь к директории, где хранятся INI-файлы AVD
-        ANDROID_AVD_HOME = 'C:\\Users\\zapru\\.android\\avd' 
+        ANDROID_SDK_ROOT = 'C:\\Users\\zapru\\AppData\\Local\\Android\\Sdk'
+        ANDROID_AVD_HOME = 'C:\\Users\\zapru\\.android\\avd'
+        AVD_NAME = 'Medium_Phone_API_36.1'
+        EMULATOR_SERIAL = 'emulator-5554'
+        BOOT_TIMEOUT_MINUTES = '5'
+        GRADLEW = '.\\gradlew.bat'
     }
-    
+
+    options {
+        // ограничение времени для всего пайплайна при необходимости
+        timeout(time: 60, unit: 'MINUTES')
+        // если нужно — хранить побольше логов консоли
+    }
+
     stages {
-        stage('Checkout') {
+        stage('Prepare') {
             steps {
-                echo 'Исходный код получен.'
+                checkout scm
+                cleanWs() // чистим рабочую директорию от артефактов прошлых сборок
+                echo "Workspace cleaned and repository checked out."
             }
         }
 
         stage('Run Unit Tests') {
             steps {
-                echo 'Запуск модульных (unit) тестов...'
-                // Запускает тесты во всех модулях, в которых они есть (e.g., :data:testDebugUnitTest)
-                bat '.\\gradlew.bat clean testDebugUnitTest'
+                echo 'Запуск unit тестов...'
+                bat "${env.GRADLEW} clean testDebugUnitTest"
             }
-        }
-
-        stage('Build Application') {
-            steps {
-                echo 'Сборка отладочной (debug) версии приложения...'
-                bat '.\\gradlew.bat assembleDebug'
-            }
-        }
-
-        stage('Run Integration Tests (Требуется эмулятор/устройство!)') {
-            steps {
-                script {
-                    // Используем переменные окружения, доступные в Bat командах
-                    def adbPath = "%ANDROID_SDK_ROOT%\\platform-tools\\adb.exe"
-                    def emulatorPath = "%ANDROID_SDK_ROOT%\\emulator\\emulator.exe"
-                    
-                    def avdName = 'Medium_Phone_API_36.1' 
-                    def emulatorSerial = 'emulator-5554'
-
-                    echo "Настройка и запуск эмулятора: ${avdName}"
-                    
-                    // --- 1. Очистка и запуск ADB сервера ---
-                    bat "\"${adbPath}\" kill-server"
-                    bat "\"${adbPath}\" devices"
-
-                    // --- 2. Запуск эмулятора в фоновом режиме (поток) ---
-                    echo "Запуск эмулятора ${avdName}..."
-                    // start /b "" для стабильного запуска в фоновом режиме на Windows
-                    bat "start /b \"\" \"${emulatorPath}\" -avd ${avdName} -no-audio -no-window"
-
-                    // --- 3. Ожидание полной загрузки эмулятора (до 5 минут) ---
-                    echo "Ожидание полной загрузки устройства: ${emulatorSerial}..."
-                    timeout(time: 5, unit: 'MINUTES') {
-                        
-                        // 1. Ждем, пока устройство появится в ADB
-                        echo "Ожидание появления устройства в ADB..."
-                        bat "\"${adbPath}\" -s ${emulatorSerial} wait-for-device"
-                        
-                        // 2. Ждем, пока ОС Android полностью загрузится (sys.boot_completed == 1)
-                        echo "Ожидание загрузки Android OS (sys.boot_completed == 1) с помощью Groovy-цикла..."
-                        def bootCompleted = false
-                        while (!bootCompleted) {
-                            def bootStatus = '0'
-                            try {
-                                def rawOutput = bat(
-                                    script: "\"${adbPath}\" -s ${emulatorSerial} shell getprop sys.boot_completed", 
-                                    returnStdout: true 
-                                )
-                                
-                                def outputLines = rawOutput.split('\n').collect{ it.trim() }.findAll{ !it.isEmpty() }
-                                bootStatus = outputLines.isEmpty() ? '0' : outputLines.last().replaceAll(/[^0-1]/, '').trim()
-                                
-                                if (bootStatus == '1') {
-                                    bootCompleted = true
-                                    echo "OS fully booted."
-                                } else {
-                                    echo "Устройство еще не готово. Статус: ${bootStatus ?: 'null/empty'}. Ожидание 5 секунд..."
-                                    sleep(time: 5, unit: 'SECONDS')
-                                }
-                            } catch (e) {
-                                echo "Ошибка при проверке загрузки: ${e.getMessage()}. Ожидание 5 секунд..."
-                                sleep(time: 5, unit: 'SECONDS')
-                            }
-                        }
-
-                        // 3. Разблокируем экран
-                        bat "\"${adbPath}\" -s ${emulatorSerial} shell input keyevent 82" 
-                        echo "Эмулятор готов к работе."
-                        
-                        // 4. Дополнительная пауза для стабильности
-                        echo "Дополнительная пауза 15 секунд для стабилизации ОС..."
-                        sleep(time: 15, unit: 'SECONDS')
-                    }
-
-                    // --- 4. Запуск тестов ---
-                    echo 'Запуск инструментальных (интеграционных/androidTest) тестов...'
-                    bat ".\\gradlew.bat :app:connectedDebugAndroidTest --stacktrace --info --rerun-tasks -Dconnected.device.serial=${emulatorSerial}"
-
-                    // --- 5. Остановка эмулятора перенесена в блок 'post' для надежности ---
+            post {
+                always {
+                    junit '**/build/test-results/**/*.xml'
                 }
             }
         }
 
-        stage('Publish Results & Artifacts') {
+        stage('Build APK') {
             steps {
-                echo 'Публикация отчетов о тестах и архивирование артефактов...'
-                // 1. Публикация отчетов модульных тестов
-                junit '**/build/test-results/testDebugUnitTest/**/*.xml'
-                // 2. Публикация отчетов инструментальных тестов (ИСПРАВЛЕН ПУТЬ)
-                junit 'app/build/outputs/androidTest-results/connected/debug/*.xml'
-                // 3. Архивация собранного APK
-                archiveArtifacts artifacts: 'app/build/outputs/apk/debug/app-debug.apk', fingerprint: true, onlyIfSuccessful: true
+                echo 'Сборка debug APK...'
+                bat "${env.GRADLEW} assembleDebug"
+            }
+            post {
+                success {
+                    archiveArtifacts artifacts: 'app/build/outputs/apk/debug/app-debug.apk', fingerprint: true, onlyIfSuccessful: true
+                }
             }
         }
-    }
-    
-    // Действия после завершения пайплайна
+
+        stage('Start Emulator and Run Integration Tests') {
+            steps {
+                script {
+                    def adb = "${env.ANDROID_SDK_ROOT}\\platform-tools\\adb.exe"
+                    def emulatorExe = "${env.ANDROID_SDK_ROOT}\\emulator\\emulator.exe"
+                    echo "Start emulator ${env.AVD_NAME}..."
+                    // start emulator headless; /MIN чтобы окно было минимизировано, start /b тоже работает
+                    bat "start /MIN \"emulator\" \"${emulatorExe}\" -avd ${env.AVD_NAME} -no-audio -no-window"
+
+                    // ensure adb server restarted
+                    bat "\"${adb}\" kill-server"
+                    bat "\"${adb}\" devices"
+
+                    // wait for device and sys.boot_completed
+                    timeout(time: Integer.parseInt(env.BOOT_TIMEOUT_MINUTES), unit: 'MINUTES') {
+                        echo "Waiting for ${env.EMULATOR_SERIAL} to appear in adb..."
+                        bat "\"${adb}\" -s ${env.EMULATOR_SERIAL} wait-for-device"
+
+                        def booted = false
+                        def maxChecks = 60 // 60 * 5s = 300s
+                        def checks = 0
+                        while (!booted && checks < maxChecks) {
+                            def out = bat(script: "\"${adb}\" -s ${env.EMULATOR_SERIAL} shell getprop sys.boot_completed", returnStdout: true).trim()
+                            echo "boot prop: '${out}'"
+                            if (out == '1') {
+                                booted = true
+                                echo "Emulator booted."
+                                break
+                            }
+                            checks++
+                            sleep time: 5, unit: 'SECONDS'
+                        }
+                        if (!booted) {
+                            error "Emulator didn't boot within timeout."
+                        }
+
+                        // small stabilization wait
+                        sleep time: 10, unit: 'SECONDS'
+                    }
+
+                    // start capturing logcat to file (background)
+                    def logcatFile = "emulator_${env.EMULATOR_SERIAL}_logcat.txt"
+                    bat "\"${adb}\" -s ${env.EMULATOR_SERIAL} logcat -c" // clear
+                    // start logcat in background using powershell Start-Process
+                    bat "powershell -Command Start-Process -NoNewWindow -FilePath '${adb}' -ArgumentList '-s ${env.EMULATOR_SERIAL} logcat -v time > ${logcatFile}'"
+                    
+                    // run connected tests (pass device serial explicitly)
+                    echo "Running instrumented tests on ${env.EMULATOR_SERIAL}..."
+                    bat "${env.GRADLEW} :app:connectedDebugAndroidTest -Dconnected.device.serial=${env.EMULATOR_SERIAL} --stacktrace --info"
+                }
+            }
+            post {
+                always {
+                    // pull adb bugreport and stop emulator gracefully, fallback to taskkill
+                    script {
+                        def adb = "${env.ANDROID_SDK_ROOT}\\platform-tools\\adb.exe"
+                        def serial = env.EMULATOR_SERIAL
+                        echo "Collecting logs/artifacts from device ${serial}..."
+                        // copy additional test output (if any) is already performed by Android test runner
+                        // grab bugreport (may be large) and logcat
+                        bat returnStatus: true, script: "\"${adb}\" -s ${serial} logcat -d > emulator_${serial}_final_logcat.txt"
+                        bat returnStatus: true, script: "\"${adb}\" -s ${serial} shell bugreport > emulator_${serial}_bugreport.txt"
+                        // graceful shutdown
+                        def killStatus = bat(returnStatus: true, script: "\"${adb}\" -s ${serial} emu kill")
+                        if (killStatus != 0) {
+                            echo "adb emu kill failed or device already gone; trying taskkill fallback..."
+                            bat returnStatus: true, script: 'taskkill /F /IM qemu-system-x86_64.exe'
+                            bat returnStatus: true, script: 'taskkill /F /IM emulator.exe'
+                        } else {
+                            echo "Sent emu kill to emulator."
+                            // give it a moment to exit
+                            sleep time: 5, unit: 'SECONDS'
+                        }
+                    }
+                    // publish collected logs & test results
+                    junit 'app/build/outputs/androidTest-results/connected/**/*.xml'
+                    archiveArtifacts artifacts: "emulator_*_logcat*.txt, emulator_*_bugreport*.txt", allowEmptyArchive: true
+                }
+                failure {
+                    echo "Integration stage failed — look at archived logcat/bugreport for details"
+                }
+            }
+        }
+    } // stages
+
     post {
         always {
-            echo 'Пайплайн завершен. Запуск очистки...'
-            // Этот блок выполнится всегда, вне зависимости от успеха или провала сборки.
-            // Идеальное место для остановки эмулятора.
-            script {
-                echo 'Остановка эмулятора...'
-                // Используем returnStatus: true, чтобы предотвратить сбой скрипта, если процесс не найден.
-                bat(
-                    script: 'taskkill /F /IM qemu-system-x86_64.exe',
-                    returnStatus: true
-                )
-                bat(
-                    script: 'taskkill /F /IM emulator.exe',
-                    returnStatus: true
-                )
-                echo 'Очистка завершена.'
-            }
-        }
-        failure {
-            echo 'Сборка не удалась! Проверьте логи.'
+            echo 'Pipeline finished — final cleanup.'
+            // final safety: ensure emulator killed (best-effort)
+            bat returnStatus: true, script: 'taskkill /F /IM qemu-system-x86_64.exe'
+            bat returnStatus: true, script: 'taskkill /F /IM emulator.exe'
+            cleanWs() // optional: keep only archived artifacts if desired
         }
         success {
-            echo 'Сборка и тесты успешно завершены!'
+            echo 'Success: build + tests OK.'
+        }
+        failure {
+            echo 'Failure: check logs and artifacts.'
         }
     }
 }
