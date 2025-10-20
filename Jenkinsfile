@@ -5,9 +5,10 @@ pipeline {
 
     // Настройка переменных среды (если необходимо, например, для SDK)
     // РАСКОММЕНТИРУЙТЕ И ИЗМЕНИТЕ ПУТЬ, если Gradle не может найти Android SDK
-    // environment {
-    //     ANDROID_SDK_ROOT = 'C:\\Users\\jenkins\\AppData\\Local\\Android\\sdk'
-    // }
+    environment {
+         // !!! ПУТЬ ОБНОВЛЕН согласно вашим данным !!!
+         ANDROID_SDK_ROOT = 'C:\\Users\\zapru\\AppData\\Local\\Android\\Sdk' 
+    }
 
     stages {
         stage('Checkout') {
