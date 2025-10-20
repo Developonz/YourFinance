@@ -84,7 +84,7 @@ pipeline {
                     // --- 4. Запуск тестов ---
                     echo 'Запуск инструментальных (интеграционных/androidTest) тестов...'
                     // ИСПРАВЛЕНИЕ: Добавлены --stacktrace, --info и --rerun-tasks для детальной диагностики
-                    bat ".\\gradlew.bat connectedDebugAndroidTest --stacktrace --info --rerun-tasks -Dconnected.device.serial=${emulatorSerial}"
+                    bat ".\\gradlew.bat :app:connectedDebugAndroidTest --stacktrace --info --rerun-tasks -Dconnected.device.serial=${emulatorSerial}"
 
                     // --- 5. Остановка эмулятора ---
                     echo 'Остановка эмулятора...'
