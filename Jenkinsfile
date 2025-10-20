@@ -60,7 +60,6 @@ pipeline {
                         bat "\"${adbPath}\" -s ${emulatorSerial} wait-for-device"
                         
                         // 2. Ждем, пока ОС Android полностью загрузится (sys.boot_completed == 1)
-                        // ИСПРАВЛЕННЫЙ БЛОК: Используем FOR /F для надежного чтения вывода adb shell
                         echo "Ожидание загрузки Android OS..."
                         bat '@echo off\n' +
                             ':WAIT_LOOP\n' +
@@ -84,8 +83,8 @@ pipeline {
 
                     // --- 4. Запуск тестов ---
                     echo 'Запуск инструментальных (интеграционных/androidTest) тестов...'
-                    // ИСПРАВЛЕНИЕ: Добавлен --stacktrace для детального вывода ошибки Gradle.
-                    bat ".\\gradlew.bat connectedDebugAndroidTest --stacktrace -Dconnected.device.serial=${emulatorSerial}"
+                    // ИСПРАВЛЕНИЕ: Добавлены --stacktrace, --info и --rerun-tasks для детальной диагностики
+                    bat ".\\gradlew.bat connectedDebugAndroidTest --stacktrace --info --rerun-tasks -Dconnected.device.serial=${emulatorSerial}"
 
                     // --- 5. Остановка эмулятора ---
                     echo 'Остановка эмулятора...'
