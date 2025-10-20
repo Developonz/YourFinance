@@ -60,23 +60,26 @@ pipeline {
                         bat "\"${adbPath}\" -s ${emulatorSerial} wait-for-device"
                         
                         // 2. Ждем, пока ОС Android полностью загрузится (sys.boot_completed == 1)
-                        // Используем корректную логику цикла IF/GOTO для Windows Batch
+                        // ИСПРАВЛЕННЫЙ БЛОК: Используем FOR /F для надежного чтения вывода adb shell
                         echo "Ожидание загрузки Android OS..."
                         bat '@echo off\n' +
                             ':WAIT_LOOP\n' +
-                            "\"${adbPath}\" -s ${emulatorSerial} shell getprop sys.boot_completed > status.txt\n" +
-                            'set /p BOOT_STATUS=<status.txt\n' +
+                            'set "BOOT_STATUS=" \n' + 
+                            "for /f \"delims=\" %%i in ('\"${adbPath}\" -s ${emulatorSerial} shell getprop sys.boot_completed') do set BOOT_STATUS=%%i\n" +
                             'if "%BOOT_STATUS%"=="1" goto BOOT_COMPLETE\n' +
                             'echo Device not ready. Waiting 5 seconds...\n' +
                             'timeout /T 5 /NOBREAK >NUL\n' +
                             'goto WAIT_LOOP\n' +
                             ':BOOT_COMPLETE\n' +
-                            'del status.txt\n' +
-                            'set BOOT_STATUS=' // Очистка переменной
+                            'echo OS fully booted.' 
                         
                         // 3. Разблокируем экран
                         bat "\"${adbPath}\" -s ${emulatorSerial} shell input keyevent 82" 
                         echo "Эмулятор готов к работе."
+                        
+                        // 4. Дополнительная пауза для стабильности
+                        echo "Дополнительная пауза 15 секунд для стабилизации ОС..."
+                        sleep(time: 15, unit: 'SECONDS')
                     }
 
                     // --- 4. Запуск тестов ---
