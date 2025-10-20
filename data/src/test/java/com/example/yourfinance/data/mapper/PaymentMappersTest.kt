@@ -13,6 +13,7 @@ import com.example.yourfinance.domain.model.entity.category.BaseCategory
 import junit.framework.TestCase.assertEquals
 import junit.framework.TestCase.assertTrue
 import org.junit.Test
+import java.math.BigDecimal
 import java.time.LocalDate
 
 class PaymentMappersTest {
@@ -24,7 +25,7 @@ class PaymentMappersTest {
         val paymentEntity = PaymentEntity(
             id = 1L,
             type = TransactionType.EXPENSE,
-            balance = 50.0,
+            balance = BigDecimal("50.00"),
             moneyAccID = 10L,
             categoryID = 20L,
             note = "Lunch",
@@ -34,8 +35,8 @@ class PaymentMappersTest {
         val moneyAccountEntity = MoneyAccountEntity(
             id = 10L,
             title = "Wallet",
-            startBalance = 100.0,
-            balance = 50.0,
+            startBalance = BigDecimal("100.00"),
+            balance = BigDecimal("50.00"),
             excluded = false,
             default = true,
             used = true,
@@ -77,7 +78,7 @@ class PaymentMappersTest {
     fun `toData should map Payment to PaymentEntity correctly`() {
         val moneyAccount = MoneyAccount(
             _title = Title("Card"),
-            startBalance = 1000.0,
+            startBalance = BigDecimal("1000.00"),
             id = 11L,
             iconResourceId = null,
             colorHex = null
@@ -92,7 +93,7 @@ class PaymentMappersTest {
         val domainPayment = Payment(
             id = 2L,
             type = TransactionType.EXPENSE,
-            balance = 75.5,
+            balance = BigDecimal("75.50"),
             moneyAccount = moneyAccount,
             category = category,
             _note = Title("New shoes"),

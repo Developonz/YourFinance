@@ -9,6 +9,7 @@ import com.example.yourfinance.domain.model.entity.MoneyAccount
 import com.example.yourfinance.domain.model.entity.Transfer
 import junit.framework.TestCase.assertEquals
 import org.junit.Test
+import java.math.BigDecimal
 import java.time.LocalDate
 
 class TransferMappersTest {
@@ -20,7 +21,7 @@ class TransferMappersTest {
         val transferEntity = TransferEntity(
             id = 1L,
             type = TransactionType.REMITTANCE,
-            balance = 100.0,
+            balance = BigDecimal("100.00"),
             moneyAccFromID = 10L,
             moneyAccToID = 11L,
             note = "Monthly savings",
@@ -30,8 +31,8 @@ class TransferMappersTest {
         val moneyAccFromEntity = MoneyAccountEntity(
             id = 10L,
             title = "Checking",
-            startBalance = 500.0,
-            balance = 400.0,
+            startBalance = BigDecimal("500.00"),
+            balance = BigDecimal("400.00"),
             excluded = false,
             default = true,
             used = true,
@@ -42,8 +43,8 @@ class TransferMappersTest {
         val moneyAccToEntity = MoneyAccountEntity(
             id = 11L,
             title = "Savings",
-            startBalance = 1000.0,
-            balance = 1100.0,
+            startBalance = BigDecimal("1000.00"),
+            balance = BigDecimal("1100.00"),
             excluded = false,
             default = false,
             used = true,
@@ -76,17 +77,17 @@ class TransferMappersTest {
     fun `toData should map Transfer to TransferEntity correctly`() {
         val moneyAccFrom = MoneyAccount(
             _title = Title("Cash From"),
-            startBalance = 200.0,
+            startBalance = BigDecimal("200.00"),
             id = 20L
         )
         val moneyAccTo = MoneyAccount(
             _title = Title("Cash To"),
-            startBalance = 50.0,
+            startBalance = BigDecimal("50.00"),
             id = 21L
         )
         val domainTransfer = Transfer(
             id = 2L,
-            balance = 50.0,
+            balance = BigDecimal("50.00"),
             moneyAccFrom = moneyAccFrom,
             moneyAccTo = moneyAccTo,
             _note = Title("Lend money"),

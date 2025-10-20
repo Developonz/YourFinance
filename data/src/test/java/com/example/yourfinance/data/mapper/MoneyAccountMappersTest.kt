@@ -5,6 +5,7 @@ import com.example.yourfinance.domain.model.Title
 import com.example.yourfinance.domain.model.entity.MoneyAccount
 import junit.framework.TestCase.assertEquals
 import org.junit.Test
+import java.math.BigDecimal
 import java.time.LocalDate
 
 class MoneyAccountMappersTest {
@@ -16,8 +17,8 @@ class MoneyAccountMappersTest {
         val entity = MoneyAccountEntity(
             id = 1L,
             title = "Cash",
-            startBalance = 100.0,
-            balance = 150.0,
+            startBalance = BigDecimal("100.00"),
+            balance = BigDecimal("150.50"),
             excluded = false,
             default = true,
             used = true,
@@ -45,8 +46,8 @@ class MoneyAccountMappersTest {
         val domain = MoneyAccount(
             id = 2L,
             _title = Title("Bank Account"),
-            startBalance = 500.0,
-            balance = 450.0,
+            startBalance = BigDecimal("500.00"),
+            balance = BigDecimal("450.00"),
             excluded = true,
             default = false,
             used = false,
