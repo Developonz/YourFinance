@@ -25,6 +25,13 @@ android {
         // vectorDrawables {
         //     useSupportLibrary = true
         // }
+        ndk {
+            // Исправлено: Так как прямой метод set() не разрешен,
+            // мы используем стандартный подход для MutableSet:
+            // очищаем существующие фильтры и добавляем новый список.
+            abiFilters.clear()
+            abiFilters.addAll(listOf("armeabi-v7a", "arm64-v8a", "x86", "x86_64"))
+        }
     }
 
     buildTypes {
