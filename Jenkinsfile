@@ -1,5 +1,5 @@
 pipeline {
-    agent { label 'windows' } // или тот label, который у тебя для Windows-агентов
+    agent any
 
     environment {
         ANDROID_SDK_ROOT = 'C:\\Users\\zapru\\AppData\\Local\\Android\\Sdk'
