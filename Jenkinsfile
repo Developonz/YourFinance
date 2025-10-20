@@ -2,12 +2,8 @@
 pipeline {
     agent any
 
-    // Устанавливаем переменные окружения, чтобы Jenkins знал,
-    // где найти SDK и AVD файлы.
     environment {
-        // Путь к SDK
-        ANDROID_SDK_ROOT = 'C:\\Users\\zapru\\AppData\\Local\\Android\\Sdk' // Используем двойной слэш для путей в Groovy
-        // Путь к директории, где хранятся INI-файлы AVD
+        ANDROID_SDK_ROOT = 'C:\\Users\\zapru\\AppData\\Local\\Android\\Sdk'
         ANDROID_AVD_HOME = 'C:\\Users\\zapru\\.android\\avd'
     }
 
@@ -21,8 +17,6 @@ pipeline {
         stage('Run Unit Tests') {
             steps {
                 echo 'Запуск модульных (unit) тестов...'
-                // ИСПРАВЛЕНИЕ: Добавлена смена кодировки для корректного вывода кириллицы.
-                // РЕКОМЕНДАЦИЯ: Команда clean удалена, чтобы не замедлять последующие шаги.
                 bat 'chcp 65001 && .\\gradlew.bat testDebugUnitTest'
             }
         }
@@ -37,32 +31,22 @@ pipeline {
         stage('Run Integration Tests') {
             steps {
                 script {
-                    // УЛУЧШЕНИЕ: Используем объект env Jenkins для доступа к переменным окружения.
-                    // Это более надежный и "Groovy-way" подход.
                     def adbPath = "${env.ANDROID_SDK_ROOT}\\platform-tools\\adb.exe"
                     def emulatorPath = "${env.ANDROID_SDK_ROOT}\\emulator\\emulator.exe"
-                    
                     def avdName = 'Medium_Phone_API_36.1'
                     def emulatorSerial = 'emulator-5554'
 
                     echo "Настройка и запуск эмулятора: ${avdName}"
                     
-                    // --- 1. Остановка ADB сервера на всякий случай ---
                     bat "\"${adbPath}\" kill-server"
-
-                    // --- 2. Запуск эмулятора в фоновом режиме ---
                     echo "Запуск эмулятора ${avdName}..."
-                    // start /b запускает процесс в фоновом режиме, не блокируя пайплайн
                     bat "start /b \"\" \"${emulatorPath}\" -avd ${avdName} -no-audio -no-window -no-snapshot-load"
 
-                    // --- 3. Ожидание полной загрузки эмулятора (до 5 минут) ---
                     timeout(time: 5, unit: 'MINUTES') {
                         echo "Ожидание появления устройства ${emulatorSerial} в ADB..."
                         bat "\"${adbPath}\" -s ${emulatorSerial} wait-for-device"
                         
                         echo "Ожидание полной загрузки Android OS..."
-                        
-                        // УЛУЧШЕНИЕ: Использование `waitUntil` делает код более читаемым и идиоматичным
                         waitUntil {
                             try {
                                 def bootStatus = bat(
@@ -72,82 +56,58 @@ pipeline {
                                 
                                 if (bootStatus == '1') {
                                     echo "ОС полностью загружена."
-                                    return true // Выход из цикла waitUntil
+                                    return true
                                 } else {
-                                    echo "Устройство еще не готово. Статус: ${bootStatus}. Ожидание 5 секунд..."
+                                    echo "Устройство еще не готово. Статус: ${bootStatus ?: 'null/empty'}. Ожидание 5 секунд..."
                                     sleep(time: 5, unit: 'SECONDS')
-                                    return false // Продолжение цикла
+                                    return false
                                 }
                             } catch (e) {
                                 echo "Ошибка при проверке статуса загрузки: ${e.getMessage()}. Повторная попытка через 5 секунд..."
                                 sleep(time: 5, unit: 'SECONDS')
-                                return false // Продолжение цикла
+                                return false
                             }
                         }
 
-                        // Разблокируем экран
                         bat "\"${adbPath}\" -s ${emulatorSerial} shell input keyevent 82"
                         echo "Эмулятор готов к работе."
                         
-                        // Дополнительная пауза для стабилизации
                         echo "Дополнительная пауза 15 секунд для стабилизации ОС..."
                         sleep(time: 15, unit: 'SECONDS')
                     }
 
-                    // --- 4. Запуск тестов ---
                     echo 'Запуск инструментальных (androidTest) тестов...'
-                    // РЕКОМЕНДАЦИЯ: --rerun-tasks полезен для отладки, но для CI его лучше убрать, чтобы использовать кэш Gradle.
                     bat "chcp 65001 && .\\gradlew.bat :app:connectedDebugAndroidTest --stacktrace --info -Dconnected.device.serial=${emulatorSerial}"
-                }
-            }
-        }
-
-        stage('Publish Results & Artifacts') {
-            // always() гарантирует, что этот шаг будет выполнен, даже если тесты провалятся,
-            // что позволит нам увидеть отчеты о неудачных тестах.
-            post {
-                always {
-                    echo 'Публикация отчетов о тестах и архивирование артефактов...'
-                    // ИСПРАВЛЕНИЕ: Используем glob-шаблоны (**/) для поиска XML-отчетов во всех подмодулях.
-                    junit '**/build/test-results/testDebugUnitTest/*.xml'
-                    
-                    // ИСПРАВЛЕНИЕ: Указан корректный путь и шаблон для файлов отчетов.
-                    junit 'app/build/outputs/androidTest-results/connected/debug/*.xml'
-                    
-                    // Архивация собранного APK
-                    archiveArtifacts artifacts: 'app/build/outputs/apk/debug/app-debug.apk', fingerprint: true, onlyIfSuccessful: true
                 }
             }
         }
     }
     
-    // Действия после завершения пайплайна
+    // ИСПРАВЛЕНИЕ: Все действия после сборки и тестов перенесены сюда.
     post {
         always {
+            // --- 1. Публикация результатов ---
+            echo 'Публикация отчетов о тестах и архивирование артефактов...'
+            // Используем glob-шаблоны (**/) для поиска XML-отчетов во всех подмодулях.
+            junit '**/build/test-results/testDebugUnitTest/*.xml'
+            junit 'app/build/outputs/androidTest-results/connected/debug/*.xml'
+            
+            // --- 2. Архивация артефактов (только при успехе) ---
+            // Этот шаг будет выполнен только если пайплайн дошел до конца без ошибок 'failure'.
+            // Если тесты упадут, пайплайн будет 'unstable', и артефакт сохранится.
+            archiveArtifacts artifacts: 'app/build/outputs/apk/debug/app-debug.apk', fingerprint: true, allowEmptyArchive: true
+
+            // --- 3. Очистка ---
             echo 'Пайплайн завершен. Запуск очистки...'
             script {
                 echo 'Остановка эмулятора...'
                 def adbPath = "${env.ANDROID_SDK_ROOT}\\platform-tools\\adb.exe"
                 def emulatorSerial = 'emulator-5554'
 
-                // УЛУЧШЕНИЕ: Сначала "вежливо" просим эмулятор выключиться через ADB.
-                bat(
-                    script: "\"${adbPath}\" -s ${emulatorSerial} emu kill",
-                    returnStatus: true
-                )
-                
-                // Пауза, чтобы дать процессу завершиться
+                bat(script: "\"${adbPath}\" -s ${emulatorSerial} emu kill", returnStatus: true)
                 sleep(time: 5, unit: 'SECONDS')
-
-                // УЛУЧШЕНИЕ: Силовой метод через taskkill оставлен как запасной вариант.
-                bat(
-                    script: 'taskkill /F /IM qemu-system-x86_64.exe',
-                    returnStatus: true
-                )
-                bat(
-                    script: 'taskkill /F /IM emulator.exe',
-                    returnStatus: true
-                )
+                bat(script: 'taskkill /F /IM qemu-system-x86_64.exe', returnStatus: true)
+                bat(script: 'taskkill /F /IM emulator.exe', returnStatus: true)
                 echo 'Очистка завершена.'
             }
         }
