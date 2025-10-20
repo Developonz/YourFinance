@@ -7,7 +7,7 @@ pipeline {
     environment {
         // Путь к SDK
         ANDROID_SDK_ROOT = 'C:\\Users\\zapru\\AppData\\Local\\Android\\Sdk' 
-        // !!! ДОБАВЛЕНО: Путь к директории, где хранятся INI-файлы AVD !!!
+        // Путь к директории, где хранятся INI-файлы AVD
         ANDROID_AVD_HOME = 'C:\\Users\\zapru\\.android\\avd' 
     }
     
@@ -35,10 +35,10 @@ pipeline {
         stage('Run Integration Tests (Требуется эмулятор/устройство!)') {
             steps {
                 script {
+                    // Используем переменные окружения, доступные в Bat командах
                     def adbPath = "%ANDROID_SDK_ROOT%\\platform-tools\\adb.exe"
                     def emulatorPath = "%ANDROID_SDK_ROOT%\\emulator\\emulator.exe"
                     
-                    // !!! УБЕДИТЕСЬ, что это имя точно совпадает с AVD-файлом !!!
                     def avdName = 'Medium_Phone_API_36.1' 
                     def emulatorSerial = 'emulator-5554'
 
@@ -46,7 +46,7 @@ pipeline {
                     
                     // --- 1. Очистка и запуск ADB сервера ---
                     bat "\"${adbPath}\" kill-server"
-                    bat "\"${adbPath}\" devices" // Просто для диагностики
+                    bat "\"${adbPath}\" devices"
 
                     // --- 2. Запуск эмулятора в фоновом режиме (поток) ---
                     echo "Запуск эмулятора ${avdName}..."
@@ -60,14 +60,19 @@ pipeline {
                         bat "\"${adbPath}\" -s ${emulatorSerial} wait-for-device"
                         
                         // 2. Ждем, пока ОС Android полностью загрузится (sys.boot_completed == 1)
+                        // Используем корректную логику цикла IF/GOTO для Windows Batch
                         echo "Ожидание загрузки Android OS..."
-                        bat 'while not "%status%"=="1" do (\n' +
-                            "    \"${adbPath}\" -s ${emulatorSerial} shell getprop sys.boot_completed > status.txt\n" +
-                            '    for /f %%i in (status.txt) do set status=%%i\n' +
-                            '    timeout /T 5 /NOBREAK >NUL\n' +
-                            ')\n' +
+                        bat '@echo off\n' +
+                            ':WAIT_LOOP\n' +
+                            "\"${adbPath}\" -s ${emulatorSerial} shell getprop sys.boot_completed > status.txt\n" +
+                            'set /p BOOT_STATUS=<status.txt\n' +
+                            'if "%BOOT_STATUS%"=="1" goto BOOT_COMPLETE\n' +
+                            'echo Device not ready. Waiting 5 seconds...\n' +
+                            'timeout /T 5 /NOBREAK >NUL\n' +
+                            'goto WAIT_LOOP\n' +
+                            ':BOOT_COMPLETE\n' +
                             'del status.txt\n' +
-                            'set status=' // Очистка переменной
+                            'set BOOT_STATUS=' // Очистка переменной
                         
                         // 3. Разблокируем экран
                         bat "\"${adbPath}\" -s ${emulatorSerial} shell input keyevent 82" 
