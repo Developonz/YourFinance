@@ -13,13 +13,7 @@ pipeline {
     }
     
     stages {
-        stage('Checkout') {
-            steps {
-                echo 'Checking out source code.'
-                // Получение кода из SCM
-                // checkout scm
-            }
-        }
+        
 
         stage('Run Unit Tests') {
             steps {
