@@ -9,10 +9,10 @@ pipeline {
 
     // Переменные окружения для Android SDK и AVD
     environment {
-        // ИСПРАВЛЕНИЕ: Используем ANDROID_HOME, так как Gradle/AGP на Windows часто требует именно эту переменную.
-        // Используем переменную %USERPROFILE% для универсальности на любой машине Windows.
-        ANDROID_HOME = '%USERPROFILE%\\AppData\\Local\\Android\\Sdk' 
-        ANDROID_AVD_HOME = '%USERPROFILE%\\.android\\avd' 
+        // КРИТИЧЕСКОЕ ИСПРАВЛЕНИЕ: Используем Groovy-интерполяцию (${env.USERPROFILE}) для надежного получения пути 
+        // к профилю пользователя на любом Windows-узле, что гарантирует, что Gradle найдет SDK.
+        ANDROID_HOME = "${env.USERPROFILE}\\AppData\\Local\\Android\\Sdk" 
+        ANDROID_AVD_HOME = "${env.USERPROFILE}\\.android\\avd" 
     }
     
     stages {
