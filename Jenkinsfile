@@ -9,8 +9,9 @@ pipeline {
 
     // Переменные окружения для Android SDK и AVD
     environment {
+        // ИСПРАВЛЕНИЕ: Используем ANDROID_HOME, так как Gradle/AGP на Windows часто требует именно эту переменную.
         // Используем переменную %USERPROFILE% для универсальности на любой машине Windows.
-        ANDROID_SDK_ROOT = '%USERPROFILE%\\AppData\\Local\\Android\\Sdk' 
+        ANDROID_HOME = '%USERPROFILE%\\AppData\\Local\\Android\\Sdk' 
         ANDROID_AVD_HOME = '%USERPROFILE%\\.android\\avd' 
     }
     
@@ -40,8 +41,9 @@ pipeline {
         stage('Run Integration Tests') {
             steps {
                 script {
-                    def adbPath = "%ANDROID_SDK_ROOT%\\platform-tools\\adb.exe"
-                    def emulatorPath = "%ANDROID_SDK_ROOT%\\emulator\\emulator.exe"
+                    // Используем ANDROID_HOME, которая теперь определена в блоке environment
+                    def adbPath = "%ANDROID_HOME%\\platform-tools\\adb.exe"
+                    def emulatorPath = "%ANDROID_HOME%\\emulator\\emulator.exe"
                     def emulatorSerial = 'emulator-5554'
 
                     echo "Setting up and starting emulator: ${params.AVD_NAME}"
