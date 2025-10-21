@@ -1,4 +1,3 @@
-// Декларативный пайплайн для мобильного приложения на базе Gradle в среде Windows
 pipeline {
     agent any
 
@@ -7,10 +6,8 @@ pipeline {
         string(name: 'AVD_NAME', defaultValue: 'Medium_Phone_API_36.1', description: 'AVD emulator name for running instrumentation tests')
     }
 
-    // Переменные окружения для Android SDK и AVD (возвращены в глобальный блок environment)
+    // Переменные окружения для Android SDK и AVD 
     environment {
-        // Жестко заданный путь к SDK для узла Jenkins. 
-        // ПРИМЕЧАНИЕ: Если пользователь Jenkins-узла не 'zapru', этот путь необходимо изменить.
         ANDROID_HOME = "C:\\Users\\zapru\\AppData\\Local\\Android\\Sdk"
         ANDROID_AVD_HOME = "C:\\Users\\zapru\\.android\\avd"
     }
@@ -27,7 +24,6 @@ pipeline {
         stage('Run Unit Tests') {
             steps {
                 echo 'Running Unit Tests...'
-                // ANDROID_HOME теперь доступна здесь глобально
                 bat '.\\gradlew.bat clean testDebugUnitTest'
             }
         }
@@ -35,7 +31,6 @@ pipeline {
         stage('Build Application') {
             steps {
                 echo 'Building Debug Application...'
-                // ANDROID_HOME теперь доступна здесь глобально
                 bat '.\\gradlew.bat assembleDebug'
             }
         }
@@ -43,7 +38,7 @@ pipeline {
         stage('Run Integration Tests') {
             steps {
                 script {
-                    // Используем ANDROID_HOME, которая теперь определена глобально
+                    // Используем ANDROID_HOME, которая определена глобально
                     def adbPath = "%ANDROID_HOME%\\platform-tools\\adb.exe"
                     def emulatorPath = "%ANDROID_HOME%\\emulator\\emulator.exe"
                     def emulatorSerial = 'emulator-5554'
