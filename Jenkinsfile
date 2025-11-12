@@ -5,11 +5,13 @@ pipeline {
             image 'kayanoterse/my-android-builder:1.1' 
             alwaysPull true 
             
-            // **КРИТИЧЕСКОЕ ИСПРАВЛЕНИЕ**: Принудительно задаем Linux-оболочку (/bin/bash) 
-            // в качестве точки входа. Это устраняет ошибку 'cmd.exe' и проблемы с путями.
-            args '--entrypoint=/bin/bash -v jenkins-gradle-cache:/root/.gradle/caches'
+            // КРИТИЧЕСКОЕ ИСПРАВЛЕНИЕ: Принудительно задаем Linux-путь для рабочей директории (-w /app), 
+            // Linux-оболочку (--entrypoint=/bin/bash) и Volumes в одной строке.
+            // Это должно переопределить автоматические, ошибочные пути Windows, сгенерированные плагином.
+            args '-w /app --entrypoint=/bin/bash -v jenkins-gradle-cache:/root/.gradle/caches'
             
-            // Используем reuseNode для сохранения контекста контейнера между стадиями.
+            // Сохраняем customWorkspace и reuseNode для поддержки контекста, несмотря на баг.
+            customWorkspace '/app' 
             reuseNode true 
         }
     }
@@ -41,7 +43,6 @@ pipeline {
                     try {
                         // 2.1. ЗАПУСК "СЕРВИСА ТЕСТИРОВАНИЯ" (Микросервис №2)
                         echo "Starting Emulator Service (Container 2: budtmo/docker-android-x86-emulator)..."
-                        // Запускаем второй контейнер, который является нашим вторым микросервисом.
                         sh "docker run --name ${emulatorServiceName} -d --privileged -p 5554:5554 budtmo/docker-android-x86-emulator:latest -e DEVICE=\"Samsung Galaxy S10\" -no-audio"
                         
                         // 2.2. ОПИСАНИЕ СВЯЗИ
@@ -50,7 +51,6 @@ pipeline {
                         timeout(time: 5, unit: 'MINUTES') {
                             while (!connected) {
                                 try {
-                                    // adb connect использует сетевое имя 'android-emulator-service'
                                     sh "adb connect ${emulatorServiceName}:5554" 
                                     def devices = sh(script: "adb devices", returnStdout: true).trim()
                                     
