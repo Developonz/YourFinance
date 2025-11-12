@@ -14,6 +14,7 @@ pipeline {
             // в папку /root/.gradle/caches внутри контейнера.
             // При следующих сборках все зависимости будут взяты из кэша,
             // что ускорит сборку в 5-10 раз.
+            
             volumes {
                 volume 'jenkins-gradle-cache', '/root/.gradle/caches', true
             }
