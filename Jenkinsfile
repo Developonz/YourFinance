@@ -5,21 +5,20 @@ pipeline {
             image 'kayanoterse/my-android-builder:1.1' 
             alwaysPull true 
             
-            // ФИНАЛЬНОЕ ИСПРАВЛЕНИЕ: Передаем Docker Volumes через args.
-            // Это решает проблему "Invalid config option volumes".
-            // -v jenkins-gradle-cache:/root/.gradle/caches - это команда монтирования Volume.
+            // ИСПРАВЛЕНИЕ 1: Указываем абсолютный путь Linux для рабочей директории.
+            // Это решает ошибку "the working directory is invalid".
+            customWorkspace '/app' 
+            
+            // Передаем Docker Volumes через args для кэширования.
             args '-v jenkins-gradle-cache:/root/.gradle/caches'
         }
     }
-    
-    // Параметры удалены
     
     stages {
         
         stage('Run Unit Tests') {
             steps {
                 echo 'Running Unit Tests in Build Service (Container 1)...'
-                // Команды Linux (sh)
                 sh 'chmod +x ./gradlew' 
                 sh './gradlew clean testDebugUnitTest'
             }
@@ -36,28 +35,25 @@ pipeline {
         stage('Run Integration Tests') {
             steps {
                 script {
-                    // Имя, которое будет использоваться как СЕТЕВОЙ АДРЕС для Контейнера 2.
                     def emulatorServiceName = "android-emulator-service"
                     
                     try {
                         // 2.1. ЗАПУСК "СЕРВИСА ТЕСТИРОВАНИЯ" (Микросервис №2)
                         echo "Starting Emulator Service (Container 2: budtmo/docker-android-x86-emulator)..."
-                        // Запускаем второй контейнер, который является нашим вторым микросервисом.
                         sh "docker run --name ${emulatorServiceName} -d --privileged -p 5554:5554 budtmo/docker-android-x86-emulator:latest -e DEVICE=\"Samsung Galaxy S10\" -no-audio"
                         
-                        // 2.2. ОПИСАНИЕ СВЯЗИ: Ожидание подключения по сетевому имени
+                        // 2.2. ОПИСАНИЕ СВЯЗИ
                         echo "Waiting for Emulator Service to connect via ADB..."
                         def connected = false
                         timeout(time: 5, unit: 'MINUTES') {
                             while (!connected) {
                                 try {
-                                    // adb connect использует сетевое имя 'android-emulator-service'
                                     sh "adb connect ${emulatorServiceName}:5554" 
                                     def devices = sh(script: "adb devices", returnStdout: true).trim()
                                     
                                     if (devices.contains("${emulatorServiceName}:5554\tdevice")) {
                                         connected = true
-                                        echo "Emulator Service connected successfully!"
+                                        echo "Emulator Service connected successfully! (Microservice 1 connected to Microservice 2)"
                                     } else {
                                         echo "Not ready yet. Waiting 10 seconds..."
                                         sleep(time: 10, unit: 'SECONDS')
@@ -93,11 +89,11 @@ pipeline {
         }
     }
     
-    // 3. ОЧИСТКА (POST): Docker сам удалит контейнер сборки.
+    // 3. ОЧИСТКА (POST): Убираем sh команду
     post {
         always {
             echo 'Pipeline finished.'
-            sh './gradlew clean' 
+            // ИСПРАВЛЕНИЕ 2: Удаляем sh './gradlew clean', чтобы избежать MissingContextVariableException.
         }
         failure {
             echo 'Build failed! Check logs.'
