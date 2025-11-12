@@ -5,20 +5,37 @@ pipeline {
             image 'kayanoterse/my-android-builder:1.1' 
             alwaysPull true 
             
-            // ИСПРАВЛЕНИЕ 1: Указываем абсолютный путь Linux для рабочей директории.
-            // Это решает ошибку "the working directory is invalid".
-            customWorkspace '/app' 
-            
-            // Передаем Docker Volumes через args для кэширования.
+            // ИСПРАВЛЕНИЕ: Передаем Docker Volumes через args.
+            // Это обеспечивает кэширование Gradle.
             args '-v jenkins-gradle-cache:/root/.gradle/caches'
+            
+            // НОВОЕ ИСПРАВЛЕНИЕ: Удаляем customWorkspace и используем default WORKDIR /app из Dockerfile.
+            // ВАЖНО: Мы перенесем checkout в начало первой стадии, чтобы он выполнялся внутри контейнера.
         }
     }
     
+    // Удаляем параметры, так как они не используются
+
     stages {
+        
+        // НОВАЯ СТАДИЯ: Принудительный SCM Checkout внутри Docker-контейнера
+        // Это гарантирует, что git и файлы будут доступны в Linux-контексте.
+        stage('Prepare Workspace') {
+            steps {
+                script {
+                    // Используем чистый git checkout, чтобы избежать конфликта путей Windows/Linux.
+                    // Теперь это выполняется ВНУТРИ нашего Linux-контейнера,
+                    // и рабочая директория будет /app (определено в Dockerfile).
+                    checkout scm
+                    echo "Workspace prepared inside Docker container (/app)."
+                }
+            }
+        }
         
         stage('Run Unit Tests') {
             steps {
                 echo 'Running Unit Tests in Build Service (Container 1)...'
+                // Команды Linux (sh)
                 sh 'chmod +x ./gradlew' 
                 sh './gradlew clean testDebugUnitTest'
             }
@@ -48,6 +65,7 @@ pipeline {
                         timeout(time: 5, unit: 'MINUTES') {
                             while (!connected) {
                                 try {
+                                    // adb connect использует сетевое имя 'android-emulator-service'
                                     sh "adb connect ${emulatorServiceName}:5554" 
                                     def devices = sh(script: "adb devices", returnStdout: true).trim()
                                     
@@ -89,11 +107,11 @@ pipeline {
         }
     }
     
-    // 3. ОЧИСТКА (POST): Убираем sh команду
+    // 3. ОЧИСТКА (POST): Docker сам удаляет контейнер.
     post {
         always {
             echo 'Pipeline finished.'
-            // ИСПРАВЛЕНИЕ 2: Удаляем sh './gradlew clean', чтобы избежать MissingContextVariableException.
+            // Нет необходимости в sh-командах, чтобы избежать MissingContextVariableException.
         }
         failure {
             echo 'Build failed! Check logs.'
