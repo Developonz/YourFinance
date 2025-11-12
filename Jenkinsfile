@@ -5,23 +5,17 @@ pipeline {
             image 'kayanoterse/my-android-builder:1.1' 
             alwaysPull true 
             
-            // ИСПРАВЛЕНИЕ: Force Jenkins to use a Linux-style path for the workspace
-            customWorkspace '/app' 
+            // **КРИТИЧЕСКОЕ ИСПРАВЛЕНИЕ**: Принудительно задаем Linux-оболочку (/bin/bash) 
+            // в качестве точки входа. Это устраняет ошибку 'cmd.exe' и проблемы с путями.
+            args '--entrypoint=/bin/bash -v jenkins-gradle-cache:/root/.gradle/caches'
             
-            // ИСПРАВЛЕНИЕ: Reuse the container for the entire execution (canonical fix for Windows path issues)
+            // Используем reuseNode для сохранения контекста контейнера между стадиями.
             reuseNode true 
-            
-            // Pass volume for caching
-            args '-v jenkins-gradle-cache:/root/.gradle/caches'
         }
     }
     
     stages {
         
-        // 2. ИЗМЕНЕНИЯ В СТАДИЯХ: Удаляем стадию 'Prepare Workspace'
-        // SCM checkout теперь произойдет автоматически в начале execution flow, 
-        // и благодаря reuseNode/customWorkspace, workspace будет доступен как /app.
-
         stage('Run Unit Tests') {
             steps {
                 echo 'Running Unit Tests in Build Service (Container 1)...'
@@ -38,23 +32,25 @@ pipeline {
             }
         }
 
-        // 3. МИКРОСЕРВИСНАЯ СТАДИЯ: Взаимодействие Контейнеров
+        // 2. МИКРОСЕРВИСНАЯ СТАДИЯ: Взаимодействие Контейнеров
         stage('Run Integration Tests') {
             steps {
                 script {
                     def emulatorServiceName = "android-emulator-service"
                     
                     try {
-                        // 3.1. ЗАПУСК "СЕРВИСА ТЕСТИРОВАНИЯ" (Микросервис №2)
+                        // 2.1. ЗАПУСК "СЕРВИСА ТЕСТИРОВАНИЯ" (Микросервис №2)
                         echo "Starting Emulator Service (Container 2: budtmo/docker-android-x86-emulator)..."
+                        // Запускаем второй контейнер, который является нашим вторым микросервисом.
                         sh "docker run --name ${emulatorServiceName} -d --privileged -p 5554:5554 budtmo/docker-android-x86-emulator:latest -e DEVICE=\"Samsung Galaxy S10\" -no-audio"
                         
-                        // 3.2. ОПИСАНИЕ СВЯЗИ
+                        // 2.2. ОПИСАНИЕ СВЯЗИ
                         echo "Waiting for Emulator Service to connect via ADB..."
                         def connected = false
                         timeout(time: 5, unit: 'MINUTES') {
                             while (!connected) {
                                 try {
+                                    // adb connect использует сетевое имя 'android-emulator-service'
                                     sh "adb connect ${emulatorServiceName}:5554" 
                                     def devices = sh(script: "adb devices", returnStdout: true).trim()
                                     
@@ -72,7 +68,7 @@ pipeline {
                             }
                         }
 
-                        // 3.3. ЗАПУСК ТЕСТОВ
+                        // 2.3. ЗАПУСК ТЕСТОВ
                         echo 'Running Instrumentation Tests...'
                         sh "./gradlew :app:connectedDebugAndroidTest --stacktrace --info --rerun-tasks -Dconnected.device.serial=${emulatorServiceName}:5554"
                     
@@ -96,7 +92,7 @@ pipeline {
         }
     }
     
-    // 4. ОЧИСТКА (POST): Чистый блок, без sh команд.
+    // 3. ОЧИСТКА (POST)
     post {
         always {
             echo 'Pipeline finished.'
