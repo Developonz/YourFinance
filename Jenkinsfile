@@ -1,94 +1,107 @@
 pipeline {
-    agent any
-
-    // Параметры для настройки сборки
-    parameters {
-        string(name: 'AVD_NAME', defaultValue: 'Medium_Phone_API_36.1', description: 'AVD emulator name for running instrumentation tests')
+    // 1. ОБЩИЙ АГЕНТ: НАШ "СЕРВИС СБОРКИ" (Микросервис №1)
+    // Вместо 'agent any' мы указываем Jenkins, что все стадии (по умолчанию)
+    // должны выполняться внутри Docker-контейнера, созданного из нашего образа.
+    agent {
+        docker {
+            // Указываем наш образ, который мы загрузили на Docker Hub
+            image 'kayanoterse/my-android-builder:1.1' 
+            alwaysPull true // Всегда скачивать свежую версию (важно для тестов)
+            
+            // 2. ПОДКЛЮЧЕНИЕ DOCKER VOLUMES (Тома)
+            // Это необходимо для кэширования Gradle.
+            // Jenkins создаст том 'jenkins-gradle-cache' и "пробросит" его
+            // в папку /root/.gradle/caches внутри контейнера.
+            // При следующих сборках все зависимости будут взяты из кэша,
+            // что ускорит сборку в 5-10 раз.
+            volumes {
+                volume 'jenkins-gradle-cache', '/root/.gradle/caches', true
+            }
+        }
     }
 
-    // Переменные окружения для Android SDK и AVD 
-    environment {
-        ANDROID_HOME = "C:\\Users\\zapru\\AppData\\Local\\Android\\Sdk"
-        ANDROID_AVD_HOME = "C:\\Users\\zapru\\.android\\avd"
+    // Параметры больше не нужны, так как эмулятор тоже в Docker
+    parameters {
+        string(name: 'AVD_NAME', defaultValue: 'DEPRECATED', description: 'This parameter is no longer used.')
     }
     
+    // Секция 'environment' удалена, т.к. ANDROID_HOME и Java теперь "зашиты" в Docker-образ
+
     stages {
         
-
         stage('Run Unit Tests') {
             steps {
-                echo 'Running Unit Tests...'
-                bat '.\\gradlew.bat clean testDebugUnitTest'
+                echo 'Running Unit Tests in Build Service (Container 1)...'
+                // 3. ИЗМЕНЕНИЕ КОМАНД: BAT -> SH
+                // Контейнер работает на Linux, поэтому используем 'sh'
+                sh 'chmod +x ./gradlew' // Даем права на выполнение (важно!)
+                sh './gradlew clean testDebugUnitTest'
             }
         }
 
         stage('Build Application') {
             steps {
-                echo 'Building Debug Application...'
-                bat '.\\gradlew.bat assembleDebug'
+                echo 'Building Debug Application in Build Service (Container 1)...'
+                sh './gradlew assembleDebug'
             }
         }
 
+        // 4. МИКРОСЕРВИСНАЯ СТАДИЯ (Два контейнера)
         stage('Run Integration Tests') {
             steps {
                 script {
-                    // Используем ANDROID_HOME, которая определена глобально
-                    def adbPath = "%ANDROID_HOME%\\platform-tools\\adb.exe"
-                    def emulatorPath = "%ANDROID_HOME%\\emulator\\emulator.exe"
-                    def emulatorSerial = 'emulator-5554'
-
-                    echo "Setting up and starting emulator: ${params.AVD_NAME}"
+                    // Это имя будет использоваться как сетевой адрес (hostname) 
+                    // для нашего второго контейнера.
+                    def emulatorServiceName = "android-emulator-service"
                     
-                    // Убиваем и перезапускаем ADB сервер
-                    bat "\"${adbPath}\" kill-server"
-                    bat "\"${adbPath}\" devices"
-
-                    // Запускаем эмулятор в фоновом режиме
-                    bat "start /b \"\" \"${emulatorPath}\" -avd ${params.AVD_NAME} -no-audio -no-window"
-
-                    // Ожидание полной загрузки эмулятора (до 5 минут)
-                    timeout(time: 5, unit: 'MINUTES') {
+                    try {
+                        // 4.1. ЗАПУСК "СЕРВИСА ТЕСТИРОВАНИЯ" (Микросервис №2)
+                        // Мы запускаем второй контейнер (эмулятор) в фоновом режиме (-d).
+                        // Он будет в той же Docker-сети, что и наш контейнер сборки.
+                        echo "Starting Emulator Service (Container 2: budtmo/docker-android-x86-emulator)..."
+                        sh "docker run --name ${emulatorServiceName} -d --privileged -p 5554:5554 budtmo/docker-android-x86-emulator:latest -e DEVICE=\"Samsung Galaxy S10\" -no-audio"
                         
-                        echo "Waiting for device to appear in ADB..."
-                        bat "\"${adbPath}\" -s ${emulatorSerial} wait-for-device"
-                        
-                        echo "Waiting for Android OS to boot (sys.boot_completed == 1)..."
-                        def bootCompleted = false
-                        while (!bootCompleted) {
-                            def bootStatus = '0'
-                            try {
-                                def rawOutput = bat(
-                                    script: "\"${adbPath}\" -s ${emulatorSerial} shell getprop sys.boot_completed", 
-                                    returnStdout: true 
-                                )
-                                
-                                def outputLines = rawOutput.split('\n').collect{ it.trim() }.findAll{ !it.isEmpty() }
-                                bootStatus = outputLines.isEmpty() ? '0' : outputLines.last().replaceAll(/[^0-1]/, '').trim()
-                                
-                                if (bootStatus == '1') {
-                                    bootCompleted = true
-                                    echo "OS fully booted."
-                                } else {
-                                    echo "Device is not ready. Waiting 5 seconds..."
-                                    sleep(time: 5, unit: 'SECONDS')
+                        // 4.2. ОПИСАНИЕ СВЯЗИ МЕЖДУ КОНТЕЙНЕРАМИ
+                        // Мы ждем, пока эмулятор запустится, и подключаемся к нему
+                        // по его СЕТЕВОМУ ИМЕНИ (emulatorServiceName).
+                        echo "Waiting for Emulator Service to connect..."
+                        def connected = false
+                        timeout(time: 5, unit: 'MINUTES') {
+                            while (!connected) {
+                                try {
+                                    // Контейнер №1 (сборщик) подключается к Контейнеру №2 (эмулятор)
+                                    sh "adb connect ${emulatorServiceName}:5554" 
+                                    def devices = sh(script: "adb devices", returnStdout: true).trim()
+                                    
+                                    if (devices.contains("${emulatorServiceName}:5554\tdevice")) {
+                                        connected = true
+                                        echo "Emulator Service connected successfully!"
+                                    } else {
+                                        echo "Not ready yet. Waiting 10 seconds..."
+                                        sleep(time: 10, unit: 'SECONDS')
+                                    }
+                                } catch (e) {
+                                    echo "Connection attempt failed. Retrying... (${e.getMessage()})"
+                                    sleep(time: 10, unit: 'SECONDS')
                                 }
-                            } catch (e) {
-                                echo "Error during boot check: ${e.getMessage()}. Waiting 5 seconds..."
-                                sleep(time: 5, unit: 'SECONDS')
                             }
                         }
 
-                        // Разблокируем экран
-                        bat "\"${adbPath}\" -s ${emulatorSerial} shell input keyevent 82" 
-                        echo "Emulator is ready."
-                        
-                        // Дополнительная пауза для стабильности
-                        sleep(time: 15, unit: 'SECONDS')
+                        // 4.3. ЗАПУСК ТЕСТОВ
+                        // Теперь, когда связь установлена, запускаем тесты,
+                        // указывая серийный номер (адрес) эмулятора.
+                        echo 'Running Instrumentation Tests...'
+                        sh "./gradlew :app:connectedDebugAndroidTest --stacktrace --info --rerun-tasks -Dconnected.device.serial=${emulatorServiceName}:5554"
+                    
+                    } finally {
+                        // 5. ОЧИСТКА (POST-SCRIPT)
+                        // Этот блок 'finally' гарантирует, что мы остановим и удалим
+                        // контейнер эмулятора, даже если тесты провалятся.
+                        echo "Stopping and removing Emulator Service (Container 2)..."
+                        // '|| true' нужен, чтобы сборка не упала, если контейнер уже остановлен.
+                        sh "docker stop ${emulatorServiceName} || true" 
+                        sh "docker rm ${emulatorServiceName} || true" 
                     }
-
-                    // Запуск инструментальных тестов
-                    echo 'Running Instrumentation Tests...'
-                    bat ".\\gradlew.bat :app:connectedDebugAndroidTest --stacktrace --info --rerun-tasks -Dconnected.device.serial=${emulatorSerial}"
                 }
             }
         }
@@ -96,34 +109,24 @@ pipeline {
         stage('Publish Results & Artifacts') {
             steps {
                 echo 'Publishing Test Reports & Artifacts...'
-                // Публикация отчетов модульных тестов
+                // Эти шаги остаются без изменений, т.к. Jenkins
+                // все еще имеет доступ к файлам в 'workspace'.
                 junit '**/build/test-results/testDebugUnitTest/**/*.xml'
-                // Публикация отчетов инструментальных тестов
                 junit 'app/build/outputs/androidTest-results/connected/debug/*.xml'
-                // Архивирование собранного APK
                 archiveArtifacts artifacts: 'app/build/outputs/apk/debug/app-debug.apk', fingerprint: true, onlyIfSuccessful: true
             }
         }
     }
     
-    // Действия после завершения пайплайна
+    // 6. СЕКЦИЯ POST (ОЧИСТКА)
+    // Секция 'post' упрощена. Нам больше не нужны 'taskkill'[cite: 73, 74].
+    // Docker сам удалит контейнер сборки (agent).
+    // Очистка эмулятора происходит в 'finally' на стадии тестов.
     post {
         always {
-            echo 'Pipeline finished. Starting cleanup...'
-            script {
-                echo 'Stopping emulator and cleaning workspace...'
-                // Очистка рабочего пространства
-                bat '.\\gradlew.bat clean'
-                // Принудительное завершение процессов эмулятора. returnStatus: true игнорирует ошибки, если процесс не найден.
-                bat(
-                    script: 'taskkill /F /IM qemu-system-x86_64.exe',
-                    returnStatus: true
-                )
-                bat(
-                    script: 'taskkill /F /IM emulator.exe',
-                    returnStatus: true
-                )
-            }
+            echo 'Pipeline finished.'
+            // Очистка рабочего пространства
+            sh './gradlew clean' 
         }
         failure {
             echo 'Build failed! Check logs.'
