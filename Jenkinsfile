@@ -1,28 +1,25 @@
 pipeline {
-    // 1. ОБЩИЙ АГЕНТ: НАШ "СЕРВИС СБОРКИ" (Микросервис №1)
+    // 1. АГЕНТ: НАШ "СЕРВИС СБОРКИ" (Микросервис №1)
     agent {
         docker {
-            // Jenkins запустит контейнер на основе нашего образа
             image 'kayanoterse/my-android-builder:1.1' 
             alwaysPull true 
             
-            // 2. DOCKER VOLUMES (Тома) для кэширования Gradle. 
-            // Это ускоряет повторные сборки.
-            volumes {
-                // ИСПРАВЛЕНИЕ ОШИБКИ: Правильный синтаксис для named volume
-                volume('jenkins-gradle-cache', '/root/.gradle/caches') 
-            }
+            // ФИНАЛЬНОЕ ИСПРАВЛЕНИЕ: Передаем Docker Volumes через args.
+            // Это решает проблему "Invalid config option volumes".
+            // -v jenkins-gradle-cache:/root/.gradle/caches - это команда монтирования Volume.
+            args '-v jenkins-gradle-cache:/root/.gradle/caches'
         }
     }
-
-    // Параметры удалены, т.к. больше не нужны.
+    
+    // Параметры удалены
     
     stages {
         
         stage('Run Unit Tests') {
             steps {
                 echo 'Running Unit Tests in Build Service (Container 1)...'
-                // Переход на команды Linux (sh)
+                // Команды Linux (sh)
                 sh 'chmod +x ./gradlew' 
                 sh './gradlew clean testDebugUnitTest'
             }
@@ -35,20 +32,20 @@ pipeline {
             }
         }
 
-        // 3. МИКРОСЕРВИСНАЯ СТАДИЯ (Два контейнера)
+        // 2. МИКРОСЕРВИСНАЯ СТАДИЯ: Взаимодействие Контейнеров
         stage('Run Integration Tests') {
             steps {
                 script {
-                    // Имя, которое будет использоваться как сетевой адрес для Контейнера 2.
+                    // Имя, которое будет использоваться как СЕТЕВОЙ АДРЕС для Контейнера 2.
                     def emulatorServiceName = "android-emulator-service"
                     
                     try {
-                        // 3.1. ЗАПУСК "СЕРВИСА ТЕСТИРОВАНИЯ" (Микросервис №2)
-                        // Запускаем второй контейнер (эмулятор) в фоновом режиме (-d).
+                        // 2.1. ЗАПУСК "СЕРВИСА ТЕСТИРОВАНИЯ" (Микросервис №2)
                         echo "Starting Emulator Service (Container 2: budtmo/docker-android-x86-emulator)..."
+                        // Запускаем второй контейнер, который является нашим вторым микросервисом.
                         sh "docker run --name ${emulatorServiceName} -d --privileged -p 5554:5554 budtmo/docker-android-x86-emulator:latest -e DEVICE=\"Samsung Galaxy S10\" -no-audio"
                         
-                        // 3.2. ОПИСАНИЕ СВЯЗИ: Контейнер 1 (Build) подключается к Контейнеру 2 (Emulator)
+                        // 2.2. ОПИСАНИЕ СВЯЗИ: Ожидание подключения по сетевому имени
                         echo "Waiting for Emulator Service to connect via ADB..."
                         def connected = false
                         timeout(time: 5, unit: 'MINUTES') {
@@ -72,8 +69,8 @@ pipeline {
                             }
                         }
 
-                        // 3.3. ЗАПУСК ТЕСТОВ
-                        sh 'echo Running Instrumentation Tests...'
+                        // 2.3. ЗАПУСК ТЕСТОВ
+                        echo 'Running Instrumentation Tests...'
                         sh "./gradlew :app:connectedDebugAndroidTest --stacktrace --info --rerun-tasks -Dconnected.device.serial=${emulatorServiceName}:5554"
                     
                     } finally {
@@ -96,7 +93,7 @@ pipeline {
         }
     }
     
-    // 4. ОЧИСТКА (POST): Docker сам удалит контейнер сборки, нам нужна только чистка проекта.
+    // 3. ОЧИСТКА (POST): Docker сам удалит контейнер сборки.
     post {
         always {
             echo 'Pipeline finished.'
