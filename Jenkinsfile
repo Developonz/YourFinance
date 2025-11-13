@@ -1,8 +1,8 @@
 // ==================================================================
-// Jenkinsfile для CI/CD Android (v9 - Исправлены концы строк в gradlew)
+// Jenkinsfile для CI/CD Android (v10 - Обход ошибки rename в sed)
 // Автор: kayanoterse (с помощью AI)
-// Решение: Добавлена команда sed для удаления Windows-символов (\r)
-// из скрипта gradlew перед его выполнением.
+// Решение: Вместо изменения gradlew "на месте" (sed -i), перенаправляем
+// вывод sed в новый файл (gradlew.sh) и запускаем его.
 // ==================================================================
 pipeline {
     agent any
@@ -15,14 +15,13 @@ pipeline {
         stage('Build & Unit Tests') {
             steps {
                 echo 'Running build and unit tests via direct docker run command...'
-                // ИСПРАВЛЕНИЕ: Добавляем sed для исправления концов строк
-                // ВАЖНО: Внутри bat блока нужен двойной слэш: \\r
+                // ИСПРАВЛЕНИЕ: Перенаправляем вывод sed в новый файл gradlew.sh и запускаем его.
                 bat '''
                     docker run --rm ^
                     -v "%WORKSPACE%:/app" ^
                     -w /app ^
                     kayanoterse/my-android-builder:latest ^
-                    sh -c "sed -i 's/\\r$//' ./gradlew && sh ./gradlew -g .gradle clean testDebugUnitTest assembleDebug"
+                    sh -c "sed 's/\\r$//' ./gradlew > ./gradlew.sh && sh ./gradlew.sh -g .gradle clean testDebugUnitTest assembleDebug"
                 '''
                 
                 echo 'Stashing artifacts...'
@@ -35,13 +34,13 @@ pipeline {
             steps {
                 unstash 'apks'
                 echo 'Running instrumentation tests via direct docker run command...'
-                // ИСПРАВЛЕНИЕ: Добавляем sed и здесь
+                // ИСПРАВЛЕНИЕ: Делаем то же самое и здесь.
                 bat '''
                     docker run --rm --privileged ^
                     -v "%WORKSPACE%:/app" ^
                     -w /app ^
                     kayanoterse/my-android-tester:latest ^
-                    sh -c "sed -i 's/\\r$//' ./gradlew && emulator -avd ${params.AVD_NAME} -no-window -no-snapshot -no-audio -gpu swiftshader_indirect & adb wait-for-device && sleep 45 && adb shell input keyevent 82 && sh ./gradlew -g .gradle :app:connectedDebugUnitTest"
+                    sh -c "sed 's/\\r$//' ./gradlew > ./gradlew.sh && sh ./gradlew.sh -g .gradle clean && emulator -avd ${params.AVD_NAME} -no-window -no-snapshot -no-audio -gpu swiftshader_indirect & adb wait-for-device && sleep 45 && adb shell input keyevent 82 && sh ./gradlew.sh -g .gradle :app:connectedDebugAndroidTest"
                 '''
 
                 echo 'Stashing instrumentation test results...'
