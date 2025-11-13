@@ -1,8 +1,8 @@
 // ==================================================================
-// Jenkinsfile для CI/CD Android (v8 - Запуск gradlew через sh)
+// Jenkinsfile для CI/CD Android (v9 - Исправлены концы строк в gradlew)
 // Автор: kayanoterse (с помощью AI)
-// Решение: Обход ошибки 'Permission Denied' при chmod на смонтированном
-// Windows-томе путем прямого вызова 'sh ./gradlew'.
+// Решение: Добавлена команда sed для удаления Windows-символов (\r)
+// из скрипта gradlew перед его выполнением.
 // ==================================================================
 pipeline {
     agent any
@@ -12,19 +12,17 @@ pipeline {
     }
 
     stages {
-        // ==================================================================
-        // СТАДИЯ 1: Сборка и Юнит-тесты
-        // ==================================================================
         stage('Build & Unit Tests') {
             steps {
                 echo 'Running build and unit tests via direct docker run command...'
-                // ИСПРАВЛЕНИЕ: Убираем 'chmod' и вызываем './gradlew' через 'sh'
+                // ИСПРАВЛЕНИЕ: Добавляем sed для исправления концов строк
+                // ВАЖНО: Внутри bat блока нужен двойной слэш: \\r
                 bat '''
                     docker run --rm ^
                     -v "%WORKSPACE%:/app" ^
                     -w /app ^
                     kayanoterse/my-android-builder:latest ^
-                    sh -c "sh ./gradlew -g .gradle clean testDebugUnitTest assembleDebug"
+                    sh -c "sed -i 's/\\r$//' ./gradlew && sh ./gradlew -g .gradle clean testDebugUnitTest assembleDebug"
                 '''
                 
                 echo 'Stashing artifacts...'
@@ -33,20 +31,17 @@ pipeline {
             }
         }
 
-        // ==================================================================
-        // СТАДИЯ 2: Инструментальные тесты
-        // ==================================================================
         stage('Run Integration Tests') {
             steps {
                 unstash 'apks'
                 echo 'Running instrumentation tests via direct docker run command...'
-                // ИСПРАВЛЕНИЕ: Здесь также убираем 'chmod' и используем 'sh ./gradlew'
+                // ИСПРАВЛЕНИЕ: Добавляем sed и здесь
                 bat '''
                     docker run --rm --privileged ^
                     -v "%WORKSPACE%:/app" ^
                     -w /app ^
                     kayanoterse/my-android-tester:latest ^
-                    sh -c "emulator -avd ${params.AVD_NAME} -no-window -no-snapshot -no-audio -gpu swiftshader_indirect & adb wait-for-device && sleep 45 && adb shell input keyevent 82 && sh ./gradlew -g .gradle :app:connectedDebugAndroidTest"
+                    sh -c "sed -i 's/\\r$//' ./gradlew && emulator -avd ${params.AVD_NAME} -no-window -no-snapshot -no-audio -gpu swiftshader_indirect & adb wait-for-device && sleep 45 && adb shell input keyevent 82 && sh ./gradlew -g .gradle :app:connectedDebugUnitTest"
                 '''
 
                 echo 'Stashing instrumentation test results...'
@@ -54,9 +49,6 @@ pipeline {
             }
         }
 
-        // ==================================================================
-        // СТАДИЯ 3: Публикация результатов
-        // ==================================================================
         stage('Publish Results & Artifacts') {
             steps {
                 echo 'Publishing Test Reports & Artifacts...'
