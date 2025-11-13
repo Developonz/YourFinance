@@ -1,8 +1,9 @@
 // ==================================================================
-// Jenkinsfile для CI/CD Android (v16 - Фикс переменных и кэш)
+// Jenkinsfile для CI/CD Android (v17 - Финальная версия)
 // Автор: kayanoterse (с помощью AI)
-// Решение: 1. Используем двойные кавычки для bat-блока для правильной
-// подстановки Groovy-переменных. 2. Добавляем Docker Volume для кэша.
+// Решение: 1. Указаны полные пути к adb и emulator.
+// 2. Добавлен Docker Volume для кэша Gradle.
+// 3. Используются двойные кавычки для правильной подстановки переменных.
 // ==================================================================
 pipeline {
     agent any
@@ -15,7 +16,6 @@ pipeline {
         stage('Build & Unit Tests') {
             steps {
                 echo 'Running build and unit tests with persistent cache...'
-                // Добавляем именованный том для кэша Gradle
                 bat '''
                     docker run --rm ^
                     -v "%WORKSPACE%:/app" ^
@@ -35,15 +35,25 @@ pipeline {
             steps {
                 unstash 'apks'
                 echo 'Running instrumentation tests with persistent cache...'
-                // ИСПРАВЛЕНИЕ: Используем """ для bat-блока и ${params.AVD_NAME}
-                // Экранируем \$// в sed, чтобы Groovy его не трогал.
+                // ИСПРАВЛЕНИЕ: Используем полные пути к adb и emulator
                 bat """
                     docker run --rm --privileged ^
                     -v "%WORKSPACE%:/app" ^
                     -v gradle-cache:/root/.gradle ^
                     -w /app ^
                     my-android-tester:latest ^
-                    sh -c "sed 's/\\r\$//' ./gradlew > ./gradlew.sh && export GRADLE_USER_HOME=/root/.gradle && emulator -avd ${params.AVD_NAME} -no-window -no-snapshot -no-audio -gpu swiftshader_indirect & adb wait-for-device && sleep 45 && adb shell input keyevent 82 && sh ./gradlew.sh --no-daemon --project-cache-dir /tmp/.gradle-project-cache :app:connectedDebugAndroidTest"
+                    sh -c "sed 's/\\r\$//' ./gradlew > ./gradlew.sh && \\
+                            export GRADLE_USER_HOME=/root/.gradle && \\
+                            echo 'Starting emulator...' && \\
+                            \$ANDROID_HOME/emulator/emulator -avd ${params.AVD_NAME} -no-window -no-snapshot -no-audio -gpu swiftshader_indirect & \\
+                            echo 'Waiting for device...' && \\
+                            \$ANDROID_HOME/platform-tools/adb wait-for-device && \\
+                            echo 'Device found. Waiting for OS to boot...' && \\
+                            sleep 45 && \\
+                            echo 'Unlocking screen...' && \\
+                            \$ANDROID_HOME/platform-tools/adb shell input keyevent 82 && \\
+                            echo 'Running tests...' && \\
+                            sh ./gradlew.sh --no-daemon --project-cache-dir /tmp/.gradle-project-cache :app:connectedDebugAndroidTest"
                 """
 
                 echo 'Stashing instrumentation test results...'
