@@ -1,8 +1,8 @@
 // ==================================================================
-// Jenkinsfile для CI/CD Android (v15 - Перемещение project-level cache)
+// Jenkinsfile для CI/CD Android (v16 - Фикс переменных и кэш)
 // Автор: kayanoterse (с помощью AI)
-// Решение: Используем флаг --project-cache-dir, чтобы переместить
-// проектный кэш с проблемного Windows-тома внутрь файловой системы контейнера.
+// Решение: 1. Используем двойные кавычки для bat-блока для правильной
+// подстановки Groovy-переменных. 2. Добавляем Docker Volume для кэша.
 // ==================================================================
 pipeline {
     agent any
@@ -14,12 +14,12 @@ pipeline {
     stages {
         stage('Build & Unit Tests') {
             steps {
-                echo 'Running build and unit tests via direct docker run command...'
-                // ИСПРАВЛЕНИЕ: Добавляем флаг --project-cache-dir
-                // Сохраняем GRADLE_USER_HOME для глобального кэша и --no-daemon для стабильности.
+                echo 'Running build and unit tests with persistent cache...'
+                // Добавляем именованный том для кэша Gradle
                 bat '''
                     docker run --rm ^
                     -v "%WORKSPACE%:/app" ^
+                    -v gradle-cache:/root/.gradle ^
                     -w /app ^
                     my-android-builder:latest ^
                     sh -c "sed 's/\\r$//' ./gradlew > ./gradlew.sh && export GRADLE_USER_HOME=/root/.gradle && sh ./gradlew.sh --no-daemon --project-cache-dir /tmp/.gradle-project-cache clean testDebugUnitTest assembleDebug"
@@ -34,15 +34,17 @@ pipeline {
         stage('Run Integration Tests') {
             steps {
                 unstash 'apks'
-                echo 'Running instrumentation tests via direct docker run command...'
-                // ИСПРАВЛЕНИЕ: Делаем то же самое и здесь.
-                bat '''
+                echo 'Running instrumentation tests with persistent cache...'
+                // ИСПРАВЛЕНИЕ: Используем """ для bat-блока и ${params.AVD_NAME}
+                // Экранируем \$// в sed, чтобы Groovy его не трогал.
+                bat """
                     docker run --rm --privileged ^
                     -v "%WORKSPACE%:/app" ^
+                    -v gradle-cache:/root/.gradle ^
                     -w /app ^
                     my-android-tester:latest ^
-                    sh -c "sed 's/\\r$//' ./gradlew > ./gradlew.sh && export GRADLE_USER_HOME=/root/.gradle && emulator -avd ${params.AVD_NAME} -no-window -no-snapshot -no-audio -gpu swiftshader_indirect & adb wait-for-device && sleep 45 && adb shell input keyevent 82 && sh ./gradlew.sh --no-daemon --project-cache-dir /tmp/.gradle-project-cache :app:connectedDebugAndroidTest"
-                '''
+                    sh -c "sed 's/\\r\$//' ./gradlew > ./gradlew.sh && export GRADLE_USER_HOME=/root/.gradle && emulator -avd ${params.AVD_NAME} -no-window -no-snapshot -no-audio -gpu swiftshader_indirect & adb wait-for-device && sleep 45 && adb shell input keyevent 82 && sh ./gradlew.sh --no-daemon --project-cache-dir /tmp/.gradle-project-cache :app:connectedDebugAndroidTest"
+                """
 
                 echo 'Stashing instrumentation test results...'
                 stash name: 'instrumentation-test-results', includes: 'app/build/outputs/androidTest-results/connected/**/*.xml'
