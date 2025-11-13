@@ -168,25 +168,25 @@ class MoneyAccountIntegrationTest {
 
     @Test
     fun fetchAllAccounts() = runTest {
-        createMoneyAccountUseCase(MoneyAccount(_title = Title("Account B"), startBalance = 10.0))
-        createMoneyAccountUseCase(MoneyAccount(_title = Title("Account A"), startBalance = 20.0))
+        createMoneyAccountUseCase(MoneyAccount(_title = Title("Account B"), startBalance = BigDecimal("10.0")))
+        createMoneyAccountUseCase(MoneyAccount(_title = Title("Account A"), startBalance = BigDecimal("20.0")))
 
         val accounts = fetchMoneyAccountsUseCase().getOrAwait(time = 5) { it?.size == 2 }
 
         assertEquals(2, accounts.size)
 
         assertTrue(
-            accounts.any { it.title == "Account B" && it.startBalance == 10.0 }
+            accounts.any { it.title == "Account B" && it.startBalance == BigDecimal("10.0") }
         )
         assertTrue(
-            accounts.any { it.title == "Account A"  && it.startBalance == 20.0}
+            accounts.any { it.title == "Account A"  && it.startBalance == BigDecimal("20.0")}
         )
     }
 
     @Test
     fun setDefaultAccount() = runTest {
-        val accountId1 = createMoneyAccountUseCase(MoneyAccount(_title = Title("Account 1"), startBalance = 10.0, default = false))
-        val accountId2 = createMoneyAccountUseCase(MoneyAccount(_title = Title("Account 2"), startBalance = 10.0, default = false))
+        val accountId1 = createMoneyAccountUseCase(MoneyAccount(_title = Title("Account 1"), startBalance = BigDecimal("10.0"), default = false))
+        val accountId2 = createMoneyAccountUseCase(MoneyAccount(_title = Title("Account 2"), startBalance = BigDecimal("10.0"), default = false))
 
         setMoneyAccountAsDefaultUseCase(accountId2)
 
