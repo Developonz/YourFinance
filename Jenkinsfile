@@ -1,8 +1,8 @@
 // ==================================================================
-// Jenkinsfile для CI/CD Android (v14 - export GRADLE_USER_HOME и --no-daemon)
+// Jenkinsfile для CI/CD Android (v15 - Перемещение project-level cache)
 // Автор: kayanoterse (с помощью AI)
-// Решение: Используем export для 100% установки переменной окружения и
-// флаг --no-daemon для запуска Gradle в самом простом и надежном режиме.
+// Решение: Используем флаг --project-cache-dir, чтобы переместить
+// проектный кэш с проблемного Windows-тома внутрь файловой системы контейнера.
 // ==================================================================
 pipeline {
     agent any
@@ -15,13 +15,14 @@ pipeline {
         stage('Build & Unit Tests') {
             steps {
                 echo 'Running build and unit tests via direct docker run command...'
-                // ИСПРАВЛЕНИЕ: Используем 'export' и добавляем флаг '--no-daemon'
+                // ИСПРАВЛЕНИЕ: Добавляем флаг --project-cache-dir
+                // Сохраняем GRADLE_USER_HOME для глобального кэша и --no-daemon для стабильности.
                 bat '''
                     docker run --rm ^
                     -v "%WORKSPACE%:/app" ^
                     -w /app ^
                     my-android-builder:latest ^
-                    sh -c "sed 's/\\r$//' ./gradlew > ./gradlew.sh && export GRADLE_USER_HOME=/root/.gradle && sh ./gradlew.sh --no-daemon clean testDebugUnitTest assembleDebug"
+                    sh -c "sed 's/\\r$//' ./gradlew > ./gradlew.sh && export GRADLE_USER_HOME=/root/.gradle && sh ./gradlew.sh --no-daemon --project-cache-dir /tmp/.gradle-project-cache clean testDebugUnitTest assembleDebug"
                 '''
                 
                 echo 'Stashing artifacts...'
@@ -40,7 +41,7 @@ pipeline {
                     -v "%WORKSPACE%:/app" ^
                     -w /app ^
                     my-android-tester:latest ^
-                    sh -c "sed 's/\\r$//' ./gradlew > ./gradlew.sh && export GRADLE_USER_HOME=/root/.gradle && emulator -avd ${params.AVD_NAME} -no-window -no-snapshot -no-audio -gpu swiftshader_indirect & adb wait-for-device && sleep 45 && adb shell input keyevent 82 && sh ./gradlew.sh --no-daemon :app:connectedDebugAndroidTest"
+                    sh -c "sed 's/\\r$//' ./gradlew > ./gradlew.sh && export GRADLE_USER_HOME=/root/.gradle && emulator -avd ${params.AVD_NAME} -no-window -no-snapshot -no-audio -gpu swiftshader_indirect & adb wait-for-device && sleep 45 && adb shell input keyevent 82 && sh ./gradlew.sh --no-daemon --project-cache-dir /tmp/.gradle-project-cache :app:connectedDebugAndroidTest"
                 '''
 
                 echo 'Stashing instrumentation test results...'
@@ -76,4 +77,3 @@ pipeline {
         }
     }
 }
-
