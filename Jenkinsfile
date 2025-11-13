@@ -10,8 +10,6 @@ pipeline {
             agent {
                 docker {
                     image 'kayanoterse/my-android-builder:latest'
-                    // ИЗМЕНЕНИЕ 1: Добавляем флаг '-w /app', чтобы явно указать рабочую директорию ВНУТРИ контейнера.
-                    // Это решает главную ошибку с неверным путем.
                     args '-w /app -v ${WORKSPACE}/.gradle:/root/.gradle'
                 }
             }
@@ -33,7 +31,6 @@ pipeline {
             agent {
                 docker {
                     image 'kayanoterse/my-android-tester:latest'
-                    // ИЗМЕНЕНИЕ 1 (аналогично): Также добавляем флаг '-w /app'.
                     args '-w /app -v ${WORKSPACE}/.gradle:/root/.gradle'
                 }
             }
@@ -79,28 +76,32 @@ pipeline {
         }
     }
 
+    // ==================================================================
+    // ИЗМЕНЕНИЯ ВНЕСЕНЫ ЗДЕСЬ
+    // ==================================================================
     post {
         always {
-            // ИЗМЕНЕНИЕ 2: Добавляем 'agent any', чтобы Jenkins знал, где выполнять шаги очистки.
-            agent any
-            
+            // Мы не можем использовать 'agent' здесь.
+            // Вместо этого мы используем 'node', чтобы получить агента для выполнения шагов.
             steps {
-                script {
+                node {
                     echo 'Pipeline finished. Cleaning up workspace...'
                     cleanWs()
                 }
             }
         }
         success {
-            agent any
             steps {
-                echo 'Build and tests completed successfully!'
+                node {
+                    echo 'Build and tests completed successfully!'
+                }
             }
         }
         failure {
-            agent any
             steps {
-                echo 'Build failed! Check logs.'
+                node {
+                    echo 'Build failed! Check logs.'
+                }
             }
         }
     }
