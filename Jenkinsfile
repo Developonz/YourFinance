@@ -1,9 +1,8 @@
 // ==================================================================
-// Jenkinsfile для CI/CD Android (v17 - Финальная версия)
+// Jenkinsfile для CI/CD Android (v18 - Полное двухуровневое кэширование)
 // Автор: kayanoterse (с помощью AI)
-// Решение: 1. Указаны полные пути к adb и emulator.
-// 2. Добавлен Docker Volume для кэша Gradle.
-// 3. Используются двойные кавычки для правильной подстановки переменных.
+// Решение: Добавлен второй Docker-том 'gradle-build-cache' для
+// сохранения результатов выполненных задач (Build Cache).
 // ==================================================================
 pipeline {
     agent any
@@ -16,13 +15,15 @@ pipeline {
         stage('Build & Unit Tests') {
             steps {
                 echo 'Running build and unit tests with persistent cache...'
+                // ИСПРАВЛЕНИЕ: Добавляем второй том и флаг --build-cache
                 bat '''
                     docker run --rm ^
                     -v "%WORKSPACE%:/app" ^
                     -v gradle-cache:/root/.gradle ^
+                    -v gradle-build-cache:/tmp/.gradle-project-cache ^
                     -w /app ^
                     my-android-builder:latest ^
-                    sh -c "sed 's/\\r$//' ./gradlew > ./gradlew.sh && export GRADLE_USER_HOME=/root/.gradle && sh ./gradlew.sh --no-daemon --project-cache-dir /tmp/.gradle-project-cache clean testDebugUnitTest assembleDebug"
+                    sh -c "sed 's/\\r$//' ./gradlew > ./gradlew.sh && export GRADLE_USER_HOME=/root/.gradle && sh ./gradlew.sh --build-cache --no-daemon --project-cache-dir /tmp/.gradle-project-cache clean testDebugUnitTest assembleDebug"
                 '''
                 
                 echo 'Stashing artifacts...'
@@ -35,11 +36,12 @@ pipeline {
             steps {
                 unstash 'apks'
                 echo 'Running instrumentation tests with persistent cache...'
-                // ИСПРАВЛЕНИЕ: Используем полные пути к adb и emulator
+                // ИСПРАВЛЕНИЕ: Используем оба тома и здесь
                 bat """
                     docker run --rm --privileged ^
                     -v "%WORKSPACE%:/app" ^
                     -v gradle-cache:/root/.gradle ^
+                    -v gradle-build-cache:/tmp/.gradle-project-cache ^
                     -w /app ^
                     my-android-tester:latest ^
                     sh -c "sed 's/\\r\$//' ./gradlew > ./gradlew.sh && \\
@@ -53,7 +55,7 @@ pipeline {
                             echo 'Unlocking screen...' && \\
                             \$ANDROID_HOME/platform-tools/adb shell input keyevent 82 && \\
                             echo 'Running tests...' && \\
-                            sh ./gradlew.sh --no-daemon --project-cache-dir /tmp/.gradle-project-cache :app:connectedDebugAndroidTest"
+                            sh ./gradlew.sh --build-cache --no-daemon --project-cache-dir /tmp/.gradle-project-cache :app:connectedDebugAndroidTest"
                 """
 
                 echo 'Stashing instrumentation test results...'
