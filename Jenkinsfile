@@ -1,5 +1,5 @@
 // ==================================================================
-// Jenkinsfile для CI/CD Android с использованием Docker-контейнеров (v2 - Исправлено)
+// Jenkinsfile для CI/CD Android с использованием Docker-контейнеров (v3 - Исправлены пути Windows)
 // Автор: kayanoterse (с помощью AI)
 // Архитектура: 2 контейнера (builder, tester) из Docker Hub
 // Агент: Windows с Docker Desktop (WSL 2)
@@ -19,6 +19,8 @@ pipeline {
             agent {
                 docker {
                     image 'kayanoterse/my-android-builder:latest'
+                    // === ИСПРАВЛЕНИЕ: Указываем рабочую директорию ВНУТРИ контейнера ===
+                    customWorkspace '/app'
                 }
             }
             steps {
@@ -41,6 +43,8 @@ pipeline {
             agent {
                 docker {
                     image 'kayanoterse/my-android-tester:latest'
+                    // === ИСПРАВЛЕНИЕ: Здесь тоже указываем ту же рабочую директорию ===
+                    customWorkspace '/app'
                 }
             }
             steps {
@@ -100,22 +104,18 @@ pipeline {
     }
 
     // ==================================================================
-    // POST-БЛОК: Действия после завершения (ИСПРАВЛЕННАЯ ВЕРСИЯ)
+    // POST-БЛОК: Действия после завершения
     // ==================================================================
     post {
         always {
             echo 'Pipeline finished. Cleaning up emulator...'
-            // ИСПОЛЬЗУЕМ SCRIPT БЛОК И docker.image.inside ВМЕСТО STAGE
             script {
                 try {
-                    // Эта команда запустит контейнер, выполнит внутри него команду
-                    // для остановки эмулятора и сразу же завершится.
                     docker.image('kayanoterse/my-android-tester:latest').inside {
                         sh "$ANDROID_HOME/platform-tools/adb emu kill"
                     }
                     echo 'Emulator stopped successfully.'
                 } catch (e) {
-                    // Игнорируем ошибку, если, например, эмулятор уже был остановлен
                     echo "Could not stop the emulator, it might have already been stopped. Error: ${e.getMessage()}"
                 }
             }
