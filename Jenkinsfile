@@ -1,8 +1,8 @@
 // ==================================================================
-// Jenkinsfile для CI/CD Android (v19 - Фикс конфликта блокировок кэша)
+// Jenkinsfile для CI/CD Android (v20 - Финальная рабочая версия)
 // Автор: kayanoterse (с помощью AI)
-// Решение: 1. Удалена задача 'clean', несовместимая с кэшированием.
-// 2. Добавлен флаг '--no-parallel' для гарантии однопоточной работы.
+// Решение: Объединение многострочной sh-команды в одну строку
+// для корректной обработки Windows bat.
 // ==================================================================
 pipeline {
     agent any
@@ -15,7 +15,6 @@ pipeline {
         stage('Build & Unit Tests') {
             steps {
                 echo 'Running build and unit tests with persistent cache...'
-                // ИСПРАВЛЕНИЕ: Убрали 'clean', добавили '--no-parallel'
                 bat '''
                     docker run --rm ^
                     -v "%WORKSPACE%:/app" ^
@@ -36,7 +35,7 @@ pipeline {
             steps {
                 unstash 'apks'
                 echo 'Running instrumentation tests with persistent cache...'
-                // ИСПРАВЛЕНИЕ: Добавили '--no-parallel'
+                // ИСПРАВЛЕНИЕ: Вся команда sh -c "..." теперь в одной строке.
                 bat """
                     docker run --rm --privileged ^
                     -v "%WORKSPACE%:/app" ^
@@ -44,18 +43,7 @@ pipeline {
                     -v gradle-build-cache:/tmp/.gradle-project-cache ^
                     -w /app ^
                     my-android-tester:latest ^
-                    sh -c "sed 's/\\r\$//' ./gradlew > ./gradlew.sh && \\
-                            export GRADLE_USER_HOME=/root/.gradle && \\
-                            echo 'Starting emulator...' && \\
-                            \$ANDROID_HOME/emulator/emulator -avd ${params.AVD_NAME} -no-window -no-snapshot -no-audio -gpu swiftshader_indirect & \\
-                            echo 'Waiting for device...' && \\
-                            \$ANDROID_HOME/platform-tools/adb wait-for-device && \\
-                            echo 'Device found. Waiting for OS to boot...' && \\
-                            sleep 45 && \\
-                            echo 'Unlocking screen...' && \\
-                            \$ANDROID_HOME/platform-tools/adb shell input keyevent 82 && \\
-                            echo 'Running tests...' && \\
-                            sh ./gradlew.sh --build-cache --no-daemon --no-parallel --project-cache-dir /tmp/.gradle-project-cache :app:connectedDebugAndroidTest"
+                    sh -c "sed 's/\\r\$//' ./gradlew > ./gradlew.sh && export GRADLE_USER_HOME=/root/.gradle && echo 'Starting emulator...' && \$ANDROID_HOME/emulator/emulator -avd ${params.AVD_NAME} -no-window -no-snapshot -no-audio -gpu swiftshader_indirect & echo 'Waiting for device...' && \$ANDROID_HOME/platform-tools/adb wait-for-device && echo 'Device found. Waiting for OS to boot...' && sleep 45 && echo 'Unlocking screen...' && \$ANDROID_HOME/platform-tools/adb shell input keyevent 82 && echo 'Running tests...' && sh ./gradlew.sh --build-cache --no-daemon --no-parallel --project-cache-dir /tmp/.gradle-project-cache :app:connectedDebugAndroidTest"
                 """
 
                 echo 'Stashing instrumentation test results...'
