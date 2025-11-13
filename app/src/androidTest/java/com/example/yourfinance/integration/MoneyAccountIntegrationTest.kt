@@ -29,11 +29,11 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.io.IOException
+import java.math.BigDecimal // Убедись, что этот импорт есть
 import java.time.LocalDate
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
-import java.math.BigDecimal
 
 @ExperimentalCoroutinesApi
 @RunWith(AndroidJUnit4::class)
@@ -128,7 +128,9 @@ class MoneyAccountIntegrationTest {
         assertNotNull(fetchedAccount)
         assertEquals(generatedId, fetchedAccount?.id)
         assertEquals("Integration Test Account", fetchedAccount?.title)
-        assertEquals(1000.0, fetchedAccount!!.balance, 1e-3)
+        
+        // ИСПРАВЛЕНО: Сравниваем BigDecimal с BigDecimal через compareTo
+        assertEquals(0, BigDecimal("1000.0").compareTo(fetchedAccount!!.balance))
     }
 
     @Test
@@ -150,17 +152,21 @@ class MoneyAccountIntegrationTest {
         val fetchedAccount = loadMoneyAccountByIdUseCase(id)
         assertNotNull(fetchedAccount)
         assertEquals("Updated Title", fetchedAccount?.title)
-        assertEquals(150.0, fetchedAccount!!.startBalance, 1e-3)
-        assertEquals(120.0, fetchedAccount.balance, 1e-3)
+        
+        // ИСПРАВЛЕНО: Сравниваем BigDecimal с BigDecimal через compareTo
+        assertEquals(0, BigDecimal("150.0").compareTo(fetchedAccount!!.startBalance))
+        assertEquals(0, BigDecimal("120.0").compareTo(fetchedAccount.balance))
     }
 
     @Test
     fun deleteAccount() = runTest {
         val account = MoneyAccount(_title = Title("To Delete"), startBalance = BigDecimal("50.0"))
         val id = createMoneyAccountUseCase(account)
-        val accountToDelete = account.copy(id = id)
-
-        deleteMoneyAccountUseCase(accountToDelete)
+        // ИСПРАВЛЕНО: Правильно создаем объект для удаления
+        val accountToDelete = loadMoneyAccountByIdUseCase(id)
+        assertNotNull(accountToDelete) // Убедимся, что он существует
+        
+        deleteMoneyAccountUseCase(accountToDelete!!)
 
         val fetchedAccount = loadMoneyAccountByIdUseCase(id)
         assertNull(fetchedAccount)
@@ -175,6 +181,7 @@ class MoneyAccountIntegrationTest {
 
         assertEquals(2, accounts.size)
 
+        // ИСПРАВЛЕНО: Сравниваем BigDecimal с BigDecimal напрямую
         assertTrue(
             accounts.any { it.title == "Account B" && it.startBalance == BigDecimal("10.0") }
         )
