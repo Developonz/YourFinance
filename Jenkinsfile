@@ -1,5 +1,5 @@
 // ==================================================================
-// Jenkinsfile для CI/CD Android (v5 - Scripted Docker вызов)
+// Jenkinsfile для CI/CD Android (v6 - Удален пустой блок options)
 // Автор: kayanoterse (с помощью AI)
 // Решение: Обход бага docker-workflow на Windows через ручной вызов контейнера
 // ==================================================================
@@ -7,10 +7,7 @@ pipeline {
     // Глобальный агент нам не нужен, будем управлять им вручную
     agent none
 
-    options {
-        // Эта опция нам больше не нужна, т.к. мы полностью контролируем checkout
-        // skipDefaultCheckout(true)
-    }
+    // ПУСТОЙ БЛОК OPTIONS УДАЛЕН ОТСЮДА
 
     parameters {
         string(name: 'AVD_NAME', defaultValue: 'Medium_Phone_API_34', description: 'AVD emulator name created in Docker image')
@@ -21,21 +18,13 @@ pipeline {
         // СТАДИЯ 1: Сборка и Юнит-тесты
         // ==================================================================
         stage('Build & Unit Tests') {
-            // Указываем, что стадия будет выполняться на любом доступном агенте (нашем Windows-агенте),
-            // но сам Docker мы запустим внутри шагов.
             agent any
             steps {
-                // Используем скриптовый блок для полного контроля
                 script {
-                    // Получаем образ из Docker Hub
                     def builderImage = docker.image('kayanoterse/my-android-builder:latest')
                     
-                    // Запускаем контейнер. Метод .inside() сам смонтирует рабочую директорию
-                    // в сгенерированный путь внутри контейнера, что обходит проблему с C:/
                     builderImage.inside {
                         echo 'Running inside builder container...'
-                        
-                        // Checkout теперь делается здесь. 'scm' автоматически берет настройки из Jenkins Job
                         checkout scm
                         
                         echo 'Building APK and running Unit Tests...'
@@ -59,8 +48,6 @@ pipeline {
                 script {
                     def testerImage = docker.image('kayanoterse/my-android-tester:latest')
 
-                    // В .inside() можно передать аргументы для команды docker run.
-                    // '--privileged' часто необходим для запуска вложенной виртуализации (эмулятора).
                     testerImage.inside('--privileged') {
                         echo 'Running inside tester container...'
                         checkout scm
@@ -100,13 +87,13 @@ pipeline {
         }
 
         // ==================================================================
-        // СТАДИЯ 3: Публикация результатов (остается без изменений)
+        // СТАДИЯ 3: Публикация результатов
         // ==================================================================
         stage('Publish Results & Artifacts') {
             agent any
             steps {
                 echo 'Cleaning up previous artifacts before unstashing...'
-                cleanWs() // Очищаем рабочую директорию, чтобы не было конфликтов
+                cleanWs()
                 
                 echo 'Publishing Test Reports & Artifacts...'
                 unstash 'unit-test-results'
@@ -121,7 +108,6 @@ pipeline {
         }
     }
 
-    // POST-БЛОК остается без изменений, он уже использует правильный синтаксис
     post {
         always {
             echo 'Pipeline finished. Cleaning up emulator...'
