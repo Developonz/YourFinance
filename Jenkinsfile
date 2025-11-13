@@ -1,100 +1,131 @@
-// Скриптовый Пайплайн, чтобы обойти баг Windows/Linux путей в Declarative
+// Jenkinsfile для CI/CD Android-приложения на Windows-агенте с WSL2/Docker Desktop
 pipeline {
-    agent none // Отключаем глобальный агент
-    
+    // Определяем, что среда выполнения будет настраиваться для каждого этапа индивидуально.
+    agent none
+
+    // Параметр для гибкой настройки имени эмулятора.
+    parameters {
+        string(name: 'AVD_NAME', defaultValue: 'Medium_Phone_API_34', description: 'AVD name created inside the tester Docker image')
+    }
+
     stages {
-        // SCM Checkout должен произойти на хосте перед запуском контейнера
-        stage('Declarative: Checkout SCM') {
-            agent any 
-            steps {
-                checkout scm
-                echo "Source code checked out on Jenkins host."
+        // ==================================================================
+        // ЭТАП 1: Сборка и Юнит-тесты в легком 'builder' контейнере
+        // ==================================================================
+        stage('Build & Unit Test') {
+            agent {
+                docker {
+                    image 'kayanoterse/my-android-builder:latest'
+                    // Кэширование Gradle. ${WORKSPACE} - переменная Jenkins, указывающая на папку проекта.
+                    // Создаем папку .gradle внутри нее и "пробрасываем" в контейнер.
+                    // Это работает и на Windows, Docker Desktop корректно обработает пути.
+                    args '-v ${WORKSPACE}/.gradle:/root/.gradle'
+                }
             }
-        }
-        
-        // Группируем стадии, которые должны выполняться внутри одного контейнера
-        stage('Build, Unit Tests, and Integration Tests') {
             steps {
                 script {
-                    def imageName = 'kayanoterse/my-android-builder:1.1'
-                    def containerArgs = "-w /app -v jenkins-gradle-cache:/root/.gradle/caches"
+                    echo "--- Running in Builder Container ---"
+                    // Делаем скрипт Gradle исполняемым внутри Linux-контейнера.
+                    sh 'chmod +x ./gradlew'
                     
-                    // Используем метод inside() для входа в контейнер с нужными аргументами
-                    docker.image(imageName).inside(containerArgs) {
-                        
-                        // 1. Run Unit Tests (Внутри контейнера)
-                        echo 'Running Unit Tests in Build Service...'
-                        sh 'chmod +x ./gradlew' 
-                        sh './gradlew clean testDebugUnitTest'
-                        
-                        // 2. Build Application (Внутри контейнера)
-                        echo 'Building Debug Application in Build Service...'
-                        sh './gradlew assembleDebug'
+                    echo "Running Unit Tests and assembling the APKs..."
+                    // Выполняем все задачи сборки в одной команде.
+                    sh './gradlew clean testDebugUnitTest assembleDebug assembleAndroidTest'
 
-                        // 3. Run Integration Tests (Внутри контейнера)
-                        def emulatorServiceName = "android-emulator-service"
-                        
-                        try {
-                            echo "Starting Emulator Service (Container 2: budtmo/docker-android-x86-emulator)..."
-                            // Запускаем второй контейнер, команду 'docker run' выполняет наш первый контейнер (kayanoterse/...)
-                            sh "docker run --name ${emulatorServiceName} -d --privileged -p 5554:5554 budtmo/docker-android-x86-emulator:latest -e DEVICE=\"Samsung Galaxy S10\" -no-audio"
-                            
-                            echo "Waiting for Emulator Service to connect via ADB..."
-                            def connected = false
-                            timeout(time: 5, unit: 'MINUTES') {
-                                while (!connected) {
-                                    try {
-                                        sh "adb connect ${emulatorServiceName}:5554" 
-                                        def devices = sh(script: "adb devices", returnStdout: true).trim()
-                                        
-                                        if (devices.contains("${emulatorServiceName}:5554\tdevice")) {
-                                            connected = true
-                                            echo "Emulator Service connected successfully!"
-                                        } else {
-                                            echo "Not ready yet. Waiting 10 seconds..."
-                                            sleep(time: 10, unit: 'SECONDS')
-                                        }
-                                    } catch (e) {
-                                        echo "Connection attempt failed. Retrying... (${e.getMessage()})"
-                                        sleep(time: 10, unit: 'SECONDS')
-                                    }
-                                }
-                            }
-
-                            echo 'Running Instrumentation Tests...'
-                            sh "./gradlew :app:connectedDebugAndroidTest --stacktrace --info --rerun-tasks -Dconnected.device.serial=${emulatorServiceName}:5554"
-                        
-                        } finally {
-                            // Очистка: остановка и удаление фонового контейнера
-                            sh 'echo Stopping and removing Emulator Service...'
-                            sh "docker stop ${emulatorServiceName} || true" 
-                            sh "docker rm ${emulatorServiceName} || true" 
-                        }
-                    }
+                    echo "Stashing artifacts for later stages..."
+                    // Сохраняем артефакты для передачи между контейнерами.
+                    stash name: 'app-apk', includes: 'app/build/outputs/apk/debug/app-debug.apk'
+                    stash name: 'test-apk', includes: 'app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk'
+                    stash name: 'unit-test-results', includes: 'app/build/test-results/testDebugUnitTest/**/*.xml'
                 }
             }
         }
-        
-        stage('Publish Results & Artifacts') {
-            agent any // Возвращаемся на хост Jenkins для публикации артефактов
+
+        // ==================================================================
+        // ЭТАП 2: Инструментальные тесты в 'tester' контейнере
+        // ==================================================================
+        stage('Run Integration Tests') {
+            agent {
+                docker {
+                    image 'kayanoterse/my-android-tester:latest'
+                    // ВАЖНО: Аргументы для KVM (--privileged, -v /dev/kvm) удалены, 
+                    // так как они несовместимы с Windows-хостом.
+                    // Кэширование Gradle оставляем, оно по-прежнему полезно.
+                    args '-v ${WORKSPACE}/.gradle:/root/.gradle'
+                }
+            }
             steps {
-                echo 'Publishing Test Reports & Artifacts...'
-                junit '**/build/test-results/testDebugUnitTest/**/*.xml'
-                junit 'app/build/outputs/androidTest-results/connected/debug/*.xml'
-                archiveArtifacts artifacts: 'app/build/outputs/apk/debug/app-debug.apk', fingerprint: true, onlyIfSuccessful: true
+                script {
+                    echo "--- Running in Tester Container on Windows/WSL2 ---"
+                    sh 'chmod +x ./gradlew'
+                    unstash 'app-apk'
+                    unstash 'test-apk'
+
+                    echo "Starting emulator: ${params.AVD_NAME} with SwiftShader GPU"
+                    // КЛЮЧЕВОЕ ИЗМЕНЕНИЕ ДЛЯ WINDOWS:
+                    // Добавлен флаг '-gpu swiftshader_indirect' для использования программного рендеринга.
+                    sh "emulator -avd ${params.AVD_NAME} -no-audio -no-window -no-snapshot-load -no-boot-anim -gpu swiftshader_indirect &"
+                    
+                    // Ожидание полной загрузки эмулятора (до 5 минут).
+                    timeout(time: 5, unit: 'MINUTES') {
+                        echo "Waiting for device to appear..."
+                        sh "adb wait-for-device"
+                        
+                        echo "Waiting for Android OS to fully boot..."
+                        // Надежный способ проверить, что ОС загрузилась.
+                        sh "while [[ \"\$(adb shell getprop sys.boot_completed | tr -d '\\r')\" != \"1\" ]] ; do sleep 1; done"
+                        
+                        // Разблокировка экрана.
+                        sh "adb shell input keyevent 82"
+                        echo "Emulator is ready."
+                    }
+
+                    echo 'Running Instrumentation Tests...'
+                    sh "./gradlew :app:connectedDebugAndroidTest"
+                    
+                    echo "Stashing integration test results..."
+                    stash name: 'integration-test-results', includes: 'app/build/outputs/androidTest-results/connected/**/*.xml'
+                }
+            }
+        }
+
+        // ==================================================================
+        // ЭТАП 3: Публикация результатов
+        // ==================================================================
+        stage('Publish Results & Artifacts') {
+            // Этот этап может выполняться на любом агенте, т.к. он просто работает с файлами.
+            agent any
+            steps {
+                script {
+                    echo "--- Publishing Results ---"
+                    unstash 'unit-test-results'
+                    unstash 'integration-test-results'
+                    unstash 'app-apk'
+
+                    // Публикация отчетов в Jenkins UI.
+                    junit allowEmptyResults: true, testResults: 'app/build/test-results/testDebugUnitTest/**/*.xml'
+                    junit allowEmptyResults: true, testResults: 'app/build/outputs/androidTest-results/connected/**/*.xml'
+                    
+                    // Архивирование финального APK.
+                    archiveArtifacts artifacts: 'app/build/outputs/apk/debug/app-debug.apk', fingerprint: true
+                }
             }
         }
     }
-    
+
+    // Блок POST для действий после завершения пайплайна.
     post {
         always {
-            echo 'Pipeline finished.'
-        }
-        failure {
-            echo 'Build failed! Check logs.'
+            echo 'Pipeline finished. Cleaning up workspace...'
+            // Стандартная функция очистки рабочего пространства Jenkins.
+            // Убивать эмулятор не нужно, он "умирает" вместе с контейнером.
+            cleanWs()
         }
         success {
             echo 'Build and tests completed successfully!'
+        }
+        failure {
+            echo 'Build failed! Check logs.'
         }
     }
 }
