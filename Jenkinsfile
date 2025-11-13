@@ -1,8 +1,8 @@
 // ==================================================================
-// Jenkinsfile для CI/CD Android (v10 - Обход ошибки rename в sed)
+// Jenkinsfile для CI/CD Android (v11 - Использование локальных образов)
 // Автор: kayanoterse (с помощью AI)
-// Решение: Вместо изменения gradlew "на месте" (sed -i), перенаправляем
-// вывод sed в новый файл (gradlew.sh) и запускаем его.
+// Решение: Заменены имена образов с Docker Hub на локальные для
+// ускорения сборки и экономии трафика.
 // ==================================================================
 pipeline {
     agent any
@@ -15,12 +15,12 @@ pipeline {
         stage('Build & Unit Tests') {
             steps {
                 echo 'Running build and unit tests via direct docker run command...'
-                // ИСПРАВЛЕНИЕ: Перенаправляем вывод sed в новый файл gradlew.sh и запускаем его.
+                // ИСПРАВЛЕНИЕ: Используем локальный образ 'my-android-builder:latest'
                 bat '''
                     docker run --rm ^
                     -v "%WORKSPACE%:/app" ^
                     -w /app ^
-                    kayanoterse/my-android-builder:latest ^
+                    my-android-builder:latest ^
                     sh -c "sed 's/\\r$//' ./gradlew > ./gradlew.sh && sh ./gradlew.sh -g .gradle clean testDebugUnitTest assembleDebug"
                 '''
                 
@@ -34,13 +34,13 @@ pipeline {
             steps {
                 unstash 'apks'
                 echo 'Running instrumentation tests via direct docker run command...'
-                // ИСПРАВЛЕНИЕ: Делаем то же самое и здесь.
+                // ИСПРАВЛЕНИЕ: Используем локальный образ 'my-android-tester:latest'
                 bat '''
                     docker run --rm --privileged ^
                     -v "%WORKSPACE%:/app" ^
                     -w /app ^
-                    kayanoterse/my-android-tester:latest ^
-                    sh -c "sed 's/\\r$//' ./gradlew > ./gradlew.sh && sh ./gradlew.sh -g .gradle clean && emulator -avd ${params.AVD_NAME} -no-window -no-snapshot -no-audio -gpu swiftshader_indirect & adb wait-for-device && sleep 45 && adb shell input keyevent 82 && sh ./gradlew.sh -g .gradle :app:connectedDebugAndroidTest"
+                    my-android-tester:latest ^
+                    sh -c "sed 's/\\r$//' ./gradlew > ./gradlew.sh && emulator -avd ${params.AVD_NAME} -no-window -no-snapshot -no-audio -gpu swiftshader_indirect & adb wait-for-device && sleep 45 && adb shell input keyevent 82 && sh ./gradlew.sh -g .gradle :app:connectedDebugAndroidTest"
                 '''
 
                 echo 'Stashing instrumentation test results...'
