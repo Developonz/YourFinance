@@ -1,8 +1,8 @@
 // ==================================================================
-// Jenkinsfile для CI/CD Android (v12 - Кэш Gradle внутри контейнера)
+// Jenkinsfile для CI/CD Android (v13 - GRADLE_USER_HOME)
 // Автор: kayanoterse (с помощью AI)
-// Решение: Изменен путь кэша Gradle с './.gradle' на '~/.gradle',
-// чтобы избежать проблем с правами на смонтированном Windows-томе.
+// Решение: Явно устанавливаем переменную окружения GRADLE_USER_HOME,
+// так как флаг '-g' игнорировался. Это самый надежный способ.
 // ==================================================================
 pipeline {
     agent any
@@ -15,13 +15,13 @@ pipeline {
         stage('Build & Unit Tests') {
             steps {
                 echo 'Running build and unit tests via direct docker run command...'
-                // ИСПРАВЛЕНИЕ: Говорим Gradle использовать кэш в домашней директории (~/.gradle)
+                // ИСПРАВЛЕНИЕ: Устанавливаем GRADLE_USER_HOME и убираем флаг -g
                 bat '''
                     docker run --rm ^
                     -v "%WORKSPACE%:/app" ^
                     -w /app ^
                     my-android-builder:latest ^
-                    sh -c "sed 's/\\r$//' ./gradlew > ./gradlew.sh && sh ./gradlew.sh -g ~/.gradle clean testDebugUnitTest assembleDebug"
+                    sh -c "sed 's/\\r$//' ./gradlew > ./gradlew.sh && GRADLE_USER_HOME=/root/.gradle sh ./gradlew.sh clean testDebugUnitTest assembleDebug"
                 '''
                 
                 echo 'Stashing artifacts...'
@@ -40,7 +40,7 @@ pipeline {
                     -v "%WORKSPACE%:/app" ^
                     -w /app ^
                     my-android-tester:latest ^
-                    sh -c "sed 's/\\r$//' ./gradlew > ./gradlew.sh && emulator -avd ${params.AVD_NAME} -no-window -no-snapshot -no-audio -gpu swiftshader_indirect & adb wait-for-device && sleep 45 && adb shell input keyevent 82 && sh ./gradlew.sh -g ~/.gradle :app:connectedDebugAndroidTest"
+                    sh -c "sed 's/\\r$//' ./gradlew > ./gradlew.sh && emulator -avd ${params.AVD_NAME} -no-window -no-snapshot -no-audio -gpu swiftshader_indirect & adb wait-for-device && sleep 45 && adb shell input keyevent 82 && GRADLE_USER_HOME=/root/.gradle sh ./gradlew.sh :app:connectedDebugAndroidTest"
                 '''
 
                 echo 'Stashing instrumentation test results...'
