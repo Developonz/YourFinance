@@ -1,103 +1,100 @@
-pipeline {
-    agent none
+parameters {
+    string(name: 'AVD_NAME', defaultValue: 'Medium_Phone_API_34', description: 'AVD name created inside the tester Docker image')
+}
 
-    parameters {
-        string(name: 'AVD_NAME', defaultValue: 'Medium_Phone_API_34', description: 'AVD name created inside the tester Docker image')
-    }
-
-    stages {
-        stage('Build & Unit Test') {
-            agent {
-                docker {
-                    image 'kayanoterse/my-android-builder:latest'
-                    // ИСПРАВЛЕНИЕ 1: Используем правильный параметр 'workingDir' для установки рабочей директории.
-                    // Убираем '-w /app' из 'args'.
-                    workingDir '/app'
-                    args '-v ${WORKSPACE}/.gradle:/root/.gradle'
-                }
-            }
-            steps {
-                script {
-                    echo "--- Running in Builder Container ---"
-                    sh 'chmod +x ./gradlew'
-                    echo "Running Unit Tests and assembling the APKs..."
-                    sh './gradlew clean testDebugUnitTest assembleDebug assembleAndroidTest'
-                    echo "Stashing artifacts for later stages..."
-                    stash name: 'app-apk', includes: 'app/build/outputs/apk/debug/app-debug.apk'
-                    stash name: 'test-apk', includes: 'app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk'
-                    stash name: 'unit-test-results', includes: 'app/build/test-results/testDebugUnitTest/**/*.xml'
-                }
+stages {
+    stage('Build & Unit Test') {
+        agent {
+            docker {
+                image 'kayanoterse/my-android-builder:latest'
+                // ИСПРАВЛЕНИЕ: Используем 'customWorkspace' вместо 'workingDir'.
+                // Это правильный, документированный способ указать рабочую директорию внутри контейнера.
+                customWorkspace '/app'
+                // Строка args теперь содержит только монтирование кэша.
+                args '-v ${WORKSPACE}/.gradle:/root/.gradle'
             }
         }
-
-        stage('Run Integration Tests') {
-            agent {
-                docker {
-                    image 'kayanoterse/my-android-tester:latest'
-                    // ИСПРАВЛЕНИЕ 1 (аналогично): Задаем рабочую директорию правильным способом.
-                    workingDir '/app'
-                    args '-v ${WORKSPACE}/.gradle:/root/.gradle'
-                }
-            }
-            steps {
-                script {
-                    echo "--- Running in Tester Container on Windows/WSL2 ---"
-                    sh 'chmod +x ./gradlew'
-                    unstash 'app-apk'
-                    unstash 'test-apk'
-                    echo "Starting emulator: ${params.AVD_NAME} with SwiftShader GPU"
-                    sh "emulator -avd ${params.AVD_NAME} -no-audio -no-window -no-snapshot-load -no-boot-anim -gpu swiftshader_indirect &"
-                    
-                    timeout(time: 5, unit: 'MINUTES') {
-                        echo "Waiting for device to appear..."
-                        sh "adb wait-for-device"
-                        echo "Waiting for Android OS to fully boot..."
-                        sh "while [[ \"\$(adb shell getprop sys.boot_completed | tr -d '\\r')\" != \"1\" ]] ; do sleep 1; done"
-                        sh "adb shell input keyevent 82"
-                        echo "Emulator is ready."
-                    }
-
-                    echo 'Running Instrumentation Tests...'
-                    sh "./gradlew :app:connectedDebugAndroidTest"
-                    echo "Stashing integration test results..."
-                    stash name: 'integration-test-results', includes: 'app/build/outputs/androidTest-results/connected/**/*.xml'
-                }
-            }
-        }
-
-        stage('Publish Results & Artifacts') {
-            agent any
-            steps {
-                script {
-                    echo "--- Publishing Results ---"
-                    unstash 'unit-test-results'
-                    unstash 'integration-test-results'
-                    unstash 'app-apk'
-                    junit allowEmptyResults: true, testResults: 'app/build/test-results/testDebugUnitTest/**/*.xml'
-                    junit allowEmptyResults: true, testResults: 'app/build/outputs/androidTest-results/connected/**/*.xml'
-                    archiveArtifacts artifacts: 'app/build/outputs/apk/debug/app-debug.apk', fingerprint: true
-                }
+        steps {
+            script {
+                echo "--- Running in Builder Container ---"
+                sh 'chmod +x ./gradlew'
+                echo "Running Unit Tests and assembling the APKs..."
+                sh './gradlew clean testDebugUnitTest assembleDebug assembleAndroidTest'
+                echo "Stashing artifacts for later stages..."
+                stash name: 'app-apk', includes: 'app/build/outputs/apk/debug/app-debug.apk'
+                stash name: 'test-apk', includes: 'app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk'
+                stash name: 'unit-test-results', includes: 'app/build/test-results/testDebugUnitTest/**/*.xml'
             }
         }
     }
 
-    post {
-        always {
-            // ИСПРАВЛЕНИЕ 2: Убираем неверную обертку 'steps'. Шаг 'node' идет напрямую внутри 'always'.
-            node('') {
-                echo 'Pipeline finished. Cleaning up workspace...'
-                cleanWs()
+    stage('Run Integration Tests') {
+        agent {
+            docker {
+                image 'kayanoterse/my-android-tester:latest'
+                // ИСПРАВЛЕНИЕ (аналогично): Используем 'customWorkspace'.
+                customWorkspace '/app'
+                args '-v ${WORKSPACE}/.gradle:/root/.gradle'
             }
         }
-        success {
-            node('') {
-                echo 'Build and tests completed successfully!'
+        steps {
+            script {
+                echo "--- Running in Tester Container on Windows/WSL2 ---"
+                sh 'chmod +x ./gradlew'
+                unstash 'app-apk'
+                unstash 'test-apk'
+                echo "Starting emulator: ${params.AVD_NAME} with SwiftShader GPU"
+                sh "emulator -avd ${params.AVD_NAME} -no-audio -no-window -no-snapshot-load -no-boot-anim -gpu swiftshader_indirect &"
+                
+                timeout(time: 5, unit: 'MINUTES') {
+                    echo "Waiting for device to appear..."
+                    sh "adb wait-for-device"
+                    echo "Waiting for Android OS to fully boot..."
+                    sh "while [[ \"\$(adb shell getprop sys.boot_completed | tr -d '\\r')\" != \"1\" ]] ; do sleep 1; done"
+                    sh "adb shell input keyevent 82"
+                    echo "Emulator is ready."
+                }
+
+                echo 'Running Instrumentation Tests...'
+                sh "./gradlew :app:connectedDebugAndroidTest"
+                echo "Stashing integration test results..."
+                stash name: 'integration-test-results', includes: 'app/build/outputs/androidTest-results/connected/**/*.xml'
             }
         }
-        failure {
-            node('') {
-                echo 'Build failed! Check logs.'
+    }
+
+    stage('Publish Results & Artifacts') {
+        agent any
+        steps {
+            script {
+                echo "--- Publishing Results ---"
+                unstash 'unit-test-results'
+                unstash 'integration-test-results'
+                unstash 'app-apk'
+                junit allowEmptyResults: true, testResults: 'app/build/test-results/testDebugUnitTest/**/*.xml'
+                junit allowEmptyResults: true, testResults: 'app/build/outputs/androidTest-results/connected/**/*.xml'
+                archiveArtifacts artifacts: 'app/build/outputs/apk/debug/app-debug.apk', fingerprint: true
             }
+        }
+    }
+}
+
+post {
+    always {
+        // Этот блок синтаксически корректен.
+        node('') {
+            echo 'Pipeline finished. Cleaning up workspace...'
+            cleanWs()
+        }
+    }
+    success {
+        node('') {
+            echo 'Build and tests completed successfully!'
+        }
+    }
+    failure {
+        node('') {
+            echo 'Build failed! Check logs.'
         }
     }
 }
