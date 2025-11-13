@@ -1,16 +1,15 @@
 // ==================================================================
-// Jenkinsfile для CI/CD Android (v4 - Ручной checkout внутри контейнера)
+// Jenkinsfile для CI/CD Android (v5 - Scripted Docker вызов)
 // Автор: kayanoterse (с помощью AI)
-// Архитектура: 2 контейнера (builder, tester) из Docker Hub
-// Агент: Windows с Docker Desktop (WSL 2)
+// Решение: Обход бага docker-workflow на Windows через ручной вызов контейнера
 // ==================================================================
 pipeline {
+    // Глобальный агент нам не нужен, будем управлять им вручную
     agent none
 
-    // === ИСПРАВЛЕНИЕ 1: Отключаем автоматический checkout ===
     options {
-        // Это предотвратит попытку Jenkins сделать checkout на Windows-хосте в несуществующую папку.
-        skipDefaultCheckout(true)
+        // Эта опция нам больше не нужна, т.к. мы полностью контролируем checkout
+        // skipDefaultCheckout(true)
     }
 
     parameters {
@@ -22,24 +21,32 @@ pipeline {
         // СТАДИЯ 1: Сборка и Юнит-тесты
         // ==================================================================
         stage('Build & Unit Tests') {
-            agent {
-                docker {
-                    image 'kayanoterse/my-android-builder:latest'
-                    customWorkspace '/app'
-                }
-            }
+            // Указываем, что стадия будет выполняться на любом доступном агенте (нашем Windows-агенте),
+            // но сам Docker мы запустим внутри шагов.
+            agent any
             steps {
-                // === ИСПРАВЛЕНИЕ 2: Выполняем checkout вручную ВНУТРИ контейнера ===
-                echo 'Checking out source code inside the container...'
-                checkout scm
+                // Используем скриптовый блок для полного контроля
+                script {
+                    // Получаем образ из Docker Hub
+                    def builderImage = docker.image('kayanoterse/my-android-builder:latest')
+                    
+                    // Запускаем контейнер. Метод .inside() сам смонтирует рабочую директорию
+                    // в сгенерированный путь внутри контейнера, что обходит проблему с C:/
+                    builderImage.inside {
+                        echo 'Running inside builder container...'
+                        
+                        // Checkout теперь делается здесь. 'scm' автоматически берет настройки из Jenkins Job
+                        checkout scm
+                        
+                        echo 'Building APK and running Unit Tests...'
+                        sh 'chmod +x ./gradlew'
+                        sh './gradlew -g .gradle clean testDebugUnitTest assembleDebug'
 
-                echo 'Building APK and running Unit Tests...'
-                sh 'chmod +x ./gradlew'
-                sh './gradlew -g .gradle clean testDebugUnitTest assembleDebug'
-
-                echo 'Stashing artifacts for later stages...'
-                stash includes: 'app/build/outputs/apk/**/*.apk', name: 'apks'
-                stash includes: '**/build/test-results/testDebugUnitTest/**/*.xml', name: 'unit-test-results'
+                        echo 'Stashing artifacts for later stages...'
+                        stash includes: 'app/build/outputs/apk/**/*.apk', name: 'apks'
+                        stash includes: '**/build/test-results/testDebugUnitTest/**/*.xml', name: 'unit-test-results'
+                    }
+                }
             }
         }
 
@@ -47,59 +54,61 @@ pipeline {
         // СТАДИЯ 2: Инструментальные тесты
         // ==================================================================
         stage('Run Integration Tests') {
-            agent {
-                docker {
-                    image 'kayanoterse/my-android-tester:latest'
-                    customWorkspace '/app'
-                }
-            }
+            agent any
             steps {
-                // Контейнер новый, ему тоже нужен код.
-                echo 'Checking out source code inside the container...'
-                checkout scm
-
-                echo 'Unstashing APKs...'
-                unstash 'apks'
-
                 script {
-                    def emulatorSerial = 'emulator-5554'
-                    echo "Starting emulator: ${params.AVD_NAME}"
-                    sh "$ANDROID_HOME/emulator/emulator -avd ${params.AVD_NAME} -no-window -no-snapshot -no-audio -gpu swiftshader_indirect &"
+                    def testerImage = docker.image('kayanoterse/my-android-tester:latest')
 
-                    timeout(time: 5, unit: 'MINUTES') {
-                        echo "Waiting for device to appear..."
-                        sh "$ANDROID_HOME/platform-tools/adb wait-for-device"
+                    // В .inside() можно передать аргументы для команды docker run.
+                    // '--privileged' часто необходим для запуска вложенной виртуализации (эмулятора).
+                    testerImage.inside('--privileged') {
+                        echo 'Running inside tester container...'
+                        checkout scm
                         
-                        echo "Waiting for Android OS to fully boot..."
-                        def bootCompleted = false
-                        while (!bootCompleted) {
-                            def bootStatus = sh(script: "$ANDROID_HOME/platform-tools/adb -s ${emulatorSerial} shell getprop sys.boot_completed", returnStdout: true).trim()
-                            if (bootStatus == '1') { bootCompleted = true; echo "OS fully booted." } 
-                            else { echo "Device not ready yet. Waiting 10 seconds..."; sleep(time: 10, unit: 'SECONDS') }
+                        echo 'Unstashing APKs...'
+                        unstash 'apks'
+
+                        def emulatorSerial = 'emulator-5554'
+                        echo "Starting emulator: ${params.AVD_NAME}"
+                        sh "$ANDROID_HOME/emulator/emulator -avd ${params.AVD_NAME} -no-window -no-snapshot -no-audio -gpu swiftshader_indirect &"
+
+                        timeout(time: 5, unit: 'MINUTES') {
+                            echo "Waiting for device to appear..."
+                            sh "$ANDROID_HOME/platform-tools/adb wait-for-device"
+                            
+                            echo "Waiting for Android OS to fully boot..."
+                            def bootCompleted = false
+                            while (!bootCompleted) {
+                                def bootStatus = sh(script: "$ANDROID_HOME/platform-tools/adb -s ${emulatorSerial} shell getprop sys.boot_completed", returnStdout: true).trim()
+                                if (bootStatus == '1') { bootCompleted = true; echo "OS fully booted." } 
+                                else { echo "Device not ready yet. Waiting 10 seconds..."; sleep(time: 10, unit: 'SECONDS') }
+                            }
+                            
+                            sh "$ANDROID_HOME/platform-tools/adb -s ${emulatorSerial} shell input keyevent 82"
+                            echo "Emulator is ready for tests."
+                            sleep(time: 15, unit: 'SECONDS')
                         }
-                        
-                        sh "$ANDROID_HOME/platform-tools/adb -s ${emulatorSerial} shell input keyevent 82"
-                        echo "Emulator is ready for tests."
-                        sleep(time: 15, unit: 'SECONDS')
+
+                        echo 'Running Instrumentation Tests...'
+                        sh './gradlew -g .gradle :app:connectedDebugAndroidTest'
+
+                        echo 'Stashing instrumentation test results...'
+                        stash name: 'instrumentation-test-results', includes: 'app/build/outputs/androidTest-results/connected/**/*.xml'
                     }
-
-                    echo 'Running Instrumentation Tests...'
-                    sh './gradlew -g .gradle :app:connectedDebugAndroidTest'
-
-                    echo 'Stashing instrumentation test results...'
-                    stash name: 'instrumentation-test-results', includes: 'app/build/outputs/androidTest-results/connected/**/*.xml'
                 }
             }
         }
 
         // ==================================================================
-        // СТАДИЯ 3: Публикация результатов
+        // СТАДИЯ 3: Публикация результатов (остается без изменений)
         // ==================================================================
         stage('Publish Results & Artifacts') {
             agent any
             steps {
-                echo 'Publishing Test Reports & Artifacts...'
+                echo 'Cleaning up previous artifacts before unstashing...'
+                cleanWs() // Очищаем рабочую директорию, чтобы не было конфликтов
                 
+                echo 'Publishing Test Reports & Artifacts...'
                 unstash 'unit-test-results'
                 junit '**/build/test-results/testDebugUnitTest/**/*.xml'
                 
@@ -107,13 +116,12 @@ pipeline {
                 junit 'app/build/outputs/androidTest-results/connected/**/*.xml'
                 
                 unstash 'apks'
-                // Архивируем только главный APK
                 archiveArtifacts artifacts: 'app/build/outputs/apk/debug/app-debug.apk', fingerprint: true
             }
         }
     }
 
-    // POST-БЛОК остается без изменений
+    // POST-БЛОК остается без изменений, он уже использует правильный синтаксис
     post {
         always {
             echo 'Pipeline finished. Cleaning up emulator...'
@@ -124,7 +132,7 @@ pipeline {
                     }
                     echo 'Emulator stopped successfully.'
                 } catch (e) {
-                    echo "Could not stop the emulator, it might have already been stopped. Error: ${e.getMessage()}"
+                    echo "Could not stop the emulator, it might have already been stopped."
                 }
             }
         }
