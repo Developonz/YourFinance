@@ -114,8 +114,8 @@ class MoneyAccountIntegrationTest {
     fun createAccountAndFetchById() = runTest {
         val newAccount = MoneyAccount(
             _title = Title("Integration Test Account"),
-            startBalance = 1000.0,
-            balance = 1000.0,
+            startBalance = BigDecimal("1000.0"),
+            balance = BigDecimal("1000.0"),
             dateCreation = LocalDate.now()
         )
 
@@ -132,14 +132,14 @@ class MoneyAccountIntegrationTest {
 
     @Test
     fun updateAccount() = runTest {
-        val initialAccount = MoneyAccount(_title = Title("Initial"), startBalance = 100.0)
+        val initialAccount = MoneyAccount(_title = Title("Initial"), startBalance = BigDecimal("100.0"))
         val id = createMoneyAccountUseCase(initialAccount)
 
         val updatedAccount = MoneyAccount(
             id = id,
             _title = Title("Updated Title"),
-            startBalance = 150.0,
-            balance = 120.0,
+            startBalance = BigDecimal("150.0"),
+            balance = BigDecimal("120.0"),
             dateCreation = initialAccount.dateCreation,
             default = false
         )
@@ -155,7 +155,7 @@ class MoneyAccountIntegrationTest {
 
     @Test
     fun deleteAccount() = runTest {
-        val account = MoneyAccount(_title = Title("To Delete"), startBalance = 50.0)
+        val account = MoneyAccount(_title = Title("To Delete"), startBalance = BigDecimal("50.0"))
         val id = createMoneyAccountUseCase(account)
         val accountToDelete = account.copy(id = id)
 
