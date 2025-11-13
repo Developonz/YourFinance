@@ -81,10 +81,10 @@ pipeline {
     // ==================================================================
     post {
         always {
-            // Мы не можем использовать 'agent' здесь.
-            // Вместо этого мы используем 'node', чтобы получить агента для выполнения шагов.
             steps {
-                node {
+                // ИЗМЕНЕНИЕ: Используем node('') вместо node {}.
+                // Это явно указывает "выделить любой свободный агент".
+                node('') {
                     echo 'Pipeline finished. Cleaning up workspace...'
                     cleanWs()
                 }
@@ -92,14 +92,14 @@ pipeline {
         }
         success {
             steps {
-                node {
+                node('') {
                     echo 'Build and tests completed successfully!'
                 }
             }
         }
         failure {
             steps {
-                node {
+                node('') {
                     echo 'Build failed! Check logs.'
                 }
             }
