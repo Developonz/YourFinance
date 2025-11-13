@@ -10,7 +10,10 @@ pipeline {
             agent {
                 docker {
                     image 'kayanoterse/my-android-builder:latest'
-                    args '-w /app -v ${WORKSPACE}/.gradle:/root/.gradle'
+                    // ИСПРАВЛЕНИЕ 1: Используем правильный параметр 'workingDir' для установки рабочей директории.
+                    // Убираем '-w /app' из 'args'.
+                    workingDir '/app'
+                    args '-v ${WORKSPACE}/.gradle:/root/.gradle'
                 }
             }
             steps {
@@ -31,7 +34,9 @@ pipeline {
             agent {
                 docker {
                     image 'kayanoterse/my-android-tester:latest'
-                    args '-w /app -v ${WORKSPACE}/.gradle:/root/.gradle'
+                    // ИСПРАВЛЕНИЕ 1 (аналогично): Задаем рабочую директорию правильным способом.
+                    workingDir '/app'
+                    args '-v ${WORKSPACE}/.gradle:/root/.gradle'
                 }
             }
             steps {
@@ -76,32 +81,22 @@ pipeline {
         }
     }
 
-    // ==================================================================
-    // ИЗМЕНЕНИЯ ВНЕСЕНЫ ЗДЕСЬ
-    // ==================================================================
     post {
         always {
-            steps {
-                // ИЗМЕНЕНИЕ: Используем node('') вместо node {}.
-                // Это явно указывает "выделить любой свободный агент".
-                node('') {
-                    echo 'Pipeline finished. Cleaning up workspace...'
-                    cleanWs()
-                }
+            // ИСПРАВЛЕНИЕ 2: Убираем неверную обертку 'steps'. Шаг 'node' идет напрямую внутри 'always'.
+            node('') {
+                echo 'Pipeline finished. Cleaning up workspace...'
+                cleanWs()
             }
         }
         success {
-            steps {
-                node('') {
-                    echo 'Build and tests completed successfully!'
-                }
+            node('') {
+                echo 'Build and tests completed successfully!'
             }
         }
         failure {
-            steps {
-                node('') {
-                    echo 'Build failed! Check logs.'
-                }
+            node('') {
+                echo 'Build failed! Check logs.'
             }
         }
     }
