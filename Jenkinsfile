@@ -1,8 +1,8 @@
 // ==================================================================
-// Jenkinsfile для CI/CD Android (v18 - Полное двухуровневое кэширование)
+// Jenkinsfile для CI/CD Android (v19 - Фикс конфликта блокировок кэша)
 // Автор: kayanoterse (с помощью AI)
-// Решение: Добавлен второй Docker-том 'gradle-build-cache' для
-// сохранения результатов выполненных задач (Build Cache).
+// Решение: 1. Удалена задача 'clean', несовместимая с кэшированием.
+// 2. Добавлен флаг '--no-parallel' для гарантии однопоточной работы.
 // ==================================================================
 pipeline {
     agent any
@@ -15,7 +15,7 @@ pipeline {
         stage('Build & Unit Tests') {
             steps {
                 echo 'Running build and unit tests with persistent cache...'
-                // ИСПРАВЛЕНИЕ: Добавляем второй том и флаг --build-cache
+                // ИСПРАВЛЕНИЕ: Убрали 'clean', добавили '--no-parallel'
                 bat '''
                     docker run --rm ^
                     -v "%WORKSPACE%:/app" ^
@@ -23,7 +23,7 @@ pipeline {
                     -v gradle-build-cache:/tmp/.gradle-project-cache ^
                     -w /app ^
                     my-android-builder:latest ^
-                    sh -c "sed 's/\\r$//' ./gradlew > ./gradlew.sh && export GRADLE_USER_HOME=/root/.gradle && sh ./gradlew.sh --build-cache --no-daemon --project-cache-dir /tmp/.gradle-project-cache clean testDebugUnitTest assembleDebug"
+                    sh -c "sed 's/\\r$//' ./gradlew > ./gradlew.sh && export GRADLE_USER_HOME=/root/.gradle && sh ./gradlew.sh --build-cache --no-daemon --no-parallel --project-cache-dir /tmp/.gradle-project-cache testDebugUnitTest assembleDebug"
                 '''
                 
                 echo 'Stashing artifacts...'
@@ -36,7 +36,7 @@ pipeline {
             steps {
                 unstash 'apks'
                 echo 'Running instrumentation tests with persistent cache...'
-                // ИСПРАВЛЕНИЕ: Используем оба тома и здесь
+                // ИСПРАВЛЕНИЕ: Добавили '--no-parallel'
                 bat """
                     docker run --rm --privileged ^
                     -v "%WORKSPACE%:/app" ^
@@ -55,7 +55,7 @@ pipeline {
                             echo 'Unlocking screen...' && \\
                             \$ANDROID_HOME/platform-tools/adb shell input keyevent 82 && \\
                             echo 'Running tests...' && \\
-                            sh ./gradlew.sh --build-cache --no-daemon --project-cache-dir /tmp/.gradle-project-cache :app:connectedDebugAndroidTest"
+                            sh ./gradlew.sh --build-cache --no-daemon --no-parallel --project-cache-dir /tmp/.gradle-project-cache :app:connectedDebugAndroidTest"
                 """
 
                 echo 'Stashing instrumentation test results...'
