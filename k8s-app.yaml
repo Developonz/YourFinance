@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: android-web-deployment
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: android-web
+  template:
+    metadata:
+      labels:
+        app: android-web
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:alpine
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        # 1. Монтируем наш ConfigMap 
+        - name: html-volume
+          mountPath: /usr/share/nginx/html/index.html
+          subPath: index.html
+        # 2. Монтируем папку с APK
+        - name: apk-volume
+          mountPath: /usr/share/nginx/html/apk
+      volumes:
+      - name: html-volume
+        configMap:
+          name: html-page # Ссылаемся на созданный вручную ConfigMap
+      - name: apk-volume
+        hostPath:
+          path: /data/apk
+          type: Directory
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: android-web-service
+spec:
+  type: NodePort
+  selector:
+    app: android-web
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+      nodePort: 30080

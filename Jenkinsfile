@@ -1,9 +1,3 @@
-// ==================================================================
-// Jenkinsfile для CI/CD Android (v20 - Финальная рабочая версия)
-// Автор: kayanoterse (с помощью AI)
-// Решение: Объединение многострочной sh-команды в одну строку
-// для корректной обработки Windows bat.
-// ==================================================================
 pipeline {
     agent any
 
@@ -35,7 +29,6 @@ pipeline {
             steps {
                 unstash 'apks'
                 echo 'Running instrumentation tests with persistent cache...'
-                // ИСПРАВЛЕНИЕ: Вся команда sh -c "..." теперь в одной строке.
                 bat """
                     docker run --rm --privileged ^
                     -v "%WORKSPACE%:/app" ^
@@ -73,6 +66,7 @@ pipeline {
         }
         success {
             echo 'Build and all tests completed successfully!'
+            bat 'copy app\\build\\outputs\\apk\\debug\\app-debug.apk C:\\k8s-shared-data\\app-debug.apk'
         }
         failure {
             echo 'Pipeline failed. Check the logs for details.'

@@ -1,0 +1,13 @@
+minikube start
+
+minikube mount "C:\k8s-shared-data":/data/apk
+
+kubectl create configmap html-page --from-file=index.html
+
+cd C:\Users\zapru\Desktop\temp\YourFinance
+
+kubectl apply -f k8s-app.yaml
+
+kubectl get pods
+
+minikube service android-web-service
